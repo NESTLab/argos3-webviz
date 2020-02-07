@@ -1,5 +1,5 @@
-# argos-network-visualizer
-A visualizer plugin for ARGOS for controlling it over the network.
+# argos3-network-API
+A visualizer plugin for [ARGoS](https://www.argos-sim.info/) for controlling it over the network.
 
 ## Installation
 
