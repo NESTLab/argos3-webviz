@@ -121,3 +121,9 @@ INSTALL(TARGETS ${TARGET_NAME}
 ADD_CUSTOM_TARGET(uninstall
     "${CMAKE_COMMAND}" -P "${CMAKE_SOURCE_DIR}/cmake/uninstall.cmake"
 )
+
+
+#
+# Add examples / Tests to build
+#
+ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tests/controllers)
