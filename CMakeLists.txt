@@ -1,46 +1,52 @@
 #
 # Set minimum required version
 #
-cmake_minimum_required(VERSION 3.0.2)
-project(network-api)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
+PROJECT(network-api)
+
+#
+# Set C++ Version 17
+#
+SET(CMAKE_CXX_STANDARD 17)
+
 #
 # Deactivate RPATH for MacOSX
 #
-set(CMAKE_MACOSX_RPATH 0)
+SET(CMAKE_MACOSX_RPATH 0)
 
 #
 # Set CMake policies to select wanted behaviors
 #
 # Use new policies introduced up to this version
-cmake_policy(VERSION 2.8.12)
-if(POLICY CMP0042)
-    cmake_policy(SET CMP0042 NEW)
-endif(POLICY CMP0042)
+CMAKE_POLICY(VERSION 2.8.12)
+IF(POLICY CMP0042)
+    CMAKE_POLICY(SET CMP0042 NEW)
+ENDIF(POLICY CMP0042)
 
 #
 # add path where cmake files must be searched for
 #
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 #
 # Make sure we are under Unix
 #
-if(NOT UNIX)
-    message(FATAL_ERROR "Network-API compiles only under UNIX, sorry!")
-endif(NOT UNIX)
+IF(NOT UNIX)
+    MESSAGE(FATAL_ERROR "Network-API compiles only under UNIX, sorry!")
+ENDIF(NOT UNIX)
 
 #
 # Add all the CMake modules we need
 #
-include(DownloadProject)
+INCLUDE(DownloadProject)
 # Set build options
-include(${CMAKE_SOURCE_DIR}/cmake/ARGoSBuildOptions.cmake)
+INCLUDE(${CMAKE_SOURCE_DIR}/cmake/ARGoSBuildOptions.cmake)
 # Set compiler flags
-include(${CMAKE_SOURCE_DIR}/cmake/ARGoSBuildFlags.cmake)
+INCLUDE(${CMAKE_SOURCE_DIR}/cmake/ARGoSBuildFlags.cmake)
 # Check for libraries
-include(${CMAKE_SOURCE_DIR}/cmake/ARGoSBuildChecks.cmake)
+INCLUDE(${CMAKE_SOURCE_DIR}/cmake/ARGoSBuildChecks.cmake)
 # Set up CPack
-include(${CMAKE_SOURCE_DIR}/cmake/ARGoSPackaging.cmake)
+INCLUDE(${CMAKE_SOURCE_DIR}/cmake/ARGoSPackaging.cmake)
 
 
 #
@@ -52,64 +58,66 @@ download_project(PROJ     uWebSockets
     UPDATE_DISCONNECTED 1
 )
 
+EXECUTE_PROCESS(
+    WORKING_DIRECTORY ${uWebSockets_SOURCE_DIR}/uSockets
+    COMMAND make)
+
 #
 # Setup Include paths
 #
-include_directories(
+INCLUDE_DIRECTORIES(
     ${CMAKE_SOURCE_DIR} 
     ${CMAKE_BINARY_DIR}
     ${uWebSockets_SOURCE_DIR}/src/
     ${uWebSockets_SOURCE_DIR}/uSockets/src/
 )
 
-
 #
-# Headers
+# create variables
 #
-set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI 
-    ${CMAKE_SOURCE_DIR}/src/networkapi_server.h)
-
-#
-# Source files
-#
-set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI
-    ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI}
-    ${CMAKE_SOURCE_DIR}/src/networkapi_server.cpp)
-
-#
-# Build Network API
-#
-add_library(argos3plugin_${ARGOS_BUILD_FOR}_networkapi SHARED
-    ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI})
-
-# Run with -std=c++17 
-set_target_properties(argos3plugin_${ARGOS_BUILD_FOR}_networkapi PROPERTIES
-    CXX_STANDARD 17
-    CXX_EXTENSIONS OFF
+SET(SOURCE_FILES
+    ${CMAKE_SOURCE_DIR}/src/networkapi_server.cpp
 )
 
-target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_networkapi 
+SET(HEADER_FILES 
+    ${CMAKE_SOURCE_DIR}/src/networkapi_server.h
+)
+
+SET(REQUIRED_LIBRARIES
     argos3plugin_${ARGOS_BUILD_FOR}_entities
     ${ARGOS_NETWORKAPI_LIBRARIES}
+    ${uWebSockets_SOURCE_DIR}/uSockets/uSockets.a
+)
+
+SET(TARGET_NAME
+    argos3plugin_${ARGOS_BUILD_FOR}_networkapi
 )
 
 #
-# Install in system
+# Build Network-API Plugin
 #
+ADD_LIBRARY(${TARGET_NAME} SHARED ${SOURCE_FILES})
 
-# install(DIRECTORY icons textures models DESTINATION include/argos3/plugins/simulator/visualizations/network-api)
-install(FILES ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI} 
-    DESTINATION include/argos3/plugins/simulator/visualizations/network-api)
-install(TARGETS argos3plugin_${ARGOS_BUILD_FOR}_networkapi
+TARGET_LINK_LIBRARIES(${TARGET_NAME} ${REQUIRED_LIBRARIES})
+
+SET_TARGET_PROPERTIES( 
+  ${TARGET_NAME}  
+PROPERTIES 
+  VERSION 0.1.0
+  PUBLIC_HEADER "${HEADER_FILES}"
+  ARCHIVE_OUTPUT_DIRECTORY "lib/argos3"
+  LIBRARY_OUTPUT_DIRECTORY "lib/argos3"
+  OUTPUT_NAME ${TARGET_NAME}
+)
+
+INSTALL(TARGETS ${TARGET_NAME}
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib/argos3
     ARCHIVE DESTINATION lib/argos3
+    # Use if we want to publish header files
+    # PUBLIC_HEADER DESTINATION include/argos3/plugins/simulator/visualizations/network-api
 )
 
-
-# #
-# # Add Uninstall Target
-# #
-add_custom_target(uninstall
+ADD_CUSTOM_TARGET(uninstall
     "${CMAKE_COMMAND}" -P "${CMAKE_SOURCE_DIR}/cmake/uninstall.cmake"
 )

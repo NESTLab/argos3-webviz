@@ -1,4 +1,6 @@
 #include "networkapi_server.h"
+
+#include "uWS/App.h"
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/core/simulator/space/space.h>
 
@@ -31,6 +33,33 @@ namespace argos {
          /* Use normal clock */
          m_tStepFunction = &CNetworkAPI::NormalStep;
       }
+
+      /* Start Webserver with Multiple Threads, using multiple threads */
+      std::vector<std::thread *> vecWebThreads(std::thread::hardware_concurrency());
+
+      LOG << "Starting " << vecWebThreads.size() << " threads for WebServer\n";
+      
+      std::transform(vecWebThreads.begin(), vecWebThreads.end(), vecWebThreads.begin(), [](std::thread *t) {
+         return new std::thread([]() {
+
+            uWS::App().get("/*", [](auto *res, auto *req) {
+                  res->end("Hello world!");
+                  std::cout << "Sent response from thread " << std::this_thread::get_id() << "\n";
+            }).listen(3000, [](auto *token) {
+                  if (token) {
+                     std::cout << "Thread " << std::this_thread::get_id() << " listening on port " << 3000 << "\n";
+                  } else {
+                     std::cout << "Thread " << std::this_thread::get_id() << " failed to listen on port 3000" << "\n";
+                  }
+            }).run();
+
+         });
+      });
+
+      std::for_each(vecWebThreads.begin(), vecWebThreads.end(), [](std::thread *t) {
+         t->join();
+      });
+      LOG << "END\n";
    }
 
    /****************************************/
