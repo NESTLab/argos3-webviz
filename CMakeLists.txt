@@ -52,7 +52,6 @@ download_project(PROJ     uWebSockets
     UPDATE_DISCONNECTED 1
 )
 
-
 #
 # Setup Include paths
 #
@@ -66,9 +65,9 @@ include_directories(
 
 #
 # Headers
-# 
+#
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI 
-    ${CMAKE_SOURCE_DIR}/include/networkapi_server.h)
+    ${CMAKE_SOURCE_DIR}/src/networkapi_server.h)
 
 #
 # Source files
@@ -111,25 +110,6 @@ install(TARGETS argos3plugin_${ARGOS_BUILD_FOR}_networkapi
 # #
 # # Add Uninstall Target
 # #
-# CONFIGURE_FILE(
-#   "${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake"
-#   IMMEDIATE @ONLY)
-# ADD_CUSTOM_TARGET(uninstall
-#   "${CMAKE_COMMAND}" -P "${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake")
-
-
-# # ########### Add uninstall target ###############
-
-# add_custom_command(
-#     WORKING_DIR ${CMAKE_BINARY_DIR}
-#     COMMAND "xargs rm < install_manifest.txt"
-# )
 add_custom_target(uninstall
     "${CMAKE_COMMAND}" -P "${CMAKE_SOURCE_DIR}/cmake/uninstall.cmake"
 )
-
-# CONFIGURE_FILE(
-#   "${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake"
-#   IMMEDIATE @ONLY)
-# ADD_CUSTOM_TARGET(uninstall
-#   "${CMAKE_COMMAND}" -P "${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake") 

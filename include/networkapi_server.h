@@ -1,4 +1,0 @@
-#ifndef NETWORKAPI_SERVER_H
-#define NETWORKAPI_SERVER_H
-
-#endif
