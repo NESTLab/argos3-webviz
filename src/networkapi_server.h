@@ -2,7 +2,7 @@
 #define NETWORKAPI_SERVER_H
 
 namespace argos {
-   class CNetworkAPI;
+  class CNetworkAPI;
 }
 
 #include <argos3/core/simulator/visualization/visualization.h>
@@ -10,56 +10,53 @@ namespace argos {
 
 namespace argos {
 
-   class CNetworkAPI : public CVisualization {
-
+  class CNetworkAPI : public CVisualization {
    public:
+    CNetworkAPI() {}
 
-      CNetworkAPI();
+    virtual ~CNetworkAPI() {}
 
-      virtual ~CNetworkAPI() {}
+    virtual void Reset() {}
 
-      virtual void Init(TConfigurationNode& t_tree) {}
+    virtual void Destroy() {}
 
-      virtual void Reset() {}
+    virtual void Execute();
 
-      virtual void Destroy() {}
-
-      virtual void Execute();
-      
-   private:
-
-      /** Performs a simulation step the normal way */
-      void NormalStep();
-
-      /** Performs a simulation step respecting the real-time constraint */
-      void RealTimeStep();
+    void Init(TConfigurationNode& t_tree);
 
    private:
+    /** Performs a simulation step the normal way */
+    void NormalStep();
 
-      typedef void (CNetworkAPI::*TStepFunction)();
+    /** Performs a simulation step respecting the real-time constraint */
+    void RealTimeStep();
 
    private:
+    typedef void (CNetworkAPI::*TStepFunction)();
 
-      /** Pointer to step function */
-      TStepFunction m_tStepFunction;
+   private:
+    /** HTTP Port to Listen to */
+    UInt16 m_unPort;
 
-      /** The length of a clock tick */
-      ::timeval m_tStepClockTime;
+    /** Pointer to step function */
+    TStepFunction m_tStepFunction;
 
-      /** The starting time of a clock tick */
-      ::timeval m_tStepStartTime;
+    /** The length of a clock tick */
+    ::timeval m_tStepClockTime;
 
-      /** The end time of a clock tick*/
-      ::timeval m_tStepEndTime;
+    /** The starting time of a clock tick */
+    ::timeval m_tStepStartTime;
 
-      /** The elapsed time between start and end of a clock tick */
-      ::timeval m_tStepElapsedTime;
+    /** The end time of a clock tick*/
+    ::timeval m_tStepEndTime;
 
-      /** The time to wait to complete a clock tick */
-      ::timeval m_tStepWaitTime;
+    /** The elapsed time between start and end of a clock tick */
+    ::timeval m_tStepElapsedTime;
 
-   };
+    /** The time to wait to complete a clock tick */
+    ::timeval m_tStepWaitTime;
+  };
 
-}
+}  // namespace argos
 
 #endif
