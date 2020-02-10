@@ -1,14 +1,14 @@
 #include "networkapi_server.h"
+#include "helpers/utils.h"
 
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/core/simulator/space/space.h>
-#include "uWS/App.h"
-
-#include <unistd.h>
 
 namespace argos {
+
   /****************************************/
   /****************************************/
+
   static Real TVTimeToHumanReadable(::timeval &t_time) {
     return static_cast<Real>(t_time.tv_sec) +
            static_cast<Real>(t_time.tv_usec * 10e-6);
@@ -16,10 +16,11 @@ namespace argos {
 
   /****************************************/
   /****************************************/
+
   void CNetworkAPI::Init(TConfigurationNode &t_tree) {
     /* Parse options from the XML */
-    GetNodeAttributeOrDefault(t_tree, "port", this->m_unPort,
-                              argos::UInt16(3000));
+    GetNodeAttributeOrDefault(
+      t_tree, "port", this->m_unPort, argos::UInt16(3000));
 
     /* Set the pointer to the step function
      */
@@ -37,53 +38,115 @@ namespace argos {
        */
       m_tStepFunction = &CNetworkAPI::NormalStep;
     }
-
-    /* Start Webserver with Multiple
-     * Threads, using multiple threads */
-    std::vector<std::thread *> vecWebThreads(
-        std::thread::hardware_concurrency());
-
-    LOG << "Starting " << vecWebThreads.size() << " threads for WebServer\n";
-
-    std::transform(
-        vecWebThreads.begin(), vecWebThreads.end(), vecWebThreads.begin(),
-        [this](std::thread *t) {
-          return new std::thread([this]() {
-            uWS::App()
-                .get("/*",
-                     [](auto *res, auto *req) { res->end("Hello world!"); })
-                .listen(m_unPort,
-                        [this](auto *token) {
-                          if (token) {
-                            std::cout << "Thread " << std::this_thread::get_id()
-                                      << " listening on port " << m_unPort
-                                      << "\n";
-                          } else {
-                            std::cout << "Thread " << std::this_thread::get_id()
-                                      << " failed to listen on port "
-                                      << m_unPort << "\n";
-                          }
-                        })
-                .run();
-          });
-        });
-
-    std::for_each(vecWebThreads.begin(), vecWebThreads.end(),
-                  [](std::thread *t) { t->join(); });
   }
 
   /****************************************/
   /****************************************/
 
   void CNetworkAPI::Execute() {
-    /* Main cycle */
-    while (!m_cSimulator.IsExperimentFinished()) {
-      (this->*m_tStepFunction)();
+    try {
+      LOG << "Starting " << m_vecWebThreads.size() << " threads for WebServer"
+          << std::endl;
+
+      /* Start Webserver */
+      std::transform(
+        m_vecWebThreads.begin(),
+        m_vecWebThreads.end(),
+        m_vecWebThreads.begin(),
+        [this](std::thread *t) {
+          return new std::thread([this]() {
+            auto app = uWS::App();
+
+            /* Setup WebSockets */
+            app.ws<m_sPerSocketData>(
+              "/*",
+              {/* Settings */
+               .compression = uWS::SHARED_COMPRESSOR,
+               .maxPayloadLength = 16 * 1024 * 1024,
+               .idleTimeout = 10,
+               .maxBackpressure = 1 * 1024 * 1204,
+               /* Handlers */
+               .open =
+                 [this](auto *ws, auto *req) {
+                   /*
+                    * making every connection subscribe to the
+                    * "broadcast" topic
+                    */
+                   ws->subscribe("broadcast");
+                   /*
+                    * Add to list of clients connected
+                    */
+                   m_vecWebSocketClients.push_back(ws);
+                 },
+               .message =
+                 [](auto *ws, std::string_view message, uWS::OpCode opCode) {
+                   std::cout << "broadcast message" << std::endl;
+                   /* broadcast every single message it got */
+                   ws->publish("broadcast", message, opCode);
+                 },
+               .close =
+                 [this](auto *ws, int code, std::string_view message) {
+                   /* it automatically unsubscribe from any topic here */
+
+                   /*
+                    * Remove from the list of all clients connected
+                    */
+                   EraseFromVector(m_vecWebSocketClients, ws);
+                 }});
+
+            /* Setup routes */
+            app.get(
+              "/*", [](auto *res, auto *req) { res->end("Hello world!"); });
+
+            /* Start listening to Port */
+            app
+              .listen(
+                m_unPort,
+                [this](auto *token) {
+                  if (token) {
+                    std::cout << "Thread " << std::this_thread::get_id()
+                              << " listening on port " << m_unPort << "\n";
+                  } else {
+                    std::cout << "Thread " << std::this_thread::get_id()
+                              << " failed to listen on port" << m_unPort
+                              << "\n";
+                  }
+                })
+              .run();
+          });
+        });
+
+      /* Main cycle */
+      while (!m_cSimulator.IsExperimentFinished()) {
+        (this->*m_tStepFunction)();
+        BroadcastMessage("Step");
+      }
+
+      /* The experiment is finished */
+      m_cSimulator.GetLoopFunctions().PostExperiment();
+
+      std::for_each(
+        m_vecWebThreads.begin(), m_vecWebThreads.end(), [](std::thread *t) {
+          t->join();
+        });
+    } catch (CARGoSException &ex) {
+      THROW_ARGOSEXCEPTION_NESTED("Error while executing the experiment.", ex);
     }
-    /* The experiment is finished */
-    m_cSimulator.GetLoopFunctions().PostExperiment();
     LOG.Flush();
     LOGERR.Flush();
+  }
+
+  /****************************************/
+  /****************************************/
+
+  void CNetworkAPI::BroadcastMessage(std::string_view message) {
+    std::for_each(
+      m_vecWebSocketClients.begin(),
+      m_vecWebSocketClients.end(),
+      [message](auto *ws) {
+        //                                            Compress = true
+        ws->publish("broadcast", message, uWS::OpCode::TEXT, true);
+      });
   }
 
   /****************************************/
@@ -132,16 +195,19 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  REGISTER_VISUALIZATION(CNetworkAPI, "network-api",
-                         "Prajankya [contact@prajankya.me]", "1.0",
-                         "Network API to render over network in clientside.",
-                         " -- .\n",
-                         "It allows the user to watch and modify the "
-                         "simulation as it's running in an\n"
-                         "intuitive way.\n\n"
-                         "REQUIRED XML CONFIGURATION\n\n"
-                         "  <visualization>\n"
-                         "    <network-api />\n"
-                         "  </visualization>\n\n"
-                         "OPTIONAL XML CONFIGURATION\n\n");
+  REGISTER_VISUALIZATION(
+    CNetworkAPI,
+    "network-api",
+    "Prajankya [contact@prajankya.me]",
+    "1.0",
+    "Network API to render over network in clientside.",
+    " -- .\n",
+    "It allows the user to watch and modify the "
+    "simulation as it's running in an\n"
+    "intuitive way.\n\n"
+    "REQUIRED XML CONFIGURATION\n\n"
+    "  <visualization>\n"
+    "    <network-api />\n"
+    "  </visualization>\n\n"
+    "OPTIONAL XML CONFIGURATION\n\n");
 }  // namespace argos

@@ -3,3 +3,8 @@ IndentWidth: 2
 FixNamespaceComments: true
 NamespaceIndentation: All
 ColumnLimit: 80
+AlignAfterOpenBracket: AlwaysBreak
+BinPackArguments: false
+BinPackParameters: false
+ObjCBlockIndentWidth: 4
+ContinuationIndentWidth: 2

@@ -109,7 +109,10 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-    <network-api port=4000/>
+    <network-api port=4000
+        models_dir="/include/argos3/plugins/simulator/visualizations/qt-opengl/models/"
+        textures_dir="/include/argos3/plugins/simulator/visualizations/qt-opengl/textures/"
+      />
   </visualization>
 
 </argos-configuration>
