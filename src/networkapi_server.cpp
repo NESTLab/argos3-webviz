@@ -3,6 +3,7 @@
 
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/core/simulator/space/space.h>
+#include <chrono>
 
 namespace argos {
 
@@ -33,10 +34,13 @@ namespace argos {
       timerclear(&m_tStepClockTime);
       m_tStepClockTime.tv_usec = 1e6 * CPhysicsEngine::GetSimulationClockTick();
       ::gettimeofday(&m_tStepStartTime, NULL);
+
+      m_tGameState.bFastForward = true;
     } else {
       /* Use normal clock
        */
       m_tStepFunction = &CNetworkAPI::NormalStep;
+      m_tGameState.bFastForward = false;
     }
   }
 
@@ -53,8 +57,8 @@ namespace argos {
         m_vecWebThreads.begin(),
         m_vecWebThreads.end(),
         m_vecWebThreads.begin(),
-        [this](std::thread *t) {
-          return new std::thread([this]() {
+        [&](std::thread *t) {
+          return new std::thread([&]() {
             auto app = uWS::App();
 
             /* Setup WebSockets */
@@ -67,12 +71,13 @@ namespace argos {
                .maxBackpressure = 1 * 1024 * 1204,
                /* Handlers */
                .open =
-                 [this](auto *ws, auto *req) {
+                 [&](auto *ws, auto *req) {
                    /*
                     * making every connection subscribe to the
-                    * "broadcast" topic
+                    * "broadcast" and "events" topics
                     */
                    ws->subscribe("broadcast");
+                   ws->subscribe("events");
                    /*
                     * Add to list of clients connected
                     */
@@ -80,12 +85,11 @@ namespace argos {
                  },
                .message =
                  [](auto *ws, std::string_view message, uWS::OpCode opCode) {
-                   std::cout << "broadcast message" << std::endl;
                    /* broadcast every single message it got */
                    ws->publish("broadcast", message, opCode);
                  },
                .close =
-                 [this](auto *ws, int code, std::string_view message) {
+                 [&](auto *ws, int code, std::string_view message) {
                    /* it automatically unsubscribe from any topic here */
 
                    /*
@@ -95,21 +99,27 @@ namespace argos {
                  }});
 
             /* Setup routes */
-            app.get(
-              "/*", [](auto *res, auto *req) { res->end("Hello world!"); });
+            app.get("/start", [&](auto *res, auto *req) {
+              res->end("Hello world!");
+              PlayExperiment();
+            });
 
             /* Start listening to Port */
             app
               .listen(
                 m_unPort,
-                [this](auto *token) {
+                [&](auto *token) {
                   if (token) {
                     std::cout << "Thread " << std::this_thread::get_id()
                               << " listening on port " << m_unPort << "\n";
+
+                    /* Set experiment state */
+                    m_tGameState.eState = EXPERIMENT_INITIALIZED;
                   } else {
-                    std::cout << "Thread " << std::this_thread::get_id()
-                              << " failed to listen on port" << m_unPort
-                              << "\n";
+                    std::cerr
+                      << "[BUG] CNetworkAPI::Execute() failed to listen "
+                      << "on port " << m_unPort << std::endl;
+                    return;
                   }
                 })
               .run();
@@ -117,10 +127,9 @@ namespace argos {
         });
 
       /* Main cycle */
-      while (!m_cSimulator.IsExperimentFinished()) {
-        (this->*m_tStepFunction)();
-        BroadcastMessage("Step");
-      }
+      // while (!m_cSimulator.IsExperimentFinished()) {
+      //   (this->*m_tStepFunction)();
+      // }
 
       /* The experiment is finished */
       m_cSimulator.GetLoopFunctions().PostExperiment();
@@ -134,6 +143,82 @@ namespace argos {
     }
     LOG.Flush();
     LOGERR.Flush();
+  }
+
+  /****************************************/
+  /****************************************/
+
+  void CNetworkAPI::PlayExperiment() {
+    /* Make sure we are in the right state */
+    if (
+      m_tGameState.eState != EXPERIMENT_INITIALIZED &&
+      m_tGameState.eState != EXPERIMENT_PAUSED) {
+      LOGERR << "[BUG] CNetworkAPI::PlayExperiment() called in wrong state: "
+             << m_tGameState.eState << std::endl;
+      LOGERR.Flush();
+      return;
+    }
+
+    /* Call OpenGL widget */
+    // m_pcOpenGLWidget->PlayExperiment();
+
+    /* Change state and emit signals */
+    m_tGameState.eState = EXPERIMENT_PLAYING;
+
+    EmitEvent("Experiment started");
+    // m_sGameState BroadcastMessage("{\"status\":\"playing\"}");
+  }
+
+  /****************************************/
+  /****************************************/
+
+  void CNetworkAPI::EmitEvent(std::string_view event_name) {
+    std::stringstream strJson;
+
+    // TODO : Build a JSON to string marshal function
+    strJson << "{";
+    strJson << "\"event\":";
+    strJson << event_name;
+    strJson << "\",\"state\":\"";
+    strJson << EExperimentStateToString(this->m_tGameState.eState);
+    strJson << "\",\"isFastForward\":";
+    strJson << (this->m_tGameState.bFastForward ? "true" : "false");
+    strJson << "}";
+
+    std::string strJs = strJson.str();
+
+    std::for_each(
+      m_vecWebSocketClients.begin(),
+      m_vecWebSocketClients.end(),
+      [strJs](auto *ws) {
+        //                                            Compress = true
+        ws->publish("events", strJs, uWS::OpCode::TEXT, true);
+      });
+  }
+
+  /****************************************/
+  /****************************************/
+
+  void CNetworkAPI::BroadcastState() {
+    std::stringstream strJson;
+
+    // TODO : Build a JSON to string marshal function
+    strJson << "{";
+    strJson << "\"state\":\"";
+    strJson << EExperimentStateToString(this->m_tGameState.eState);
+    strJson << "\",\"isFastForward\":";
+    strJson << (this->m_tGameState.bFastForward ? "true" : "false");
+    strJson << "}";
+
+    std::string strJs = strJson.str();
+
+    std::for_each(
+      m_vecWebSocketClients.begin(),
+      m_vecWebSocketClients.end(),
+      [strJs](auto *ws) {
+        //                                            Compress = true
+        ws->publish("broadcast", strJs, uWS::OpCode::TEXT, true);
+      });
   }
 
   /****************************************/
