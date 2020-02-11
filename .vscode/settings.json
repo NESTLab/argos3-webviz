@@ -1,0 +1,16 @@
+{
+    "editor.renderWhitespace": "all",
+    "editor.renderControlCharacters": true,
+    "editor.renderLineHighlight": "all",
+    "files.associations": {
+        "CMakeLists.txt": "cmake",
+        "*.argos": "xml",
+    },
+    "C_Cpp.errorSquiggles": "Enabled",
+    "C_Cpp.intelliSenseEngine": "Default",
+    "C_Cpp.intelliSenseEngineFallback": "Enabled",
+    "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, FixNamespaceComments: true,NamespaceIndentation: All, ColumnLimit: 80 }",
+    "editor.formatOnSave": true,
+    "git.enableCommitSigning": true,
+    "editor.wordWrapColumn": 80
+}

@@ -9,12 +9,16 @@ Run the following in a folder of your choice (you can delete it once installed)
 git clone --recursive https://github.com/NESTLab/argos3-network-api
 mkdir argos3-network-api/build
 cd argos3-network-api/build
-
+cmake ..
+make -j 12
+sudo make install
 ```
 
 ## Usage
+A test project can be run from `root folder` of this project,
 
-```cpp
+```bash
+argos3 -c tests/diffusion_10.argos
 ```
 
 ## Contributing
