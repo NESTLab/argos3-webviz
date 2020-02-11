@@ -1,6 +1,9 @@
 #include "networkapi_server.h"
 #include "helpers/utils.h"
 
+#define LOGURU_WITH_STREAMS 1
+#include <loguru.cpp>
+
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/core/simulator/space/space.h>
 #include <chrono>
@@ -19,6 +22,9 @@ namespace argos {
   /****************************************/
 
   void CNetworkAPI::Init(TConfigurationNode &t_tree) {
+    /* Setting up Logging */
+    LOG_SCOPE_FUNCTION(INFO);
+
     /* Parse options from the XML */
     GetNodeAttributeOrDefault(
       t_tree, "port", this->m_unPort, argos::UInt16(3000));
@@ -49,8 +55,8 @@ namespace argos {
 
   void CNetworkAPI::Execute() {
     try {
-      LOG << "Starting " << m_vecWebThreads.size() << " threads for WebServer"
-          << std::endl;
+      LOG_S(INFO) << "Starting " << m_vecWebThreads.size()
+                  << " threads for WebServer";
 
       /* Start Webserver */
       std::transform(
@@ -71,13 +77,27 @@ namespace argos {
                .maxBackpressure = 1 * 1024 * 1204,
                /* Handlers */
                .open =
-                 [&](auto *ws, auto *req) {
-                   /*
-                    * making every connection subscribe to the
-                    * "broadcast" and "events" topics
-                    */
-                   ws->subscribe("broadcast");
-                   ws->subscribe("events");
+                 [&](auto *ws, uWS::HttpRequest *req) {
+                   /* Selectivly subscribe to different channels */
+                   if (req->getQuery().size() > 0) {
+                     std::vector<std::string_view> vecQueries =
+                       SplitSV(req->getQuery(), ",");
+
+                     std::for_each(
+                       vecQueries.begin(),
+                       vecQueries.end(),
+                       [ws](std::string_view channel) {
+                         ws->subscribe(channel);
+                       });
+                   } else {
+                     /*
+                      * making every connection subscribe to the
+                      * "broadcast" and "events" topics
+                      */
+                     ws->subscribe("broadcast");
+                     ws->subscribe("events");
+                   }
+
                    /*
                     * Add to list of clients connected
                     */
@@ -110,15 +130,15 @@ namespace argos {
                 m_unPort,
                 [&](auto *token) {
                   if (token) {
-                    std::cout << "Thread " << std::this_thread::get_id()
-                              << " listening on port " << m_unPort << "\n";
+                    LOG_S(INFO) << "Thread listening on port " << m_unPort;
 
                     /* Set experiment state */
                     m_tGameState.eState = EXPERIMENT_INITIALIZED;
                   } else {
-                    std::cerr
-                      << "[BUG] CNetworkAPI::Execute() failed to listen "
-                      << "on port " << m_unPort << std::endl;
+                    ABORT_F(
+                      "CNetworkAPI::Execute() failed to listen on port "
+                      "%d",
+                      m_unPort);
                     return;
                   }
                 })
@@ -127,9 +147,10 @@ namespace argos {
         });
 
       /* Main cycle */
-      // while (!m_cSimulator.IsExperimentFinished()) {
-      //   (this->*m_tStepFunction)();
-      // }
+      while (!m_cSimulator.IsExperimentFinished()) {
+        (this->*m_tStepFunction)();
+        this->BroadcastState();
+      }
 
       /* The experiment is finished */
       m_cSimulator.GetLoopFunctions().PostExperiment();
@@ -141,8 +162,6 @@ namespace argos {
     } catch (CARGoSException &ex) {
       THROW_ARGOSEXCEPTION_NESTED("Error while executing the experiment.", ex);
     }
-    LOG.Flush();
-    LOGERR.Flush();
   }
 
   /****************************************/
@@ -153,9 +172,9 @@ namespace argos {
     if (
       m_tGameState.eState != EXPERIMENT_INITIALIZED &&
       m_tGameState.eState != EXPERIMENT_PAUSED) {
-      LOGERR << "[BUG] CNetworkAPI::PlayExperiment() called in wrong state: "
-             << m_tGameState.eState << std::endl;
-      LOGERR.Flush();
+      LOG_S(ERROR) << "CNetworkAPI::PlayExperiment() called in wrong state: "
+                   << m_tGameState.eState << std::endl;
+
       return;
     }
 
@@ -177,7 +196,7 @@ namespace argos {
 
     // TODO : Build a JSON to string marshal function
     strJson << "{";
-    strJson << "\"event\":";
+    strJson << "\"event\":\"";
     strJson << event_name;
     strJson << "\",\"state\":\"";
     strJson << EExperimentStateToString(this->m_tGameState.eState);
@@ -216,8 +235,12 @@ namespace argos {
       m_vecWebSocketClients.begin(),
       m_vecWebSocketClients.end(),
       [strJs](auto *ws) {
-        //                                            Compress = true
-        ws->publish("broadcast", strJs, uWS::OpCode::TEXT, true);
+        try {
+          //                                            Compress = true
+          ws->publish("broadcast", strJs, uWS::OpCode::TEXT, true);
+        } catch (const std::exception &e) {
+          LOG_S(ERROR) << e.what() << '\n';
+        }
       });
   }
 
@@ -262,14 +285,14 @@ namespace argos {
        * end */
       ::gettimeofday(&m_tStepEndTime, NULL);
     } else {
-      LOGERR << "[WARNING] "
-                "Clock tick "
-                "took "
-             << TVTimeToHumanReadable(m_tStepElapsedTime)
-             << " sec, more "
-                "than the "
-                "expected "
-             << TVTimeToHumanReadable(m_tStepClockTime) << " sec." << std::endl;
+      LOG_S(WARNING) << "Clock tick "
+                        "took "
+                     << TVTimeToHumanReadable(m_tStepElapsedTime)
+                     << " sec, more "
+                        "than the "
+                        "expected "
+                     << TVTimeToHumanReadable(m_tStepClockTime) << " sec."
+                     << std::endl;
     }
     /* Set the step start time to whatever
      * the step end time is */

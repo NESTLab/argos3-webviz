@@ -66,10 +66,11 @@ EXECUTE_PROCESS(
 # Setup Include paths
 #
 INCLUDE_DIRECTORIES(
-    ${CMAKE_SOURCE_DIR} 
+    ${CMAKE_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}
     ${uWebSockets_SOURCE_DIR}/src/
     ${uWebSockets_SOURCE_DIR}/uSockets/src/
+    ${CMAKE_SOURCE_DIR}/src/libs/loguru
 )
 
 #
