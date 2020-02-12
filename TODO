@@ -1,2 +1,6 @@
 [ ] Enable SSL
 [ ] Documenting Usage (like port,default values) in CLI (Registration of viz)
+[ ] Add ping pong to WebSockets to enable testing connection
+[ ] Add Logs to websockets
+[ ] Checking compatibility with simulator for IsRealTimeClock()
+[ ] Implement Fast forward

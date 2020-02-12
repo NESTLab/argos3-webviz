@@ -1,4 +1,5 @@
 #include "networkapi_server.h"
+#include "helpers/Timer.h"
 #include "helpers/utils.h"
 
 #define LOGURU_WITH_STREAMS 1
@@ -6,17 +7,15 @@
 
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/core/simulator/space/space.h>
-#include <chrono>
 
 namespace argos {
 
   /****************************************/
   /****************************************/
 
-  static Real TVTimeToHumanReadable(::timeval &t_time) {
-    return static_cast<Real>(t_time.tv_sec) +
-           static_cast<Real>(t_time.tv_usec * 10e-6);
-  }
+  CNetworkAPI::CNetworkAPI()
+      : m_vecWebThreads(std::thread::hardware_concurrency()),
+        m_bFastForwarding(false) {}
 
   /****************************************/
   /****************************************/
@@ -28,26 +27,6 @@ namespace argos {
     /* Parse options from the XML */
     GetNodeAttributeOrDefault(
       t_tree, "port", this->m_unPort, argos::UInt16(3000));
-
-    /* Set the pointer to the step function
-     */
-    if (m_cSimulator.IsRealTimeClock()) {
-      /* Use real-time
-       * clock and set
-       * time structures
-       */
-      m_tStepFunction = &CNetworkAPI::RealTimeStep;
-      timerclear(&m_tStepClockTime);
-      m_tStepClockTime.tv_usec = 1e6 * CPhysicsEngine::GetSimulationClockTick();
-      ::gettimeofday(&m_tStepStartTime, NULL);
-
-      m_tGameState.bFastForward = true;
-    } else {
-      /* Use normal clock
-       */
-      m_tStepFunction = &CNetworkAPI::NormalStep;
-      m_tGameState.bFastForward = false;
-    }
   }
 
   /****************************************/
@@ -77,7 +56,7 @@ namespace argos {
                     LOG_S(INFO) << "Thread listening on port " << m_unPort;
 
                     /* Set experiment state */
-                    m_tGameState.eState = EXPERIMENT_INITIALIZED;
+                    m_eExperimentState = EXPERIMENT_INITIALIZED;
                   } else {
                     ABORT_F(
                       "CNetworkAPI::Execute() failed to listen on port "
@@ -93,16 +72,15 @@ namespace argos {
       /* Main cycle */
       // while (!m_cSimulator.IsExperimentFinished()) {
       //   (this->*m_tStepFunction)();
-      //   this->BroadcastState();
       // }
 
-      /* The experiment is finished */
-      m_cSimulator.GetLoopFunctions().PostExperiment();
+      // /* The experiment is finished */
+      // m_cSimulator.GetLoopFunctions().PostExperiment();
 
-      std::for_each(
-        m_vecWebThreads.begin(), m_vecWebThreads.end(), [](std::thread *t) {
-          t->join();
-        });
+      // std::for_each(
+      //   m_vecWebThreads.begin(), m_vecWebThreads.end(), [](std::thread *t) {
+      //     t->join();
+      //   });
     } catch (CARGoSException &ex) {
       THROW_ARGOSEXCEPTION_NESTED("Error while executing the experiment.", ex);
     }
@@ -190,22 +168,134 @@ namespace argos {
   void CNetworkAPI::PlayExperiment() {
     /* Make sure we are in the right state */
     if (
-      m_tGameState.eState != EXPERIMENT_INITIALIZED &&
-      m_tGameState.eState != EXPERIMENT_PAUSED) {
+      m_eExperimentState != EXPERIMENT_INITIALIZED &&
+      m_eExperimentState != EXPERIMENT_PAUSED) {
       LOG_S(ERROR) << "CNetworkAPI::PlayExperiment() called in wrong state: "
-                   << m_tGameState.eState << std::endl;
+                   << m_eExperimentState << std::endl;
 
       return;
     }
+    /* Change state and emit signals */
+    m_eExperimentState = EXPERIMENT_PLAYING;
 
-    /* Call OpenGL widget */
-    // m_pcOpenGLWidget->PlayExperiment();
+    m_bFastForwarding = false;
+    // if (nTimerId != -1) killTimer(nTimerId);
+    // nTimerId = startTimer(CPhysicsEngine::GetSimulationClockTick() *
+    // 1000.0f);
+
+    if (m_eExperimentState == EXPERIMENT_INITIALIZED) {
+      /* The experiment has just been started */
+      EmitEvent("Experiment started");
+    }
+    /* Change state and emit signals */
+    m_eExperimentState = EXPERIMENT_PLAYING;
+    EmitEvent("Experiment playing");
+  }
+
+  /****************************************/
+  /****************************************/
+
+  void CNetworkAPI::FastForwardExperiment() {
+    /* Make sure we are in the right state */
+    if (
+      m_eExperimentState != EXPERIMENT_INITIALIZED &&
+      m_eExperimentState != EXPERIMENT_PAUSED) {
+      LOG_S(ERROR) << "CNetworkAPI::FastForwardExperiment() called in "
+                      "wrong state: "
+                   << m_eExperimentState << std::endl;
+      return;
+    }
+
+    m_bFastForwarding = true;
+    // if (nTimerId != -1) killTimer(nTimerId);
+    // nTimerId = startTimer(1);
+
+    if (m_eExperimentState == EXPERIMENT_INITIALIZED) {
+      /* The experiment has just been started */
+      EmitEvent("Experiment started");
+    }
+    /* Change state and emit signals */
+    m_eExperimentState = EXPERIMENT_FAST_FORWARDING;
+    EmitEvent("Experiment fast-forwarding");
+  }
+
+  /****************************************/
+  /****************************************/
+
+  void CNetworkAPI::PauseExperiment() {
+    /* Make sure we are in the right state */
+    if (
+      m_eExperimentState != EXPERIMENT_PLAYING &&
+      m_eExperimentState != EXPERIMENT_FAST_FORWARDING) {
+      LOG_S(ERROR) << "CNetworkAPI::PauseExperiment() called in wrong "
+                      "state: "
+                   << m_eExperimentState << std::endl;
+      return;
+    }
+
+    m_bFastForwarding = false;
+    // if (nTimerId != -1) killTimer(nTimerId);
+    // nTimerId = -1;
 
     /* Change state and emit signals */
-    m_tGameState.eState = EXPERIMENT_PLAYING;
+    m_eExperimentState = EXPERIMENT_PAUSED;
+    EmitEvent("Experiment paused");
+  }
 
-    EmitEvent("Experiment started");
-    // m_sGameState BroadcastMessage("{\"status\":\"playing\"}");
+  /****************************************/
+  /****************************************/
+
+  void CNetworkAPI::StepExperiment() {
+    /* Make sure we are in the right state */
+    if (
+      m_eExperimentState != EXPERIMENT_INITIALIZED &&
+      m_eExperimentState != EXPERIMENT_PAUSED) {
+      LOG_S(ERROR) << "CNetworkAPI::StepExperiment() called in wrong "
+                      "state: "
+                   << m_eExperimentState << std::endl;
+      return;
+    }
+
+    // TODO: Implement Fast forwarding step
+    // if (!m_cSimulator.IsExperimentFinished()) {
+    //   m_cSimulator.UpdateSpace();
+    //   if (m_bFastForwarding) {
+    //     /* Frame dropping happens only in fast-forward */
+    //     m_nFrameCounter = m_nFrameCounter % m_nDrawFrameEvery;
+    //     if (m_nFrameCounter == 0) {
+    //       // update();
+    //     }
+    //     ++m_nFrameCounter;
+    //   } else {
+    //     // update();
+    //   }
+    //   emit StepDone(m_cSpace.GetSimulationClock());
+    // } else {
+    //   PauseExperiment();
+    //   emit ExperimentDone();
+    // }
+
+    if (!m_cSimulator.IsExperimentFinished()) {
+      m_cSimulator.UpdateSpace();
+
+      /* Change state and emit signals */
+      m_eExperimentState = EXPERIMENT_PAUSED;
+      EmitEvent("Experiment paused");
+    } else {
+      PauseExperiment();
+      EmitEvent("Experiment done");
+    }
+  }
+
+  /****************************************/
+  /****************************************/
+
+  void CNetworkAPI::ResetExperiment() {
+    m_cSimulator.Reset();
+    // delete m_pcGroundTexture;
+    // if (m_bUsingFloorTexture) delete m_pcFloorTexture;
+    // initializeGL();
+    // update();
   }
 
   /****************************************/
@@ -219,9 +309,9 @@ namespace argos {
     strJson << "\"event\":\"";
     strJson << event_name;
     strJson << "\",\"state\":\"";
-    strJson << EExperimentStateToString(this->m_tGameState.eState);
+    strJson << EExperimentStateToString(this->m_eExperimentState);
     strJson << "\",\"isFastForward\":";
-    strJson << (this->m_tGameState.bFastForward ? "true" : "false");
+    strJson << (this->m_bFastForwarding ? "true" : "false");
     strJson << "}";
 
     std::string strJs = strJson.str();
@@ -238,15 +328,28 @@ namespace argos {
   /****************************************/
   /****************************************/
 
+  // jrd::time::Timer timer(true);
+  //     // Kill some time
+  //     for (int i = 0; i < 1000000000; i++)
+  //         ;
+  //     std::cout << "Elapsed time: " << std::fixed << timer << "ms\n";
+  //     timer.Reset();
+  //     // Kill some more time
+  //     for (int i = 0; i < 10000000; i++)
+  //         ;
+  //     auto elapsed = timer.Elapsed();
+  //     std::cout << "Elapsed time: " << std::fixed << elapsed.count() <<
+  //     "ms\n";
+
   void CNetworkAPI::BroadcastState() {
     std::stringstream strJson;
 
     // TODO : Build a JSON to string marshal function
     strJson << "{";
     strJson << "\"state\":\"";
-    strJson << EExperimentStateToString(this->m_tGameState.eState);
+    strJson << EExperimentStateToString(this->m_eExperimentState);
     strJson << "\",\"isFastForward\":";
-    strJson << (this->m_tGameState.bFastForward ? "true" : "false");
+    strJson << (this->m_bFastForwarding ? "true" : "false");
     strJson << "}";
 
     std::string strJs = strJson.str();
@@ -275,49 +378,6 @@ namespace argos {
         //                                            Compress = true
         ws->publish("broadcast", message, uWS::OpCode::TEXT, true);
       });
-  }
-
-  /****************************************/
-  /****************************************/
-
-  void CNetworkAPI::NormalStep() { m_cSimulator.UpdateSpace(); }
-
-  /****************************************/
-  /****************************************/
-
-  void CNetworkAPI::RealTimeStep() {
-    /* m_tStepStartTime has already been set
-     */
-    m_cSimulator.UpdateSpace();
-    /* Take the time now */
-    ::gettimeofday(&m_tStepEndTime, NULL);
-    /* Calculate the elapsed time */
-    timersub(&m_tStepEndTime, &m_tStepStartTime, &m_tStepElapsedTime);
-    /* If the elapsed time is lower than the
-     * tick length, wait */
-    if (!timercmp(&m_tStepElapsedTime, &m_tStepClockTime, >)) {
-      /* Calculate the
-       * waiting time */
-      timersub(&m_tStepClockTime, &m_tStepElapsedTime, &m_tStepWaitTime);
-      /* Wait */
-      ::usleep(m_tStepWaitTime.tv_sec * 1e6 + m_tStepWaitTime.tv_usec);
-      /* Get the new step
-       * end */
-      ::gettimeofday(&m_tStepEndTime, NULL);
-    } else {
-      LOG_S(WARNING) << "Clock tick "
-                        "took "
-                     << TVTimeToHumanReadable(m_tStepElapsedTime)
-                     << " sec, more "
-                        "than the "
-                        "expected "
-                     << TVTimeToHumanReadable(m_tStepClockTime) << " sec."
-                     << std::endl;
-    }
-    /* Set the step start time to whatever
-     * the step end time is */
-    m_tStepStartTime.tv_sec = m_tStepEndTime.tv_sec;
-    m_tStepStartTime.tv_usec = m_tStepEndTime.tv_usec;
   }
 
   /****************************************/
