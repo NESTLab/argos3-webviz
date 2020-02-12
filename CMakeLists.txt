@@ -48,7 +48,6 @@ INCLUDE(${CMAKE_SOURCE_DIR}/cmake/ARGoSBuildChecks.cmake)
 # Set up CPack
 INCLUDE(${CMAKE_SOURCE_DIR}/cmake/ARGoSPackaging.cmake)
 
-
 #
 # Download uWebSockets library from github
 #
@@ -61,6 +60,18 @@ download_project(PROJ     uWebSockets
 EXECUTE_PROCESS(
     WORKING_DIRECTORY ${uWebSockets_SOURCE_DIR}/uSockets
     COMMAND make)
+
+#
+# Download nlohmann/json library from github
+#
+download_project(PROJ     nlohmann_json
+GIT_REPOSITORY      https://github.com/nlohmann/json.git
+GIT_TAG             v3.7.3
+UPDATE_DISCONNECTED 1
+)
+## To disable tests inside JSON
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+add_subdirectory(${nlohmann_json_SOURCE_DIR})
 
 #
 # Setup Include paths
@@ -88,6 +99,7 @@ SET(REQUIRED_LIBRARIES
     argos3plugin_${ARGOS_BUILD_FOR}_entities
     ${ARGOS_NETWORKAPI_LIBRARIES}
     ${uWebSockets_SOURCE_DIR}/uSockets/uSockets.a
+    nlohmann_json::nlohmann_json
 )
 
 SET(TARGET_NAME

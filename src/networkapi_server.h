@@ -7,6 +7,7 @@ namespace argos {
 
 #include <argos3/core/simulator/visualization/visualization.h>
 #include <sys/time.h>
+#include <nlohmann/json.hpp>
 #include <thread>
 #include "App.h"
 
@@ -81,6 +82,12 @@ namespace argos {
 
     /** Broadcasts game state to all the connected clients */
     void BroadcastState();
+
+    /** Function to setup all routes and webhooks */
+    void SetupWebApp(uWS::App& c_MyApp);
+
+    /** Function to send JSON over HttpResponse */
+    void SendJSON(uWS::HttpResponse<false>* pc_res, nlohmann::json c_json_data);
 
     /** Performs a simulation step the normal way */
     void NormalStep();

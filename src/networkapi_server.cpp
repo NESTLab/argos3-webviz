@@ -65,71 +65,15 @@ namespace argos {
         m_vecWebThreads.begin(),
         [&](std::thread *t) {
           return new std::thread([&]() {
-            auto app = uWS::App();
+            auto cMyApp = uWS::App();
 
-            /* Setup WebSockets */
-            app.ws<m_sPerSocketData>(
-              "/*",
-              {/* Settings */
-               .compression = uWS::SHARED_COMPRESSOR,
-               .maxPayloadLength = 16 * 1024 * 1024,
-               .idleTimeout = 10,
-               .maxBackpressure = 1 * 1024 * 1204,
-               /* Handlers */
-               .open =
-                 [&](auto *ws, uWS::HttpRequest *req) {
-                   /* Selectivly subscribe to different channels */
-                   if (req->getQuery().size() > 0) {
-                     std::vector<std::string_view> vecQueries =
-                       SplitSV(req->getQuery(), ",");
-
-                     std::for_each(
-                       vecQueries.begin(),
-                       vecQueries.end(),
-                       [ws](std::string_view channel) {
-                         ws->subscribe(channel);
-                       });
-                   } else {
-                     /*
-                      * making every connection subscribe to the
-                      * "broadcast" and "events" topics
-                      */
-                     ws->subscribe("broadcast");
-                     ws->subscribe("events");
-                   }
-
-                   /*
-                    * Add to list of clients connected
-                    */
-                   m_vecWebSocketClients.push_back(ws);
-                 },
-               .message =
-                 [](auto *ws, std::string_view message, uWS::OpCode opCode) {
-                   /* broadcast every single message it got */
-                   ws->publish("broadcast", message, opCode);
-                 },
-               .close =
-                 [&](auto *ws, int code, std::string_view message) {
-                   /* it automatically unsubscribe from any topic here */
-
-                   /*
-                    * Remove from the list of all clients connected
-                    */
-                   EraseFromVector(m_vecWebSocketClients, ws);
-                 }});
-
-            /* Setup routes */
-            app.get("/start", [&](auto *res, auto *req) {
-              res->end("Hello world!");
-              PlayExperiment();
-            });
-
+            this->SetupWebApp(cMyApp);
             /* Start listening to Port */
-            app
+            cMyApp
               .listen(
                 m_unPort,
-                [&](auto *token) {
-                  if (token) {
+                [&](auto *pc_token) {
+                  if (pc_token) {
                     LOG_S(INFO) << "Thread listening on port " << m_unPort;
 
                     /* Set experiment state */
@@ -147,10 +91,10 @@ namespace argos {
         });
 
       /* Main cycle */
-      while (!m_cSimulator.IsExperimentFinished()) {
-        (this->*m_tStepFunction)();
-        this->BroadcastState();
-      }
+      // while (!m_cSimulator.IsExperimentFinished()) {
+      //   (this->*m_tStepFunction)();
+      //   this->BroadcastState();
+      // }
 
       /* The experiment is finished */
       m_cSimulator.GetLoopFunctions().PostExperiment();
@@ -162,6 +106,82 @@ namespace argos {
     } catch (CARGoSException &ex) {
       THROW_ARGOSEXCEPTION_NESTED("Error while executing the experiment.", ex);
     }
+  }
+
+  /****************************************/
+  /****************************************/
+
+  void CNetworkAPI::SetupWebApp(uWS::App &c_MyApp) {
+    /* Setup WebSockets */
+    c_MyApp.ws<m_sPerSocketData>(
+      "/*",
+      {/* Settings */
+       .compression = uWS::SHARED_COMPRESSOR,
+       .maxPayloadLength = 16 * 1024 * 1024,
+       .idleTimeout = 10,
+       .maxBackpressure = 1 * 1024 * 1204,
+       /* Handlers */
+       .open =
+         [&](auto *pc_ws, uWS::HttpRequest *pc_req) {
+           /* Selectivly subscribe to different channels */
+           if (pc_req->getQuery().size() > 0) {
+             std::vector<std::string_view> vecQueries =
+               SplitSV(pc_req->getQuery(), ",");
+
+             std::for_each(
+               vecQueries.begin(),
+               vecQueries.end(),
+               [pc_ws](std::string_view strv_channel) {
+                 pc_ws->subscribe(strv_channel);
+               });
+           } else {
+             /*
+              * making every connection subscribe to the
+              * "broadcast" and "events" topics
+              */
+             pc_ws->subscribe("broadcast");
+             pc_ws->subscribe("events");
+           }
+
+           /*
+            * Add to list of clients connected
+            */
+           m_vecWebSocketClients.push_back(pc_ws);
+         },
+       .message =
+         [](auto *pc_ws, std::string_view strv_message, uWS::OpCode e_opCode) {
+           /* broadcast every single message it got */
+           pc_ws->publish("broadcast", strv_message, e_opCode);
+         },
+       .close =
+         [&](auto *pc_ws, int n_code, std::string_view strv_message) {
+           /* it automatically unsubscribe from any topic here */
+
+           /*
+            * Remove from the list of all clients connected
+            */
+           EraseFromVector(m_vecWebSocketClients, pc_ws);
+         }});
+
+    /* Setup routes */
+    c_MyApp.get("/start", [&](auto *pc_res, auto *pc_req) {
+      PlayExperiment();
+      nlohmann::json cMyJson;
+      cMyJson["status"] = "Started Playing";
+      this->SendJSON(pc_res, cMyJson);
+    });
+  }
+
+  /****************************************/
+  /****************************************/
+
+  void CNetworkAPI::SendJSON(
+    uWS::HttpResponse<false> *pc_res, nlohmann::json c_json_data) {
+    pc_res->cork([&]() {
+      pc_res->writeHeader("Access-Control-Allow-Origin", "*");
+      pc_res->writeHeader("Content-Type", "application/json");
+      pc_res->end(c_json_data.dump());
+    });
   }
 
   /****************************************/
