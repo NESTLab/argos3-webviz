@@ -15,11 +15,7 @@ namespace NetworkAPI {
     typedef std::chrono::milliseconds TMilliseconds;
 
    public:
-    explicit Timer(bool b_run = false) {
-      if (b_run) {
-        Reset();
-      }
-    }
+    Timer() { Reset(); }
 
     /****************************************/
     /****************************************/

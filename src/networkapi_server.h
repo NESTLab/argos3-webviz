@@ -10,6 +10,7 @@ namespace argos {
 #include <nlohmann/json.hpp>
 #include <thread>
 #include "App.h"
+#include "helpers/Timer.h"
 
 namespace argos {
 
@@ -74,6 +75,9 @@ namespace argos {
     /** Function to send JSON over HttpResponse */
     void SendJSON(uWS::HttpResponse<false>* pc_res, nlohmann::json c_json_data);
 
+    /** Function to run simulation step in realtime */
+    void RealTimeStep();
+
    private:
     enum EExperimentState {
       EXPERIMENT_INITIALIZED = 0,
@@ -120,6 +124,12 @@ namespace argos {
 
     /** True when fast forwarding */
     bool m_bFastForwarding;
+
+    /** Timer used for the loop */
+    NetworkAPI::Timer m_cTimer;
+
+    /** Milliseconds required for one tick of simulator */
+    std::chrono::milliseconds m_cSimulatorTickMillis;
   };
 
 }  // namespace argos
