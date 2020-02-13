@@ -1,31 +1,24 @@
-#ifndef ARGOS_NETWORKAPI_SERVER_H
-#define ARGOS_NETWORKAPI_SERVER_H
+#ifndef ARGOS_NETWORKAPI_H
+#define ARGOS_NETWORKAPI_H
 
-namespace argos {
-  class CNetworkAPI;
-}
 #include <argos3/core/simulator/visualization/visualization.h>
 #include <sys/time.h>
+#include <atomic>
 #include <loguru.hpp>
+#include <thread>
 #include "helpers/Timer.h"
-
 #include "networkapi_webserver.h"
 
 namespace argos {
-
   class CNetworkAPI : public CVisualization {
    public:
-    virtual ~CNetworkAPI() {}
-
-    virtual void Reset() {}
-
-    virtual void Destroy() {}
-
     CNetworkAPI();
+    ~CNetworkAPI();
 
-    virtual void Execute();
-
-    virtual void Init(TConfigurationNode& t_tree);
+    void Reset();
+    void Destroy();
+    void Execute();
+    void Init(TConfigurationNode& t_tree);
 
     /**
      * Plays the experiment.
@@ -35,49 +28,27 @@ namespace argos {
     void PlayExperiment();
 
     /**
-     * Fast forwards the experiment.
-     * Internally sets a timer whose period is 1ms.
-     */
-    void FastForwardExperiment();
-
-    /**
      * Pauses the experiment.
-     * The experiment can be resumed with PlayExperiment() or
-     * FastForwardExperiment().
+     * The experiment can be resumed with PlayExperiment()
      */
     void PauseExperiment();
 
-    /**
-     * Executes one experiment time step.
-     */
+    /** Executes one experiment time step. */
     void StepExperiment();
 
-    /**
-     * Resets the state of the experiment to its state right after
-     * initialization.
-     */
+    /** Resets the state of the experiment to its state right after
+     * initialization.*/
     void ResetExperiment();
-
-   private:
-    /** Function to run simulation step in realtime */
-    void RealTimeStep();
 
    private:
     enum EExperimentState {
       EXPERIMENT_INITIALIZED = 0,
       EXPERIMENT_PLAYING,
-      EXPERIMENT_FAST_FORWARDING,
-      EXPERIMENT_PAUSED,
-      EXPERIMENT_SUSPENDED,
-      EXPERIMENT_DONE
+      EXPERIMENT_PAUSED
     };
 
-   private:
-    /* Experiment State */
-    EExperimentState m_eExperimentState;
-
-    /** True when fast forwarding */
-    bool m_bFastForwarding;
+    /* Experiment State, is used by many threads, so atomic */
+    std::atomic<EExperimentState> m_eExperimentState;
 
     /** Timer used for the loop */
     NetworkAPI::Timer m_cTimer;
@@ -86,7 +57,16 @@ namespace argos {
     std::chrono::milliseconds m_cSimulatorTickMillis;
 
     /** Webserver */
-    NetworkAPI::CWebServer m_cWebServer;
+    NetworkAPI::CWebServer* m_cWebServer;
+
+    /** THread to run simulation steps */
+    std::thread m_cSimulationThread;
+
+    /** Function to run simulation step in realtime */
+    void RealTimeStep();
+
+    /** Thread to run in Simulation thread */
+    void SimulationThreadFunction();
   };
 
 }  // namespace argos

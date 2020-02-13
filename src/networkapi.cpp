@@ -12,8 +12,10 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  CNetworkAPI::CNetworkAPI()
-      : m_bFastForwarding(false), m_cTimer(), m_cWebServer() {}
+  CNetworkAPI::CNetworkAPI() : m_cTimer() {
+    m_cSimulationThread =
+      std::thread(&CNetworkAPI::SimulationThreadFunction, this);
+  }
 
   /****************************************/
   /****************************************/
@@ -22,36 +24,60 @@ namespace argos {
     /* Setting up Logging */
     LOG_SCOPE_FUNCTION(INFO);
 
+    unsigned short unPort;
     /* Parse options from the XML */
-    // GetNodeAttributeOrDefault(
-    //   t_tree, "port", this->m_unPort, argos::UInt16(3000));
+    GetNodeAttributeOrDefault(t_tree, "port", unPort, argos::UInt16(3000));
+
+    /* Initialize Webserver */
+    m_cWebServer = new argos::NetworkAPI::CWebServer(this, unPort);
   }
 
   /****************************************/
   /****************************************/
 
-  void CNetworkAPI::Execute() { m_cWebServer.Start(); }
+  void CNetworkAPI::Execute() {
+    std::thread t2([&]() { m_cWebServer->Start(); });
+    t2.join();
+    m_cSimulationThread.join();
 
-  /****************************************/
-  /****************************************/
+    // Finish all..
+  }
 
-  void CNetworkAPI::RealTimeStep() {
-    /* Run one step */
-    m_cSimulator.UpdateSpace();
+  void CNetworkAPI::SimulationThreadFunction() {
+    while (true) {
+      if (m_eExperimentState == EXPERIMENT_PLAYING) {
+        if (!m_cSimulator.IsExperimentFinished()) {
+          /* Run one step */
+          m_cSimulator.UpdateSpace();
 
-    /* Take the time now */
-    m_cTimer.Stop();
+          /* Take the time now */
+          m_cTimer.Stop();
 
-    /* If the elapsed time is lower than the tick length, wait */
-    if (m_cTimer.Elapsed() < m_cSimulatorTickMillis) {
-      /* Sleep for the difference duration */
-      std::this_thread::sleep_for(m_cSimulatorTickMillis - m_cTimer.Elapsed());
-      /* Restart Timer */
-      m_cTimer.Start();
-    } else {
-      LOG_S(WARNING) << "Clock tick took " << m_cTimer
-                     << " sec, more than the expected ";
-      //  << m_cSimulatorTickMillis << " sec." << std::endl;
+          /* If the elapsed time is lower than the tick length, wait */
+          if (m_cTimer.Elapsed() < m_cSimulatorTickMillis) {
+            /* Sleep for the difference duration */
+            std::this_thread::sleep_for(
+              m_cSimulatorTickMillis - m_cTimer.Elapsed());
+            /* Restart Timer */
+            m_cTimer.Start();
+          } else {
+            LOG_S(WARNING) << "Clock tick took " << m_cTimer
+                           << " sec, more than the expected "
+                           << m_cSimulatorTickMillis.count() << " sec. "
+                           << "Recovering in next cycle." << std::endl;
+            m_cTimer.Start();
+          }
+        } else {
+          LOG_S(INFO) << "Experiment finished\n";
+          // EmitEvent("Experiment done");
+
+          /* The experiment is finished */
+          m_cSimulator.GetLoopFunctions().PostExperiment();
+          ResetExperiment();
+        }
+      } else {
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
+      }
     }
   }
 
@@ -71,8 +97,6 @@ namespace argos {
     /* Change state and emit signals */
     m_eExperimentState = EXPERIMENT_PLAYING;
 
-    m_bFastForwarding = false;
-
     m_cSimulatorTickMillis = std::chrono::milliseconds(
       (long int)(CPhysicsEngine::GetSimulationClockTick() * 1000.0f));
     m_cTimer.Start();
@@ -84,37 +108,6 @@ namespace argos {
     /* Change state and emit signals */
     m_eExperimentState = EXPERIMENT_PLAYING;
     // EmitEvent("Experiment playing");
-
-    while (!m_cSimulator.IsExperimentFinished()) {
-      RealTimeStep();
-    }
-  }
-
-  /****************************************/
-  /****************************************/
-
-  void CNetworkAPI::FastForwardExperiment() {
-    /* Make sure we are in the right state */
-    if (
-      m_eExperimentState != EXPERIMENT_INITIALIZED &&
-      m_eExperimentState != EXPERIMENT_PAUSED) {
-      LOG_S(ERROR) << "CNetworkAPI::FastForwardExperiment() called in "
-                      "wrong state: "
-                   << m_eExperimentState << std::endl;
-      return;
-    }
-
-    m_bFastForwarding = true;
-    // if (nTimerId != -1) killTimer(nTimerId);
-    // nTimerId = startTimer(1);
-
-    if (m_eExperimentState == EXPERIMENT_INITIALIZED) {
-      /* The experiment has just been started */
-      // EmitEvent("Experiment started");
-    }
-    /* Change state and emit signals */
-    m_eExperimentState = EXPERIMENT_FAST_FORWARDING;
-    // EmitEvent("Experiment fast-forwarding");
   }
 
   /****************************************/
@@ -122,16 +115,13 @@ namespace argos {
 
   void CNetworkAPI::PauseExperiment() {
     /* Make sure we are in the right state */
-    if (
-      m_eExperimentState != EXPERIMENT_PLAYING &&
-      m_eExperimentState != EXPERIMENT_FAST_FORWARDING) {
+    if (m_eExperimentState != EXPERIMENT_PLAYING) {
       LOG_S(ERROR) << "CNetworkAPI::PauseExperiment() called in wrong "
                       "state: "
                    << m_eExperimentState << std::endl;
       return;
     }
 
-    m_bFastForwarding = false;
     // if (nTimerId != -1) killTimer(nTimerId);
     // nTimerId = -1;
 
@@ -154,25 +144,6 @@ namespace argos {
       return;
     }
 
-    // TODO: Implement Fast forwarding step
-    // if (!m_cSimulator.IsExperimentFinished()) {
-    //   m_cSimulator.UpdateSpace();
-    //   if (m_bFastForwarding) {
-    //     /* Frame dropping happens only in fast-forward */
-    //     m_nFrameCounter = m_nFrameCounter % m_nDrawFrameEvery;
-    //     if (m_nFrameCounter == 0) {
-    //       // update();
-    //     }
-    //     ++m_nFrameCounter;
-    //   } else {
-    //     // update();
-    //   }
-    //   emit StepDone(m_cSpace.GetSimulationClock());
-    // } else {
-    //   PauseExperiment();
-    //   emit ExperimentDone();
-    // }
-
     if (!m_cSimulator.IsExperimentFinished()) {
       m_cSimulator.UpdateSpace();
 
@@ -189,12 +160,27 @@ namespace argos {
 
   void CNetworkAPI::ResetExperiment() {
     m_cSimulator.Reset();
+    m_eExperimentState = EXPERIMENT_INITIALIZED;
     // delete m_pcGroundTexture;
     // if (m_bUsingFloorTexture) delete m_pcFloorTexture;
     // initializeGL();
     // update();
   }
 
+  /****************************************/
+  /****************************************/
+
+  CNetworkAPI::~CNetworkAPI() { delete m_cWebServer; }
+
+  /****************************************/
+  /****************************************/
+
+  void CNetworkAPI::Reset() {}
+
+  /****************************************/
+  /****************************************/
+
+  void CNetworkAPI::Destroy() {}
   /****************************************/
   /****************************************/
 

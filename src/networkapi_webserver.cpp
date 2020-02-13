@@ -11,8 +11,12 @@ namespace argos {
     /****************************************/
     /****************************************/
 
-    CWebServer::CWebServer()
-        : m_vecWebThreads(std::thread::hardware_concurrency()) {}
+    CWebServer::CWebServer(
+      argos::CNetworkAPI *pc_my_network_api, short unsigned un_port)
+        : m_vecWebThreads(std::thread::hardware_concurrency()) {
+      m_unPort = un_port;
+      m_pcMyNetworkAPI = pc_my_network_api;
+    }
 
     /****************************************/
     /****************************************/
@@ -53,13 +57,6 @@ namespace argos {
                 .run();
             });
           });
-
-        /* Main cycle */
-        // while (!m_cSimulator.IsExperimentFinished()) {
-        //   RealTimeStep();
-        // }
-        // /* The experiment is finished */
-        // m_cSimulator.GetLoopFunctions().PostExperiment();
 
         std::for_each(
           m_vecWebThreads.begin(), m_vecWebThreads.end(), [](std::thread *t) {
@@ -130,6 +127,7 @@ namespace argos {
       /* Setup routes */
       c_MyApp.get("/start", [&](auto *pc_res, auto *pc_req) {
         nlohmann::json cMyJson;
+        m_pcMyNetworkAPI->PlayExperiment();
         cMyJson["status"] = "Started Playing";
         this->SendJSON(pc_res, cMyJson);
       });
@@ -215,7 +213,6 @@ namespace argos {
           ws->publish("broadcast", message, uWS::OpCode::TEXT, true);
         });
     }
-
   }  // namespace NetworkAPI
 
 }  // namespace argos

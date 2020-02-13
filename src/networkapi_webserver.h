@@ -1,6 +1,12 @@
 #ifndef ARGOS_NETWORKAPI_WEBSERVER_H
 #define ARGOS_NETWORKAPI_WEBSERVER_H
 
+#include "networkapi_webserver.fwd.h"
+
+#include "networkapi.fwd.h"
+
+#include "networkapi.h"
+
 #include <loguru.hpp>
 #include <nlohmann/json.hpp>
 #include <string_view>
@@ -12,6 +18,9 @@ namespace argos {
      private:
       /** HTTP Port to Listen to */
       unsigned short m_unPort;
+
+      /* Reference to CNetworkAPI object to call function over it */
+      argos::CNetworkAPI* m_pcMyNetworkAPI;
 
       /** Threads serving web requests */
       std::vector<uWS::WebSocket<false, true>*> m_vecWebSocketClients;
@@ -58,7 +67,7 @@ namespace argos {
       //   }
 
      public:
-      CWebServer();
+      CWebServer(argos::CNetworkAPI*, short unsigned);
       ~CWebServer();
 
       void Start();
