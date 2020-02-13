@@ -1,6 +1,8 @@
 #ifndef ARGOS_NETWORKAPI_UTILITIES_H
 #define ARGOS_NETWORKAPI_UTILITIES_H
 
+#include <algorithm>
+
 template <typename T>
 static inline void EraseFromVector(std::vector<T>& deque, T const& value) {
   deque.erase(std::remove(begin(deque), end(deque), value), end(deque));

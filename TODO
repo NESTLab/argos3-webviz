@@ -4,3 +4,4 @@
 [ ] Add Logs to websockets
 [ ] Checking compatibility with simulator for IsRealTimeClock()
 [ ] Implement Fast forward
+[ ] Implement ~CNetworkAPI(), Reset(), Destroy() of CNetworkAPI

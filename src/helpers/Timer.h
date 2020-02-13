@@ -5,78 +5,80 @@
 #include <ostream>
 #include <type_traits>
 
-namespace NetworkAPI {
-  class Timer {
-    typedef typename std::conditional<
-      std::chrono::high_resolution_clock::is_steady,
-      std::chrono::high_resolution_clock,
-      std::chrono::steady_clock>::type TClockType;
+namespace argos {
+  namespace NetworkAPI {
+    class Timer {
+      typedef typename std::conditional<
+        std::chrono::high_resolution_clock::is_steady,
+        std::chrono::high_resolution_clock,
+        std::chrono::steady_clock>::type TClockType;
 
-    typedef std::chrono::milliseconds TMilliseconds;
+      typedef std::chrono::milliseconds TMilliseconds;
 
-   public:
-    Timer() { Reset(); }
+     public:
+      Timer() { Reset(); }
 
-    /****************************************/
-    /****************************************/
+      /****************************************/
+      /****************************************/
 
-    void Start() {
-      m_StartTime = TClockType::now();
-      m_EndTime = m_StartTime;
-      m_bRunning = true;
-    }
-
-    /****************************************/
-    /****************************************/
-
-    void Stop() {
-      m_EndTime = TClockType::now();
-      m_bRunning = false;
-    }
-
-    /****************************************/
-    /****************************************/
-
-    void Reset() {
-      m_StartTime = TClockType::now();
-      m_EndTime = m_StartTime;
-      m_bRunning = false;
-    }
-
-    /****************************************/
-    /****************************************/
-
-    TMilliseconds Elapsed() const {
-      TClockType::time_point endTime;
-
-      if (m_bRunning) {
-        endTime = TClockType::now();
-      } else {
-        endTime = m_EndTime;
+      void Start() {
+        m_StartTime = TClockType::now();
+        m_EndTime = m_StartTime;
+        m_bRunning = true;
       }
 
-      return std::chrono::duration_cast<TMilliseconds>(endTime - m_StartTime);
-    }
+      /****************************************/
+      /****************************************/
 
-    /****************************************/
-    /****************************************/
+      void Stop() {
+        m_EndTime = TClockType::now();
+        m_bRunning = false;
+      }
 
-    bool IsRunning() { return m_bRunning; }
+      /****************************************/
+      /****************************************/
 
-    /****************************************/
-    /****************************************/
+      void Reset() {
+        m_StartTime = TClockType::now();
+        m_EndTime = m_StartTime;
+        m_bRunning = false;
+      }
 
-    template <typename T, typename Traits>
-    friend std::basic_ostream<T, Traits>& operator<<(
-      std::basic_ostream<T, Traits>& out, const Timer& timer) {
-      return out << timer.Elapsed().count();
-    }
+      /****************************************/
+      /****************************************/
 
-   private:
-    TClockType::time_point m_StartTime;
-    TClockType::time_point m_EndTime;
-    bool m_bRunning;
-  };
-}  // namespace NetworkAPI
+      TMilliseconds Elapsed() const {
+        TClockType::time_point endTime;
+
+        if (m_bRunning) {
+          endTime = TClockType::now();
+        } else {
+          endTime = m_EndTime;
+        }
+
+        return std::chrono::duration_cast<TMilliseconds>(endTime - m_StartTime);
+      }
+
+      /****************************************/
+      /****************************************/
+
+      bool IsRunning() { return m_bRunning; }
+
+      /****************************************/
+      /****************************************/
+
+      template <typename T, typename Traits>
+      friend std::basic_ostream<T, Traits>& operator<<(
+        std::basic_ostream<T, Traits>& out, const Timer& timer) {
+        return out << timer.Elapsed().count();
+      }
+
+     private:
+      TClockType::time_point m_StartTime;
+      TClockType::time_point m_EndTime;
+      bool m_bRunning;
+    };
+  }  // namespace NetworkAPI
+}  // namespace argos
 
 #endif

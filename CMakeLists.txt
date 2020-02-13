@@ -71,7 +71,14 @@ UPDATE_DISCONNECTED 1
 )
 ## To disable tests inside JSON
 set(JSON_BuildTests OFF CACHE INTERNAL "")
+set(JSON_Install OFF CACHE INTERNAL "")
 add_subdirectory(${nlohmann_json_SOURCE_DIR})
+
+
+# Logging Library
+add_definitions(-DLOGURU_WITH_STREAMS)
+add_subdirectory(${CMAKE_SOURCE_DIR}/libs/loguru)
+set_property(TARGET loguru PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 #
 # Setup Include paths
@@ -81,18 +88,19 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_BINARY_DIR}
     ${uWebSockets_SOURCE_DIR}/src/
     ${uWebSockets_SOURCE_DIR}/uSockets/src/
-    ${CMAKE_SOURCE_DIR}/src/libs/loguru
+    ${CMAKE_SOURCE_DIR}/libs/loguru
 )
 
 #
 # create variables
 #
 SET(SOURCE_FILES
-    ${CMAKE_SOURCE_DIR}/src/networkapi_server.cpp
+    ${CMAKE_SOURCE_DIR}/src/networkapi.cpp
+    ${CMAKE_SOURCE_DIR}/src/networkapi_webserver.cpp
 )
 
 SET(HEADER_FILES 
-    ${CMAKE_SOURCE_DIR}/src/networkapi_server.h
+    ${CMAKE_SOURCE_DIR}/src/networkapi.h
 )
 
 SET(REQUIRED_LIBRARIES
@@ -100,6 +108,7 @@ SET(REQUIRED_LIBRARIES
     ${ARGOS_NETWORKAPI_LIBRARIES}
     ${uWebSockets_SOURCE_DIR}/uSockets/uSockets.a
     nlohmann_json::nlohmann_json
+    loguru
 )
 
 SET(TARGET_NAME
