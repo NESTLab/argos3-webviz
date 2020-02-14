@@ -37,11 +37,16 @@ namespace argos {
       struct m_sPerSocketData {};
 
       /** Function to setup all routes and webhooks */
-      void SetupWebApp(uWS::App& c_MyApp);
+      void SetupWebApp(uWS::App&);
 
       /** Function to send JSON over HttpResponse */
-      void SendJSON(
-        uWS::HttpResponse<false>* pc_res, nlohmann::json c_json_data);
+      void SendJSON(uWS::HttpResponse<false>*, nlohmann::json);
+
+      /** Function to send JSON with Error over HttpResponse */
+      void SendJSONError(
+        uWS::HttpResponse<false>*,
+        nlohmann::json,
+        std::string = "400 Bad Request");
 
      public:
       CWebServer(argos::CNetworkAPI*, short unsigned);
@@ -52,7 +57,7 @@ namespace argos {
       /** Broadcasts on event channel to all the connected clients */
       void EmitEvent(std::string_view, NetworkAPI::EExperimentState);
 
-      /** Broadcasts game state to all the connected clients */
+      /** Broadcasts experiment state to all the connected clients */
       void Broadcast();
     };
   }  // namespace NetworkAPI

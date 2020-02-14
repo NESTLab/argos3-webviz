@@ -52,6 +52,9 @@ namespace argos {
           /* Run one step */
           m_cSimulator.UpdateSpace();
 
+          /* Broadcast current experiment state */
+          m_cWebServer->Broadcast();
+
           /* Take the time now */
           m_cTimer.Stop();
 
@@ -92,9 +95,10 @@ namespace argos {
       m_eExperimentState !=
         NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED &&
       m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PAUSED) {
-      LOG_S(ERROR) << "CNetworkAPI::PlayExperiment() called in wrong state: "
-                   << m_eExperimentState << std::endl;
+      LOG_S(WARNING) << "CNetworkAPI::PlayExperiment() called in wrong state: "
+                     << m_eExperimentState << std::endl;
 
+      // silently return;
       return;
     }
     /* Change state and emit signals */
@@ -104,12 +108,6 @@ namespace argos {
       (long int)(CPhysicsEngine::GetSimulationClockTick() * 1000.0f));
     m_cTimer.Start();
 
-    // if (
-    //   m_eExperimentState ==
-    //   NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED) {
-    //   /* The experiment has just been started */
-    //   m_cWebServer->EmitEvent("Experiment started", m_eExperimentState);
-    // }
     /* Change state and emit signals */
     m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PLAYING;
     m_cWebServer->EmitEvent("Experiment playing", m_eExperimentState);
@@ -124,16 +122,17 @@ namespace argos {
       m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PLAYING) {
       LOG_S(ERROR) << "CNetworkAPI::PauseExperiment() called in wrong "
                       "state: "
-                   << m_eExperimentState << std::endl;
+                   << argos::NetworkAPI::EExperimentStateToStr(
+                        m_eExperimentState);
+      throw std::runtime_error(
+        "Cannot pause the experiment, current state : " +
+        argos::NetworkAPI::EExperimentStateToStr(m_eExperimentState));
       return;
     }
 
-    // if (nTimerId != -1) killTimer(nTimerId);
-    // nTimerId = -1;
-
     /* Change state and emit signals */
     m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PAUSED;
-    // EmitEvent("Experiment paused");
+    m_cWebServer->EmitEvent("Experiment paused", m_eExperimentState);
   }
 
   /****************************************/
@@ -147,18 +146,25 @@ namespace argos {
       m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PAUSED) {
       LOG_S(ERROR) << "CNetworkAPI::StepExperiment() called in wrong "
                       "state: "
-                   << m_eExperimentState << std::endl;
+                   << argos::NetworkAPI::EExperimentStateToStr(
+                        m_eExperimentState);
+      throw std::runtime_error(
+        "Cannot Step the experiment, current state : " +
+        argos::NetworkAPI::EExperimentStateToStr(m_eExperimentState));
+
       return;
     }
 
     if (!m_cSimulator.IsExperimentFinished()) {
       m_cSimulator.UpdateSpace();
+      /* Broadcast current experiment state */
+      m_cWebServer->Broadcast();
 
       /* Change state and emit signals */
-      // EmitEvent("Experiment step done");
+      m_cWebServer->EmitEvent("Experiment step done", m_eExperimentState);
     } else {
       PauseExperiment();
-      // EmitEvent("Experiment done");
+      m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
     }
   }
 

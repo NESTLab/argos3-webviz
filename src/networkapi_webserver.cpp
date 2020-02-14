@@ -137,6 +137,20 @@ namespace argos {
         cMyJson["status"] = "Started Playing";
         this->SendJSON(pc_res, cMyJson);
       });
+
+      c_MyApp.get("/pause", [&](auto *pc_res, auto *pc_req) {
+        nlohmann::json cMyJson;
+        try {
+          m_pcMyNetworkAPI->PauseExperiment();
+          cMyJson["status"] = "Experiment Paused";
+          this->SendJSON(pc_res, cMyJson);
+        } catch (const std::exception &e) {
+          cMyJson["status"] = "Error";
+          cMyJson["message"] = e.what();
+
+          this->SendJSONError(pc_res, cMyJson);
+        }
+      });
     }
 
     /****************************************/
@@ -145,9 +159,24 @@ namespace argos {
     void CWebServer::SendJSON(
       uWS::HttpResponse<false> *pc_res, nlohmann::json c_json_data) {
       pc_res->cork([&]() {
-        pc_res->writeHeader("Access-Control-Allow-Origin", "*");
-        pc_res->writeHeader("Content-Type", "application/json");
-        pc_res->end(c_json_data.dump());
+        pc_res->writeHeader("Access-Control-Allow-Origin", "*")
+          ->writeHeader("Content-Type", "application/json")
+          ->end(c_json_data.dump());
+      });
+    }
+
+    /****************************************/
+    /****************************************/
+
+    void CWebServer::SendJSONError(
+      uWS::HttpResponse<false> *pc_res,
+      nlohmann::json c_json_data,
+      std::string http_status) {
+      pc_res->cork([&]() {
+        pc_res->writeStatus(http_status)
+          ->writeHeader("Access-Control-Allow-Origin", "*")
+          ->writeHeader("Content-Type", "application/json")
+          ->end(c_json_data.dump());
       });
     }
 
@@ -177,7 +206,7 @@ namespace argos {
 
     /****************************************/
     /****************************************/
-    // TODO Send game positions and call inside the step function form
+    // TODO Send experiment positions and call inside the step function form
     // CNetworkAPI
     void CWebServer::Broadcast(/* nlohmann::json cMyJson */) {
       // std::string strJs = cMyJson.dump();
