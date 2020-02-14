@@ -6,6 +6,7 @@
 #include <atomic>
 #include <loguru.hpp>
 #include <thread>
+#include "helpers/EExperimentState.h"
 #include "helpers/Timer.h"
 #include "networkapi_webserver.h"
 
@@ -41,14 +42,8 @@ namespace argos {
     void ResetExperiment();
 
    private:
-    enum EExperimentState {
-      EXPERIMENT_INITIALIZED = 0,
-      EXPERIMENT_PLAYING,
-      EXPERIMENT_PAUSED
-    };
-
     /* Experiment State, is used by many threads, so atomic */
-    std::atomic<EExperimentState> m_eExperimentState;
+    std::atomic<NetworkAPI::EExperimentState> m_eExperimentState;
 
     /** Timer used for the loop */
     NetworkAPI::Timer m_cTimer;

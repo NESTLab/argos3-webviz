@@ -1,8 +1,9 @@
 [ ] Enable SSL
 [ ] Documenting Usage (like port,default values) in CLI (Registration of viz)
 [ ] Add ping pong to WebSockets to enable testing connection
-[ ] Add Logs to websockets
+[ ] Add Logs to websockets (Emit on Error channel)
 [ ] Checking compatibility with simulator for IsRealTimeClock()
 [ ] Implement Fast forward
 [ ] Implement ~CNetworkAPI(), Reset(), Destroy() of CNetworkAPI
 [ ] Write unit tests
+[ ] Check the logic for when the Experiment state is EXPERIMENT_INITIALIZED, EXPERIMENT_DONE

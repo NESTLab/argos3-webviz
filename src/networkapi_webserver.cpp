@@ -103,6 +103,9 @@ namespace argos {
                pc_ws->subscribe("events");
              }
 
+             // Guard the mutex which locks m_vecWebSocketClients
+             std::lock_guard<std::mutex> guard(m_mutex_web_clients);
+
              /*
               * Add to list of clients connected
               */
@@ -118,6 +121,9 @@ namespace argos {
            [&](auto *pc_ws, int n_code, std::string_view strv_message) {
              /* it automatically unsubscribe from any topic here */
 
+             // Guard the mutex which locks m_vecWebSocketClients
+             std::lock_guard<std::mutex> guard(m_mutex_web_clients);
+
              /*
               * Remove from the list of all clients connected
               */
@@ -126,8 +132,8 @@ namespace argos {
 
       /* Setup routes */
       c_MyApp.get("/start", [&](auto *pc_res, auto *pc_req) {
-        nlohmann::json cMyJson;
         m_pcMyNetworkAPI->PlayExperiment();
+        nlohmann::json cMyJson;
         cMyJson["status"] = "Started Playing";
         this->SendJSON(pc_res, cMyJson);
       });
@@ -148,71 +154,44 @@ namespace argos {
     /****************************************/
     /****************************************/
 
-    void CWebServer::EmitEvent(std::string_view event_name) {
-      std::stringstream strJson;
+    void CWebServer::EmitEvent(
+      std::string_view strv_event_name, NetworkAPI::EExperimentState e_state) {
+      nlohmann::json cMyJson;
+      cMyJson["event"] = strv_event_name;
+      cMyJson["state"] = NetworkAPI::EExperimentStateToStr(e_state);
 
-      // // TODO : Build a JSON to string marshal function
-      // strJson << "{";
-      // strJson << "\"event\":\"";
-      // strJson << event_name;
-      // strJson << "\",\"state\":\"";
-      // strJson << EExperimentStateToString(this->m_eExperimentState);
-      // strJson << "\",\"isFastForward\":";
-      // strJson << (this->m_bFastForwarding ? "true" : "false");
-      // strJson << "}";
+      std::string strJs = cMyJson.dump();
 
-      // std::string strJs = strJson.str();
+      // Guard the mutex which locks m_vecWebSocketClients
+      std::lock_guard<std::mutex> guard(m_mutex_web_clients);
 
-      // std::for_each(
-      //   m_vecWebSocketClients.begin(),
-      //   m_vecWebSocketClients.end(),
-      //   [strJs](auto *ws) {
-      //     //                                            Compress = true
-      //     ws->publish("events", strJs, uWS::OpCode::TEXT, true);
-      //   });
-    }
-
-    /****************************************/
-    /****************************************/
-
-    void CWebServer::BroadcastState() {
-      // std::stringstream strJson;
-
-      // // TODO : Build a JSON to string marshal function
-      // strJson << "{";
-      // strJson << "\"state\":\"";
-      // strJson << EExperimentStateToString(this->m_eExperimentState);
-      // strJson << "\",\"isFastForward\":";
-      // strJson << (this->m_bFastForwarding ? "true" : "false");
-      // strJson << "}";
-
-      // std::string strJs = strJson.str();
-
-      // std::for_each(
-      //   m_vecWebSocketClients.begin(),
-      //   m_vecWebSocketClients.end(),
-      //   [strJs](auto *ws) {
-      //     try {
-      //       //                                            Compress = true
-      //       ws->publish("broadcast", strJs, uWS::OpCode::TEXT, true);
-      //     } catch (const std::exception &e) {
-      //       LOG_S(ERROR) << e.what() << '\n';
-      //     }
-      //   });
-    }
-
-    /****************************************/
-    /****************************************/
-
-    void CWebServer::BroadcastMessage(std::string_view message) {
+      /* Send the string to each client */
       std::for_each(
         m_vecWebSocketClients.begin(),
         m_vecWebSocketClients.end(),
-        [message](auto *ws) {
-          //                                            Compress = true
-          ws->publish("broadcast", message, uWS::OpCode::TEXT, true);
+        [strJs](auto *ws) {
+          //                                          Compress = true
+          ws->publish("events", strJs, uWS::OpCode::TEXT, true);
         });
     }
-  }  // namespace NetworkAPI
 
+    /****************************************/
+    /****************************************/
+    // TODO Send game positions and call inside the step function form
+    // CNetworkAPI
+    void CWebServer::Broadcast(/* nlohmann::json cMyJson */) {
+      // std::string strJs = cMyJson.dump();
+
+      // // Guard the mutex which locks m_vecWebSocketClients
+      // std::lock_guard<std::mutex> guard(m_mutex_web_clients);
+
+      // std::for_each(
+      //   m_vecWebSocketClients.begin(),
+      //   m_vecWebSocketClients.end(),
+      //   [strJs](auto *ws) {
+      //     //                                          Compress = true
+      //     ws->publish("broadcast", strJs, uWS::OpCode::TEXT, true);
+      //   });
+    }
+  }  // namespace NetworkAPI
 }  // namespace argos
