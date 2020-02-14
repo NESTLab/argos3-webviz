@@ -201,6 +201,9 @@ namespace argos {
          ++itEntities) {
       nlohmann::json cEntityJson;
 
+      /* Get the type of the entity */
+      cEntityJson["type"] = (*itEntities)->GetTypeDescription();
+
       /* Try to get embodied entity */
 
       /* Is the entity embodied itself? */
@@ -221,11 +224,10 @@ namespace argos {
 
       if (pcEmbodiedEntity == NULL) {
         /* cannot find EmbodiedEntity */
+        LOG_S(WARNING) << "Not an Embodied Entity :"
+                       << (*itEntities)->GetTypeDescription();
         continue;
       }
-      /* Get the type of the entity */
-      cEntityJson["type"] = pcEmbodiedEntity->GetTypeDescription();
-
       /* Get the position of the entity */
       const CVector3& cPosition = pcEmbodiedEntity->GetOriginAnchor().Position;
 
@@ -249,8 +251,7 @@ namespace argos {
     nlohmann::json cStateJson;
     cStateJson["entities"] = vecEntitiesJson;
 
-    cStateJson["game_state"] =
-      NetworkAPI::EExperimentStateToStr(m_eExperimentState);
+    cStateJson["state"] = NetworkAPI::EExperimentStateToStr(m_eExperimentState);
     /* Added Unix Epoch in milliseconds */
     cStateJson["timestamp"] =
       std::chrono::duration_cast<std::chrono::milliseconds>(
