@@ -48,7 +48,6 @@ INCLUDE(${CMAKE_SOURCE_DIR}/cmake/ARGoSBuildChecks.cmake)
 # Set up CPack
 INCLUDE(${CMAKE_SOURCE_DIR}/cmake/ARGoSPackaging.cmake)
 
-
 #
 # Download uWebSockets library from github
 #
@@ -63,6 +62,25 @@ EXECUTE_PROCESS(
     COMMAND make)
 
 #
+# Download nlohmann/json library from github
+#
+download_project(PROJ     nlohmann_json
+GIT_REPOSITORY      https://github.com/nlohmann/json.git
+GIT_TAG             v3.7.3
+UPDATE_DISCONNECTED 1
+)
+## To disable tests inside JSON
+SET(JSON_BuildTests OFF CACHE INTERNAL "")
+SET(JSON_Install OFF CACHE INTERNAL "")
+ADD_SUBDIRECTORY(${nlohmann_json_SOURCE_DIR})
+
+
+# Logging Library
+ADD_DEFINITIONS(-DLOGURU_WITH_STREAMS)
+ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/libs/loguru)
+SET_PROPERTY(TARGET loguru PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+#
 # Setup Include paths
 #
 INCLUDE_DIRECTORIES(
@@ -70,24 +88,27 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_BINARY_DIR}
     ${uWebSockets_SOURCE_DIR}/src/
     ${uWebSockets_SOURCE_DIR}/uSockets/src/
-    ${CMAKE_SOURCE_DIR}/src/libs/loguru
+    ${CMAKE_SOURCE_DIR}/libs/loguru
 )
 
 #
 # create variables
 #
 SET(SOURCE_FILES
-    ${CMAKE_SOURCE_DIR}/src/networkapi_server.cpp
+    ${CMAKE_SOURCE_DIR}/src/networkapi.cpp
+    ${CMAKE_SOURCE_DIR}/src/networkapi_webserver.cpp
 )
 
 SET(HEADER_FILES 
-    ${CMAKE_SOURCE_DIR}/src/networkapi_server.h
+    ${CMAKE_SOURCE_DIR}/src/networkapi.h
 )
 
 SET(REQUIRED_LIBRARIES
     argos3plugin_${ARGOS_BUILD_FOR}_entities
     ${ARGOS_NETWORKAPI_LIBRARIES}
     ${uWebSockets_SOURCE_DIR}/uSockets/uSockets.a
+    nlohmann_json::nlohmann_json
+    loguru
 )
 
 SET(TARGET_NAME
@@ -110,6 +131,9 @@ PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "lib/argos3"
   OUTPUT_NAME ${TARGET_NAME}
 )
+
+
+TARGET_COMPILE_OPTIONS(${TARGET_NAME} PRIVATE -Wfatal-errors)
 
 INSTALL(TARGETS ${TARGET_NAME}
     RUNTIME DESTINATION bin
