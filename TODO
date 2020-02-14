@@ -9,3 +9,4 @@
 [ ] Check the logic for when the Experiment state is EXPERIMENT_INITIALIZED, EXPERIMENT_DONE
 [ ] Upgrade threading: Move all event emitters to a separate thread safe dequeue owned by webserver, currently if the client size increased, it will take time to run the complete for loop, and simulation step might get stuck till that time
 [ ] Try instead of using queue, use semaphore send the latest value,... i.e. stop the forloop as soon as new message is available
+[ ] Add support for PositionalEntity if required in BroadcastExperimentState

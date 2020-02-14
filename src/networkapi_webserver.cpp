@@ -206,21 +206,21 @@ namespace argos {
 
     /****************************************/
     /****************************************/
-    // TODO Send experiment positions and call inside the step function form
-    // CNetworkAPI
-    void CWebServer::Broadcast(/* nlohmann::json cMyJson */) {
-      // std::string strJs = cMyJson.dump();
 
-      // // Guard the mutex which locks m_vecWebSocketClients
-      // std::lock_guard<std::mutex> guard(m_mutex_web_clients);
+    void CWebServer::Broadcast(nlohmann::json cMyJson) {
+      std::string strJs = cMyJson.dump();
 
-      // std::for_each(
-      //   m_vecWebSocketClients.begin(),
-      //   m_vecWebSocketClients.end(),
-      //   [strJs](auto *ws) {
-      //     //                                          Compress = true
-      //     ws->publish("broadcast", strJs, uWS::OpCode::TEXT, true);
-      //   });
+      // Guard the mutex which locks m_vecWebSocketClients
+      std::lock_guard<std::mutex> guard(m_mutex_web_clients);
+
+      /* Send the string to each client */
+      std::for_each(
+        m_vecWebSocketClients.begin(),
+        m_vecWebSocketClients.end(),
+        [strJs](auto *ws) {
+          //                                          Compress = true
+          ws->publish("broadcast", strJs, uWS::OpCode::TEXT, true);
+        });
     }
   }  // namespace NetworkAPI
 }  // namespace argos

@@ -10,7 +10,7 @@ git clone --recursive https://github.com/NESTLab/argos3-network-api
 mkdir argos3-network-api/build
 cd argos3-network-api/build
 cmake ..
-make -j 12
+make
 sudo make install
 ```
 
@@ -30,3 +30,7 @@ Please make sure to update tests as appropriate.
 [MIT](https://choosealicense.com/licenses/mit/)
 
 Licenses of libraries used are in their respective folders inside `libs`
+
+
+## Limitations
+Loop functions are closely coupled with QT-OpenGL as it was meant to be used to draw over the OpenGL, hence it is neglected in this plugin

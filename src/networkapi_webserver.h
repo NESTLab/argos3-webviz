@@ -57,8 +57,8 @@ namespace argos {
       /** Broadcasts on event channel to all the connected clients */
       void EmitEvent(std::string_view, NetworkAPI::EExperimentState);
 
-      /** Broadcasts experiment state to all the connected clients */
-      void Broadcast();
+      /** Broadcasts JSON to all the connected clients */
+      void Broadcast(nlohmann::json);
     };
   }  // namespace NetworkAPI
 }  // namespace argos

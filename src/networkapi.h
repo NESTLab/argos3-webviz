@@ -57,11 +57,17 @@ namespace argos {
     /** THread to run simulation steps */
     std::thread m_cSimulationThread;
 
+    /** Reference to the space state */
+    CSpace& m_cSpace;
+
     /** Function to run simulation step in realtime */
     void RealTimeStep();
 
     /** Thread to run in Simulation thread */
     void SimulationThreadFunction();
+
+    /** Function to broadcast experiment state */
+    void BroadcastExperimentState();
   };
 
 }  // namespace argos

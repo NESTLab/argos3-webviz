@@ -4,6 +4,7 @@
 // #define LOGURU_WITH_STREAMS 1
 // #include <loguru.cpp>
 
+#include <argos3/core/simulator/entity/composable_entity.h>
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/core/simulator/space/space.h>
 
@@ -12,7 +13,7 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  CNetworkAPI::CNetworkAPI() : m_cTimer() {
+  CNetworkAPI::CNetworkAPI() : m_cTimer(), m_cSpace(m_cSimulator.GetSpace()) {
     m_cSimulationThread =
       std::thread(&CNetworkAPI::SimulationThreadFunction, this);
   }
@@ -20,7 +21,7 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  void CNetworkAPI::Init(TConfigurationNode &t_tree) {
+  void CNetworkAPI::Init(TConfigurationNode& t_tree) {
     /* Setting up Logging */
     LOG_SCOPE_FUNCTION(INFO);
 
@@ -53,7 +54,7 @@ namespace argos {
           m_cSimulator.UpdateSpace();
 
           /* Broadcast current experiment state */
-          m_cWebServer->Broadcast();
+          BroadcastExperimentState();
 
           /* Take the time now */
           m_cTimer.Stop();
@@ -111,6 +112,8 @@ namespace argos {
     /* Change state and emit signals */
     m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PLAYING;
     m_cWebServer->EmitEvent("Experiment playing", m_eExperimentState);
+
+    LOG_S(INFO) << "Experiment playing";
   }
 
   /****************************************/
@@ -133,6 +136,8 @@ namespace argos {
     /* Change state and emit signals */
     m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PAUSED;
     m_cWebServer->EmitEvent("Experiment paused", m_eExperimentState);
+
+    LOG_S(INFO) << "Experiment paused";
   }
 
   /****************************************/
@@ -157,15 +162,17 @@ namespace argos {
 
     if (!m_cSimulator.IsExperimentFinished()) {
       m_cSimulator.UpdateSpace();
-      /* Broadcast current experiment state */
-      m_cWebServer->Broadcast();
 
       /* Change state and emit signals */
       m_cWebServer->EmitEvent("Experiment step done", m_eExperimentState);
     } else {
       PauseExperiment();
+      /* Change state and emit signals */
       m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
     }
+
+    /* Broadcast current experiment state */
+    BroadcastExperimentState();
   }
 
   /****************************************/
@@ -174,10 +181,83 @@ namespace argos {
   void CNetworkAPI::ResetExperiment() {
     m_cSimulator.Reset();
     m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED;
-    // delete m_pcGroundTexture;
-    // if (m_bUsingFloorTexture) delete m_pcFloorTexture;
-    // initializeGL();
-    // update();
+
+    /* Change state and emit signals */
+    m_cWebServer->EmitEvent("Experiment step done", m_eExperimentState);
+
+    LOG_S(INFO) << "Experiment reset";
+  }
+
+  /****************************************/
+  /****************************************/
+
+  void CNetworkAPI::BroadcastExperimentState() {
+    /* Draw the objects */
+    std::vector<nlohmann::json> vecEntitiesJson;
+
+    CEntity::TVector& cvecEntities = m_cSpace.GetRootEntityVector();
+    for (CEntity::TVector::iterator itEntities = cvecEntities.begin();
+         itEntities != cvecEntities.end();
+         ++itEntities) {
+      nlohmann::json cEntityJson;
+
+      /* Try to get embodied entity */
+
+      /* Is the entity embodied itself? */
+      CEmbodiedEntity* pcEmbodiedEntity =
+        dynamic_cast<CEmbodiedEntity*>(*itEntities);
+
+      if (pcEmbodiedEntity == NULL) {
+        /* Is the entity composable with an embodied component? */
+        CComposableEntity* pcComposableTest =
+          dynamic_cast<CComposableEntity*>(*itEntities);
+        if (pcComposableTest != NULL) {
+          if (pcComposableTest->HasComponent("body")) {
+            pcEmbodiedEntity =
+              &(pcComposableTest->GetComponent<CEmbodiedEntity>("body"));
+          }
+        }
+      }
+
+      if (pcEmbodiedEntity == NULL) {
+        /* cannot find EmbodiedEntity */
+        continue;
+      }
+      /* Get the type of the entity */
+      cEntityJson["type"] = pcEmbodiedEntity->GetTypeDescription();
+
+      /* Get the position of the entity */
+      const CVector3& cPosition = pcEmbodiedEntity->GetOriginAnchor().Position;
+
+      /* Add it to json as=>  position:{x, y, z} */
+      cEntityJson["position"]["x"] = cPosition.GetX();
+      cEntityJson["position"]["y"] = cPosition.GetY();
+      cEntityJson["position"]["z"] = cPosition.GetZ();
+
+      /* Get the orientation of the entity */
+      const CQuaternion& cOrientation =
+        pcEmbodiedEntity->GetOriginAnchor().Orientation;
+
+      cEntityJson["orientation"]["x"] = cOrientation.GetX();
+      cEntityJson["orientation"]["y"] = cOrientation.GetY();
+      cEntityJson["orientation"]["z"] = cOrientation.GetZ();
+      cEntityJson["orientation"]["w"] = cOrientation.GetW();
+
+      // m_cModel.DrawEntity(c_entity);
+      vecEntitiesJson.push_back(cEntityJson);
+    }
+    nlohmann::json cStateJson;
+    cStateJson["entities"] = vecEntitiesJson;
+
+    cStateJson["game_state"] =
+      NetworkAPI::EExperimentStateToStr(m_eExperimentState);
+    /* Added Unix Epoch in milliseconds */
+    cStateJson["timestamp"] =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch())
+        .count();
+
+    m_cWebServer->Broadcast(cStateJson);
   }
 
   /****************************************/
