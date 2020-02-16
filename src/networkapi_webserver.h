@@ -20,20 +20,37 @@ namespace argos {
       /** HTTP Port to Listen to */
       unsigned short m_unPort;
 
-      /* Reference to CNetworkAPI object to call function over it */
+      /** max time for one broadcast cycle */
+      std::chrono::milliseconds m_cBroadcastDuration;
+
+      /** broadcast cycle timer */
+      NetworkAPI::Timer m_cBroadcastTimer;
+
+      /** mutexed string using m_mutex4BroadcastString to broadcast */
+      std::string m_strBroadcastString;
+
+      /** Reference to CNetworkAPI object to call function over it */
       argos::CNetworkAPI* m_pcMyNetworkAPI;
 
       /** Threads serving web requests */
       std::vector<std::thread*> m_vecWebThreads;
 
+      /** Struct to hold websocket with its loop thread */
+      struct SWebSocketClient {
+        uWS::WebSocket<false, true>* m_cWS;
+        struct uWS::Loop* m_cLoop;
+      };
+
       /** List of all WebSocket clients connected */
-      std::vector<uWS::WebSocket<false, true>*> m_vecWebSocketClients;
+      std::vector<SWebSocketClient> m_vecWebSocketClients;
 
-      /* Mutex to protect access to m_vecWebSocketClients */
-      std::mutex m_mutex_web_clients;
+      /** Mutex to protect access to m_vecWebSocketClients */
+      std::mutex m_mutex4VecWebClients;
 
-      /* Data attached to each socket,
-       * ws->getUserData returns one of these */
+      /** Mutex to protect access to m_vecWebSocketClients */
+      std::mutex m_mutex4BroadcastString;
+
+      /** Data attached to each socket, ws->getUserData returns one of these */
       struct m_sPerSocketData {};
 
       /** Function to setup all routes and webhooks */
@@ -49,7 +66,7 @@ namespace argos {
         std::string = "400 Bad Request");
 
      public:
-      CWebServer(argos::CNetworkAPI*, short unsigned);
+      CWebServer(argos::CNetworkAPI*, unsigned short, unsigned short);
       ~CWebServer();
 
       void Start();

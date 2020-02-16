@@ -2,9 +2,6 @@
 
 #include "helpers/utils.h"
 
-#include <argos3/core/simulator/loop_functions.h>
-#include <argos3/core/simulator/space/space.h>
-
 namespace argos {
   namespace NetworkAPI {
 
@@ -12,10 +9,24 @@ namespace argos {
     /****************************************/
 
     CWebServer::CWebServer(
-      argos::CNetworkAPI *pc_my_network_api, short unsigned un_port)
+      argos::CNetworkAPI *pc_my_network_api,
+      unsigned short un_port,
+      unsigned short un_freq)
         : m_vecWebThreads(std::thread::hardware_concurrency()) {
-      m_unPort = un_port;
       m_pcMyNetworkAPI = pc_my_network_api;
+      m_unPort = un_port;
+
+      /* We dont want divide by zero or negative frequency */
+      if (un_freq <= 0) {
+        un_freq = 10;  // Defaults to 10 Hz
+      }
+      /* max allowed time for one broadcast cycle */
+      m_cBroadcastDuration = std::chrono::milliseconds(1000 / un_freq);
+
+      /* Initialize broadcast Timer */
+      m_cBroadcastTimer = NetworkAPI::Timer();  // TODO memory leak ?
+
+      m_strBroadcastString = "";
     }
 
     /****************************************/
@@ -43,9 +54,6 @@ namespace argos {
                   [&](auto *pc_token) {
                     if (pc_token) {
                       LOG_S(INFO) << "Thread listening on port " << m_unPort;
-
-                      /* Set experiment state */
-                      // m_eExperimentState = EXPERIMENT_INITIALIZED;
                     } else {
                       ABORT_F(
                         "WebServer::Execute() failed to listen on port "
@@ -57,6 +65,64 @@ namespace argos {
                 .run();
             });
           });
+
+        /* Start broadcast timer */
+        m_cBroadcastTimer.Start();
+
+        /* Declaring local static here to help with lambda catching inside */
+        static std::string str_broadcastString;
+
+        // TODO : use thread notifying
+        while (true) {
+          /* stop the timer now to get total time spent */
+          m_cBroadcastTimer.Stop();
+
+          /* If the elapsed time is lower than the tick length, wait */
+          if (m_cBroadcastTimer.Elapsed() < m_cBroadcastDuration) {
+            /* Sleep for the difference duration */
+            std::this_thread::sleep_for(
+              m_cBroadcastDuration - m_cBroadcastTimer.Elapsed());
+          } else {
+            LOG_S(WARNING) << "Broadcast tick took " << m_cBroadcastTimer
+                           << " sec, more than the expected "
+                           << m_cBroadcastDuration.count() << " sec. "
+                           << "Not able to reach all clients, Please reduce "
+                              "the \'broadcast_frequency\' in "
+                              "configuration file.\n";
+            break;
+          }
+
+          /* Restart Timer */
+          m_cBroadcastTimer.Start();
+
+          /* Decouple the strings so a new broadcast message can be accepted
+           * while old are sending */
+          /*
+           * Mutex block for m_mutex4BroadcastString
+           */
+          {
+            std::lock_guard<std::mutex> guard(m_mutex4BroadcastString);
+            str_broadcastString = m_strBroadcastString;
+          }  // End of mutex block: m_mutex4BroadcastString
+
+          if (!str_broadcastString.empty()) {
+            std::lock_guard<std::mutex> guard(m_mutex4VecWebClients);
+
+            /* Send the string to each client */
+            std::for_each(
+              m_vecWebSocketClients.begin(),
+              m_vecWebSocketClients.end(),
+              [](auto wsStruct) {
+                wsStruct.m_cLoop->defer([wsStruct]() {
+                  wsStruct.m_cWS->publish(
+                    "broadcast",
+                    str_broadcastString,
+                    uWS::OpCode::TEXT,
+                    true);  // Compress = true
+                });
+              });
+          }
+        }
 
         std::for_each(
           m_vecWebThreads.begin(), m_vecWebThreads.end(), [](std::thread *t) {
@@ -104,12 +170,13 @@ namespace argos {
              }
 
              // Guard the mutex which locks m_vecWebSocketClients
-             std::lock_guard<std::mutex> guard(m_mutex_web_clients);
+             std::lock_guard<std::mutex> guard(m_mutex4VecWebClients);
 
              /*
               * Add to list of clients connected
               */
-             m_vecWebSocketClients.push_back(pc_ws);
+             m_vecWebSocketClients.push_back({pc_ws, uWS::Loop::get()});
+             LOG_S(INFO) << "1 client connected :" << pc_ws->getRemoteAddress();
            },
          .message =
            [](
@@ -122,12 +189,17 @@ namespace argos {
              /* it automatically unsubscribe from any topic here */
 
              // Guard the mutex which locks m_vecWebSocketClients
-             std::lock_guard<std::mutex> guard(m_mutex_web_clients);
+             std::lock_guard<std::mutex> guard(m_mutex4VecWebClients);
 
              /*
               * Remove from the list of all clients connected
               */
-             EraseFromVector(m_vecWebSocketClients, pc_ws);
+             for (size_t i = 0; i < m_vecWebSocketClients.size(); i++) {
+               if (m_vecWebSocketClients[i].m_cWS == pc_ws) {
+                 m_vecWebSocketClients.erase(m_vecWebSocketClients.begin() + i);
+               }
+             }
+             LOG_S(INFO) << "1 client disconnected";
            }});
 
       /* Setup routes */
@@ -192,35 +264,25 @@ namespace argos {
       std::string strJs = cMyJson.dump();
 
       // Guard the mutex which locks m_vecWebSocketClients
-      std::lock_guard<std::mutex> guard(m_mutex_web_clients);
+      std::lock_guard<std::mutex> guard(m_mutex4VecWebClients);
 
-      /* Send the string to each client */
-      std::for_each(
-        m_vecWebSocketClients.begin(),
-        m_vecWebSocketClients.end(),
-        [strJs](auto *ws) {
-          //                                          Compress = true
-          ws->publish("events", strJs, uWS::OpCode::TEXT, true);
-        });
+      // /* Send the string to each client */
+      // std::for_each(
+      //   m_vecWebSocketClients.begin(),
+      //   m_vecWebSocketClients.end(),
+      //   [strJs](auto *ws) {
+      //     //                                          Compress = true
+      //     ws->publish("events", strJs, uWS::OpCode::TEXT, true);
+      //   });
     }
 
     /****************************************/
     /****************************************/
 
     void CWebServer::Broadcast(nlohmann::json cMyJson) {
-      std::string strJs = cMyJson.dump();
-
-      // Guard the mutex which locks m_vecWebSocketClients
-      std::lock_guard<std::mutex> guard(m_mutex_web_clients);
-
-      /* Send the string to each client */
-      std::for_each(
-        m_vecWebSocketClients.begin(),
-        m_vecWebSocketClients.end(),
-        [strJs](auto *ws) {
-          //                                          Compress = true
-          ws->publish("broadcast", strJs, uWS::OpCode::TEXT, true);
-        });
+      /* Guard the mutex which locks m_mutex4BroadcastString */
+      std::lock_guard<std::mutex> guard(m_mutex4BroadcastString);
+      m_strBroadcastString = cMyJson.dump();
     }
   }  // namespace NetworkAPI
 }  // namespace argos

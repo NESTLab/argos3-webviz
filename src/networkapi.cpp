@@ -19,11 +19,16 @@ namespace argos {
     LOG_SCOPE_FUNCTION(INFO);
 
     unsigned short unPort;
+    unsigned short unBroadcastFrequency;
+
     /* Parse options from the XML */
     GetNodeAttributeOrDefault(t_tree, "port", unPort, argos::UInt16(3000));
+    GetNodeAttributeOrDefault(
+      t_tree, "broadcast_frequency", unBroadcastFrequency, argos::UInt16(10));
 
     /* Initialize Webserver */
-    m_cWebServer = new argos::NetworkAPI::CWebServer(this, unPort);
+    m_cWebServer =
+      new argos::NetworkAPI::CWebServer(this, unPort, unBroadcastFrequency);
   }
 
   /****************************************/
