@@ -71,6 +71,7 @@ namespace argos {
 
         /* Declaring local static here to help with lambda catching inside */
         static std::string str_broadcastString;
+        static std::string str_EventString;
 
         // TODO : use thread notifying
         while (true) {
@@ -105,23 +106,45 @@ namespace argos {
             str_broadcastString = m_strBroadcastString;
           }  // End of mutex block: m_mutex4BroadcastString
 
-          if (!str_broadcastString.empty()) {
-            std::lock_guard<std::mutex> guard(m_mutex4VecWebClients);
+          /*
+           * Mutex block for m_mutex4EventQueue
+           */
+          {
+            std::lock_guard<std::mutex> guard(m_mutex4EventQueue);
 
-            /* Send the string to each client */
-            std::for_each(
-              m_vecWebSocketClients.begin(),
-              m_vecWebSocketClients.end(),
-              [](auto wsStruct) {
-                wsStruct.m_cLoop->defer([wsStruct]() {
+            if (!m_cEventQueue.empty()) {
+              str_EventString = m_cEventQueue.front();
+              m_cEventQueue.pop();
+            } else {
+              str_EventString = "";
+            }
+          }  // End of mutex block: m_mutex4EventQueue
+
+          std::lock_guard<std::mutex> guard(m_mutex4VecWebClients);
+
+          /* Send the string to each client */
+          std::for_each(
+            m_vecWebSocketClients.begin(),
+            m_vecWebSocketClients.end(),
+            [](auto wsStruct) {
+              wsStruct.m_cLoop->defer([wsStruct]() {
+                if (!str_broadcastString.empty()) {
                   wsStruct.m_cWS->publish(
                     "broadcast",
                     str_broadcastString,
                     uWS::OpCode::TEXT,
                     true);  // Compress = true
-                });
+                }
+
+                if (!str_EventString.empty()) {
+                  wsStruct.m_cWS->publish(
+                    "events",
+                    str_EventString,
+                    uWS::OpCode::TEXT,
+                    true);  // Compress = true
+                }
               });
-          }
+            });
         }
 
         std::for_each(
@@ -261,19 +284,11 @@ namespace argos {
       cMyJson["event"] = strv_event_name;
       cMyJson["state"] = NetworkAPI::EExperimentStateToStr(e_state);
 
-      std::string strJs = cMyJson.dump();
+      // Guard the mutex which locks m_mutex4EventQueue
+      std::lock_guard<std::mutex> guard(m_mutex4EventQueue);
 
-      // Guard the mutex which locks m_vecWebSocketClients
-      std::lock_guard<std::mutex> guard(m_mutex4VecWebClients);
-
-      // /* Send the string to each client */
-      // std::for_each(
-      //   m_vecWebSocketClients.begin(),
-      //   m_vecWebSocketClients.end(),
-      //   [strJs](auto *ws) {
-      //     //                                          Compress = true
-      //     ws->publish("events", strJs, uWS::OpCode::TEXT, true);
-      //   });
+      /* Add to the event queue */
+      m_cEventQueue.push(cMyJson.dump());
     }
 
     /****************************************/

@@ -8,7 +8,9 @@
 #include "networkapi.h"
 
 #include <loguru.hpp>
+#include <mutex>
 #include <nlohmann/json.hpp>
+#include <queue>
 #include <string_view>
 #include "App.h"
 #include "helpers/EExperimentState.h"
@@ -35,6 +37,9 @@ namespace argos {
       /** Threads serving web requests */
       std::vector<std::thread*> m_vecWebThreads;
 
+      /** A Queue to push events to client */
+      std::queue<std::string> m_cEventQueue;
+
       /** Struct to hold websocket with its loop thread */
       struct SWebSocketClient {
         uWS::WebSocket<false, true>* m_cWS;
@@ -49,6 +54,9 @@ namespace argos {
 
       /** Mutex to protect access to m_vecWebSocketClients */
       std::mutex m_mutex4BroadcastString;
+
+      /** Mutex to protect access to m_cEventQueue */
+      std::mutex m_mutex4EventQueue;
 
       /** Data attached to each socket, ws->getUserData returns one of these */
       struct m_sPerSocketData {};

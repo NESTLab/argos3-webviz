@@ -41,11 +41,11 @@
     <box id="wall_south" size="4,0.1,0.5" movable="false">
       <body position="0,-2,0" orientation="0,0,0" />
     </box>
-    <box id="wall_east" size="0.1,4,0.5" movable="false">
-      <body position="2,0,0" orientation="0,0,0" />
+    <box id="wall_east" size="4,0.1,0.5" movable="false">
+      <body position="2,0,0" orientation="90,0,0" />
     </box>
-    <box id="wall_west" size="0.1,4,0.5" movable="false">
-      <body position="-2,0,0" orientation="0,0,0" />
+    <box id="wall_west" size="4,0.1,0.5" movable="false">
+      <body position="-2,0,0" orientation="90,0,0" />
     </box>
 
     <!--
@@ -60,7 +60,7 @@
     <distribute>
       <position method="uniform" min="-2,-2,0" max="2,2,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
-      <entity quantity="10" max_trials="100">
+      <entity quantity="1" max_trials="100">
         <foot-bot id="fb">
           <controller config="fdc" />
         </foot-bot>
@@ -70,26 +70,26 @@
     <!--
         We distribute 5 boxes uniformly in position and rotation around Z.
     -->
-    <distribute>
+    <!-- <distribute>
       <position method="uniform" min="-2,-2,0" max="2,2,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
       <entity quantity="5" max_trials="100">
         <box id="b" size="0.3,0.3,0.5" movable="false" />
       </entity>
-    </distribute>
+    </distribute> -->
 
     <!--
         We distribute cylinders uniformly in position and with
         constant rotation (rotating a cylinder around Z does not
         matter)
     -->
-    <distribute>
+    <!-- <distribute>
       <position method="uniform" min="-2,-2,0" max="2,2,0" />
       <orientation method="constant" values="0,0,0" />
       <entity quantity="5" max_trials="100">
         <cylinder id="c" height="0.5" radius="0.15" movable="false" />
       </entity>
-    </distribute>
+    </distribute> -->
 
   </arena>
 
@@ -109,10 +109,9 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-    <network-api port=4000
-        models_dir="/include/argos3/plugins/simulator/visualizations/qt-opengl/models/"
-        textures_dir="/include/argos3/plugins/simulator/visualizations/qt-opengl/textures/"
-      />
+  <!-- frequency can be only between 1 and 1000 Hz (both inclusive) -->
+    <network-api port="4000" broadcast_frequency="10" />
+    <!-- <qt-opengl /> -->
   </visualization>
 
 </argos-configuration>

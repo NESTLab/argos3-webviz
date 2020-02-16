@@ -78,9 +78,15 @@ namespace argos {
           /* The experiment is finished */
           m_cSimulator.GetLoopFunctions().PostExperiment();
           ResetExperiment();
+
+          /* Broadcast updated experiment state */
+          BroadcastExperimentState();
         }
       } else {
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
+        /* Broadcast stopped experiment state */
+        BroadcastExperimentState();
       }
     }
   }
@@ -121,10 +127,10 @@ namespace argos {
     /* Make sure we are in the right state */
     if (
       m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PLAYING) {
-      LOG_S(ERROR) << "CNetworkAPI::PauseExperiment() called in wrong "
-                      "state: "
-                   << argos::NetworkAPI::EExperimentStateToStr(
-                        m_eExperimentState);
+      LOG_S(WARNING) << "CNetworkAPI::PauseExperiment() called in wrong "
+                        "state: "
+                     << argos::NetworkAPI::EExperimentStateToStr(
+                          m_eExperimentState);
       throw std::runtime_error(
         "Cannot pause the experiment, current state : " +
         argos::NetworkAPI::EExperimentStateToStr(m_eExperimentState));
@@ -147,10 +153,10 @@ namespace argos {
       m_eExperimentState !=
         NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED &&
       m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PAUSED) {
-      LOG_S(ERROR) << "CNetworkAPI::StepExperiment() called in wrong "
-                      "state: "
-                   << argos::NetworkAPI::EExperimentStateToStr(
-                        m_eExperimentState);
+      LOG_S(WARNING) << "CNetworkAPI::StepExperiment() called in wrong "
+                        "state: "
+                     << argos::NetworkAPI::EExperimentStateToStr(
+                          m_eExperimentState);
       throw std::runtime_error(
         "Cannot Step the experiment, current state : " +
         argos::NetworkAPI::EExperimentStateToStr(m_eExperimentState));
