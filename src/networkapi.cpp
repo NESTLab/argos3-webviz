@@ -187,7 +187,7 @@ namespace argos {
     m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED;
 
     /* Change state and emit signals */
-    m_cWebServer->EmitEvent("Experiment step done", m_eExperimentState);
+    m_cWebServer->EmitEvent("Experiment reset", m_eExperimentState);
 
     LOG_S(INFO) << "Experiment reset";
   }

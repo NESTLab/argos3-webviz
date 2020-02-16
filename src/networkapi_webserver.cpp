@@ -225,6 +225,8 @@ namespace argos {
              LOG_S(INFO) << "1 client disconnected";
            }});
 
+      /****************************************/
+
       /* Setup routes */
       c_MyApp.get("/start", [&](auto *pc_res, auto *pc_req) {
         m_pcMyNetworkAPI->PlayExperiment();
@@ -233,11 +235,29 @@ namespace argos {
         this->SendJSON(pc_res, cMyJson);
       });
 
+      /****************************************/
+
       c_MyApp.get("/pause", [&](auto *pc_res, auto *pc_req) {
         nlohmann::json cMyJson;
         try {
           m_pcMyNetworkAPI->PauseExperiment();
           cMyJson["status"] = "Experiment Paused";
+          this->SendJSON(pc_res, cMyJson);
+        } catch (const std::exception &e) {
+          cMyJson["status"] = "Error";
+          cMyJson["message"] = e.what();
+
+          this->SendJSONError(pc_res, cMyJson);
+        }
+      });
+
+      /****************************************/
+
+      c_MyApp.get("/reset", [&](auto *pc_res, auto *pc_req) {
+        nlohmann::json cMyJson;
+        try {
+          m_pcMyNetworkAPI->ResetExperiment();
+          cMyJson["status"] = "Experiment Reset";
           this->SendJSON(pc_res, cMyJson);
         } catch (const std::exception &e) {
           cMyJson["status"] = "Error";
