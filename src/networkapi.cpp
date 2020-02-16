@@ -1,13 +1,6 @@
 #include "networkapi.h"
 #include "helpers/utils.h"
 
-// #define LOGURU_WITH_STREAMS 1
-// #include <loguru.cpp>
-
-#include <argos3/core/simulator/entity/composable_entity.h>
-#include <argos3/core/simulator/loop_functions.h>
-#include <argos3/core/simulator/space/space.h>
-
 namespace argos {
 
   /****************************************/

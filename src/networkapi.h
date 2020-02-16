@@ -1,6 +1,9 @@
 #ifndef ARGOS_NETWORKAPI_H
 #define ARGOS_NETWORKAPI_H
 
+#include <argos3/core/simulator/entity/composable_entity.h>
+#include <argos3/core/simulator/loop_functions.h>
+#include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/visualization/visualization.h>
 #include <sys/time.h>
 #include <atomic>
