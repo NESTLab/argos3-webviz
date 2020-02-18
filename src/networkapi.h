@@ -1,6 +1,9 @@
 #ifndef ARGOS_NETWORKAPI_H
 #define ARGOS_NETWORKAPI_H
 
+#include <argos3/core/simulator/entity/composable_entity.h>
+#include <argos3/core/simulator/loop_functions.h>
+#include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/visualization/visualization.h>
 #include <sys/time.h>
 #include <atomic>
@@ -48,6 +51,9 @@ namespace argos {
     /** Timer used for the loop */
     NetworkAPI::Timer m_cTimer;
 
+    /** Steps Counter */
+    unsigned long long m_unStepCounter;
+
     /** Milliseconds required for one tick of simulator */
     std::chrono::milliseconds m_cSimulatorTickMillis;
 
@@ -57,11 +63,17 @@ namespace argos {
     /** THread to run simulation steps */
     std::thread m_cSimulationThread;
 
+    /** Reference to the space state */
+    CSpace& m_cSpace;
+
     /** Function to run simulation step in realtime */
     void RealTimeStep();
 
     /** Thread to run in Simulation thread */
     void SimulationThreadFunction();
+
+    /** Function to broadcast experiment state */
+    void BroadcastExperimentState();
   };
 
 }  // namespace argos

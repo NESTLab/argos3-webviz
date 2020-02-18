@@ -9,7 +9,8 @@ namespace argos {
       EXPERIMENT_PAUSED
     };
 
-    static const char* EExperimentStateToStr(const EExperimentState& obj) {
+    inline static std::string EExperimentStateToStr(
+      const EExperimentState& obj) {
       switch (obj) {
         case EExperimentState::EXPERIMENT_INITIALIZED:
           return "EXPERIMENT_INITIALIZED";
