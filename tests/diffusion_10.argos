@@ -9,7 +9,7 @@
     <system threads="0" />
     <experiment length="0"
                 ticks_per_second="10"
-                random_seed="124" />
+                random_seed="14" />
   </framework>
 
   <!-- *************** -->
@@ -110,7 +110,7 @@
   <!-- ****************** -->
   <visualization>
   <!-- frequency can be only between 1 and 1000 Hz (both inclusive) -->
-    <network-api port="4000" broadcast_frequency="10" />
+    <network-api port="4000" broadcast_frequency="10" ff_draw_frames_every="10" />
     <!-- <qt-opengl /> -->
   </visualization>
 

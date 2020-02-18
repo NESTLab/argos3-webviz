@@ -199,7 +199,7 @@ namespace argos {
               * Add to list of clients connected
               */
              m_vecWebSocketClients.push_back({pc_ws, uWS::Loop::get()});
-             LOG_S(INFO) << "1 client connected :" << pc_ws->getRemoteAddress()
+             LOG_S(INFO) << "1 client connected"
                          << " (Total: " << m_vecWebSocketClients.size() << ")";
            },
          .message =
@@ -257,16 +257,18 @@ namespace argos {
 
       c_MyApp.get("/step", [&](auto *pc_res, auto *pc_req) {
         nlohmann::json cMyJson;
-        try {
-          m_pcMyNetworkAPI->StepExperiment();
-          cMyJson["status"] = "Experiment step done";
-          this->SendJSON(pc_res, cMyJson);
-        } catch (const std::exception &e) {
-          cMyJson["status"] = "Error";
-          cMyJson["message"] = e.what();
+        m_pcMyNetworkAPI->StepExperiment();
+        cMyJson["status"] = "Experiment step done";
+        this->SendJSON(pc_res, cMyJson);
+      });
 
-          this->SendJSONError(pc_res, cMyJson);
-        }
+      /****************************************/
+
+      c_MyApp.get("/fastforward", [&](auto *pc_res, auto *pc_req) {
+        nlohmann::json cMyJson;
+        m_pcMyNetworkAPI->FastForwardExperiment();
+        cMyJson["status"] = "Experiment fast-forwarding";
+        this->SendJSON(pc_res, cMyJson);
       });
 
       /****************************************/

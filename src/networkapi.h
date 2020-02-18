@@ -40,6 +40,11 @@ namespace argos {
     /** Executes one experiment time step. */
     void StepExperiment();
 
+    /**
+     * Fast forwards the experiment.
+     */
+    void FastForwardExperiment();
+
     /** Resets the state of the experiment to its state right after
      * initialization.*/
     void ResetExperiment();
@@ -65,6 +70,12 @@ namespace argos {
 
     /** Reference to the space state */
     CSpace& m_cSpace;
+
+    /** Boolean for fastForwarding */
+    bool m_bFastForwarding;
+
+    /** number of frames to drop in Fast-forwarding */
+    unsigned short m_unDrawFrameEvery;
 
     /** Function to run simulation step in realtime */
     void RealTimeStep();

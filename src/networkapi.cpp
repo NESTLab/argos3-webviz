@@ -9,6 +9,7 @@ namespace argos {
   CNetworkAPI::CNetworkAPI() : m_cTimer(), m_cSpace(m_cSimulator.GetSpace()) {
     m_cSimulationThread =
       std::thread(&CNetworkAPI::SimulationThreadFunction, this);
+    m_bFastForwarding = false;
   }
 
   /****************************************/
@@ -25,6 +26,9 @@ namespace argos {
     GetNodeAttributeOrDefault(t_tree, "port", unPort, argos::UInt16(3000));
     GetNodeAttributeOrDefault(
       t_tree, "broadcast_frequency", unBroadcastFrequency, argos::UInt16(10));
+
+    GetNodeAttributeOrDefault(
+      t_tree, "ff_draw_frames_every", m_unDrawFrameEvery, argos::UInt16(2));
 
     /* Initialize Webserver */
     m_cWebServer =
@@ -49,22 +53,51 @@ namespace argos {
     while (true) {
       if (
         m_eExperimentState ==
-        NetworkAPI::EExperimentState::EXPERIMENT_PLAYING) {
+          NetworkAPI::EExperimentState::EXPERIMENT_PLAYING ||
+        m_eExperimentState ==
+          NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
         if (!m_cSimulator.IsExperimentFinished()) {
           /* Run user's pre step function */
           m_cSimulator.GetLoopFunctions().PreStep();
 
-          /* Run one step */                        //
-          m_cSimulator.UpdateSpace();               //
-                                                    //
-          /* Increment Counter */                   // 1 Step
-          m_unStepCounter++;                        //
-                                                    //
-          /* Broadcast current experiment state */  //
-          BroadcastExperimentState();               //
+          /* For non-fastforwarding mode, steps is 1 */
+          int unFFStepCounter = 1;
+
+          if (m_bFastForwarding) {
+            /* Number of frames to drop in fast-forward */
+            unFFStepCounter = m_unDrawFrameEvery;
+          }
+
+          /* Loop for steps (multiple for fast-forward) */
+          while (unFFStepCounter > 0 && !m_cSimulator.IsExperimentFinished()) {
+            /* Run one step */
+            m_cSimulator.UpdateSpace();
+
+            /* Steps counter in this while loop */
+            --unFFStepCounter;
+
+            /* Increment global Counter */
+            m_unStepCounter++;
+          }
+
+          /* Broadcast current experiment state */
+          BroadcastExperimentState();
 
           /* Run user's post step function */
           m_cSimulator.GetLoopFunctions().PostStep();
+
+          /* Experiment done while in while loop */
+          if (m_cSimulator.IsExperimentFinished()) {
+            /* The experiment is done */
+            m_cSimulator.GetLoopFunctions().PostExperiment();
+
+            ResetExperiment();
+
+            /* Change state and emit signals */
+            m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
+            LOG_S(INFO) << "Experiment done\n";
+            return; /* Go back once done */
+          }
 
           /* Take the time now */
           m_cTimer.Stop();
@@ -84,7 +117,7 @@ namespace argos {
             m_cTimer.Start();
           }
         } else {
-          /* The experiment is done */
+          /* The experiment is already done */
           m_cSimulator.GetLoopFunctions().PostExperiment();
 
           ResetExperiment();
@@ -111,23 +144,55 @@ namespace argos {
         NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED &&
       m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PAUSED) {
       LOG_S(WARNING) << "CNetworkAPI::PlayExperiment() called in wrong state: "
-                     << m_eExperimentState << std::endl;
+                     << argos::NetworkAPI::EExperimentStateToStr(
+                          m_eExperimentState)
+                     << std::endl;
 
       // silently return;
       return;
     }
-    /* Change state and emit signals */
-    m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PLAYING;
+    /* Disable fast-forward */
+    m_bFastForwarding = false;
 
     m_cSimulatorTickMillis = std::chrono::milliseconds(
       (long int)(CPhysicsEngine::GetSimulationClockTick() * 1000.0f));
-    m_cTimer.Start();
 
     /* Change state and emit signals */
     m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PLAYING;
     m_cWebServer->EmitEvent("Experiment playing", m_eExperimentState);
 
     LOG_S(INFO) << "Experiment playing";
+
+    m_cTimer.Start();
+  }
+
+  /****************************************/
+  /****************************************/
+
+  void CNetworkAPI::FastForwardExperiment() {
+    /* Make sure we are in the right state */
+    if (
+      m_eExperimentState !=
+        NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED &&
+      m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PAUSED) {
+      LOG_S(WARNING)
+        << "CNetworkAPI::FastForwardExperiment() called in wrong state: "
+        << argos::NetworkAPI::EExperimentStateToStr(m_eExperimentState)
+        << "\nRunning the experiment in FastForward mode" << std::endl;
+    }
+    m_bFastForwarding = true;
+
+    m_cSimulatorTickMillis = std::chrono::milliseconds(
+      (long int)(CPhysicsEngine::GetSimulationClockTick() * 1000.0f));
+
+    /* Change state and emit signals */
+    m_eExperimentState =
+      NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING;
+    m_cWebServer->EmitEvent("Experiment fast-forwarding", m_eExperimentState);
+
+    LOG_S(INFO) << "Experiment fast-forwarding";
+
+    m_cTimer.Start();
   }
 
   /****************************************/
@@ -136,7 +201,9 @@ namespace argos {
   void CNetworkAPI::PauseExperiment() {
     /* Make sure we are in the right state */
     if (
-      m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PLAYING) {
+      m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PLAYING &&
+      m_eExperimentState !=
+        NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
       LOG_S(WARNING) << "CNetworkAPI::PauseExperiment() called in wrong "
                         "state: "
                      << argos::NetworkAPI::EExperimentStateToStr(
@@ -146,6 +213,8 @@ namespace argos {
         argos::NetworkAPI::EExperimentStateToStr(m_eExperimentState));
       return;
     }
+    /* Disable fast-forward */
+    m_bFastForwarding = false;
 
     /* Change state and emit signals */
     m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PAUSED;
@@ -160,7 +229,9 @@ namespace argos {
   void CNetworkAPI::StepExperiment() {
     /* Make sure we are in the right state */
     if (
-      m_eExperimentState == NetworkAPI::EExperimentState::EXPERIMENT_PLAYING) {
+      m_eExperimentState == NetworkAPI::EExperimentState::EXPERIMENT_PLAYING ||
+      m_eExperimentState ==
+        NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
       LOG_S(WARNING) << "CNetworkAPI::StepExperiment() called in wrong "
                         "state: "
                      << argos::NetworkAPI::EExperimentStateToStr(
@@ -170,6 +241,9 @@ namespace argos {
       /* Make experiment pause */
       m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PAUSED;
     }
+
+    /* Disable fast-forward */
+    m_bFastForwarding = false;
 
     if (!m_cSimulator.IsExperimentFinished()) {
       /* Run user's pre step function */
@@ -207,6 +281,9 @@ namespace argos {
   void CNetworkAPI::ResetExperiment() {
     /* Reset Simulator */
     m_cSimulator.Reset();
+
+    /* Disable fast-forward */
+    m_bFastForwarding = false;
 
     /* Reset Counter */
     m_unStepCounter = 0;

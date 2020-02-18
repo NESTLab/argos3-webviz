@@ -6,7 +6,8 @@ namespace argos {
     enum class EExperimentState {
       EXPERIMENT_INITIALIZED = 0,
       EXPERIMENT_PLAYING,
-      EXPERIMENT_PAUSED
+      EXPERIMENT_PAUSED,
+      EXPERIMENT_FAST_FORWARDING
     };
 
     inline static std::string EExperimentStateToStr(
@@ -18,6 +19,8 @@ namespace argos {
           return "EXPERIMENT_PLAYING";
         case EExperimentState::EXPERIMENT_PAUSED:
           return "EXPERIMENT_PAUSED";
+        case EExperimentState::EXPERIMENT_FAST_FORWARDING:
+          return "EXPERIMENT_FAST_FORWARDING";
         default:
           return "unknown";
       }
@@ -33,6 +36,8 @@ namespace argos {
           os << "EXPERIMENT_PLAYING";
         case EExperimentState::EXPERIMENT_PAUSED:
           os << "EXPERIMENT_PAUSED";
+        case EExperimentState::EXPERIMENT_FAST_FORWARDING:
+          os << "EXPERIMENT_FAST_FORWARDING";
         default:
           os << "unknown";
       }
