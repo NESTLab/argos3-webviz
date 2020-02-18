@@ -255,6 +255,22 @@ namespace argos {
 
       /****************************************/
 
+      c_MyApp.get("/step", [&](auto *pc_res, auto *pc_req) {
+        nlohmann::json cMyJson;
+        try {
+          m_pcMyNetworkAPI->StepExperiment();
+          cMyJson["status"] = "Experiment step done";
+          this->SendJSON(pc_res, cMyJson);
+        } catch (const std::exception &e) {
+          cMyJson["status"] = "Error";
+          cMyJson["message"] = e.what();
+
+          this->SendJSONError(pc_res, cMyJson);
+        }
+      });
+
+      /****************************************/
+
       c_MyApp.get("/reset", [&](auto *pc_res, auto *pc_req) {
         nlohmann::json cMyJson;
         try {

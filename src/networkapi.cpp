@@ -160,17 +160,15 @@ namespace argos {
   void CNetworkAPI::StepExperiment() {
     /* Make sure we are in the right state */
     if (
-      m_eExperimentState !=
-        NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED &&
-      m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PAUSED) {
+      m_eExperimentState == NetworkAPI::EExperimentState::EXPERIMENT_PLAYING) {
       LOG_S(WARNING) << "CNetworkAPI::StepExperiment() called in wrong "
                         "state: "
                      << argos::NetworkAPI::EExperimentStateToStr(
-                          m_eExperimentState);
-      throw std::runtime_error(
-        "Cannot Step the experiment, current state : " +
-        argos::NetworkAPI::EExperimentStateToStr(m_eExperimentState));
-      return; /* Just to be sure throw returned immediately */
+                          m_eExperimentState)
+                     << " pausing the experiment to run a step";
+
+      /* Make experiment pause */
+      m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PAUSED;
     }
 
     if (!m_cSimulator.IsExperimentFinished()) {
