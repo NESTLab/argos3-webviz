@@ -35,6 +35,9 @@ namespace argos {
   /****************************************/
 
   void CNetworkAPI::Execute() {
+    /* Start from 0 */
+    m_unStepCounter = 0;
+
     std::thread t2([&]() { m_cWebServer->Start(); });
     t2.join();
     m_cSimulationThread.join();
@@ -48,11 +51,20 @@ namespace argos {
         m_eExperimentState ==
         NetworkAPI::EExperimentState::EXPERIMENT_PLAYING) {
         if (!m_cSimulator.IsExperimentFinished()) {
-          /* Run one step */
-          m_cSimulator.UpdateSpace();
+          /* Run user's pre step function */
+          m_cSimulator.GetLoopFunctions().PreStep();
 
-          /* Broadcast current experiment state */
-          BroadcastExperimentState();
+          /* Run one step */                        //
+          m_cSimulator.UpdateSpace();               //
+                                                    //
+          /* Increment Counter */                   // 1 Step
+          m_unStepCounter++;                        //
+                                                    //
+          /* Broadcast current experiment state */  //
+          BroadcastExperimentState();               //
+
+          /* Run user's post step function */
+          m_cSimulator.GetLoopFunctions().PostStep();
 
           /* Take the time now */
           m_cTimer.Stop();
@@ -72,20 +84,18 @@ namespace argos {
             m_cTimer.Start();
           }
         } else {
-          LOG_S(INFO) << "Experiment finished\n";
-          // EmitEvent("Experiment done");
-
-          /* The experiment is finished */
+          /* The experiment is done */
           m_cSimulator.GetLoopFunctions().PostExperiment();
+
           ResetExperiment();
 
-          /* Broadcast updated experiment state */
-          BroadcastExperimentState();
+          /* Change state and emit signals */
+          m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
+          LOG_S(INFO) << "Experiment done\n";
         }
       } else {
+        /* Broadcast stopped state of experiment at 4 Hz */
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
-
-        /* Broadcast stopped experiment state */
         BroadcastExperimentState();
       }
     }
@@ -160,19 +170,33 @@ namespace argos {
       throw std::runtime_error(
         "Cannot Step the experiment, current state : " +
         argos::NetworkAPI::EExperimentStateToStr(m_eExperimentState));
-
-      return;
+      return; /* Just to be sure throw returned immediately */
     }
 
     if (!m_cSimulator.IsExperimentFinished()) {
+      /* Run user's pre step function */
+      m_cSimulator.GetLoopFunctions().PreStep();
+
+      /* Run one step */
       m_cSimulator.UpdateSpace();
+
+      /* Increment Counter */
+      m_unStepCounter++;
+
+      /* Run user's post step function */
+      m_cSimulator.GetLoopFunctions().PostStep();
 
       /* Change state and emit signals */
       m_cWebServer->EmitEvent("Experiment step done", m_eExperimentState);
     } else {
-      PauseExperiment();
+      /* The experiment is done */
+      m_cSimulator.GetLoopFunctions().PostExperiment();
+
+      ResetExperiment();
+
       /* Change state and emit signals */
       m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
+      LOG_S(INFO) << "Experiment done\n";
     }
 
     /* Broadcast current experiment state */
@@ -183,11 +207,19 @@ namespace argos {
   /****************************************/
 
   void CNetworkAPI::ResetExperiment() {
+    /* Reset Simulator */
     m_cSimulator.Reset();
+
+    /* Reset Counter */
+    m_unStepCounter = 0;
+
     m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED;
 
     /* Change state and emit signals */
     m_cWebServer->EmitEvent("Experiment reset", m_eExperimentState);
+
+    /* Broadcast current experiment state */
+    BroadcastExperimentState();
 
     LOG_S(INFO) << "Experiment reset";
   }
@@ -255,7 +287,12 @@ namespace argos {
     nlohmann::json cStateJson;
     cStateJson["entities"] = vecEntitiesJson;
 
+    /* Current state of the experiment */
     cStateJson["state"] = NetworkAPI::EExperimentStateToStr(m_eExperimentState);
+
+    /* Current Step from the counter */
+    cStateJson["steps"] = m_unStepCounter;
+
     /* Added Unix Epoch in milliseconds */
     cStateJson["timestamp"] =
       std::chrono::duration_cast<std::chrono::milliseconds>(

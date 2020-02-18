@@ -51,6 +51,9 @@ namespace argos {
     /** Timer used for the loop */
     NetworkAPI::Timer m_cTimer;
 
+    /** Steps Counter */
+    unsigned long long m_unStepCounter;
+
     /** Milliseconds required for one tick of simulator */
     std::chrono::milliseconds m_cSimulatorTickMillis;
 

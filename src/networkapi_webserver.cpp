@@ -199,7 +199,8 @@ namespace argos {
               * Add to list of clients connected
               */
              m_vecWebSocketClients.push_back({pc_ws, uWS::Loop::get()});
-             LOG_S(INFO) << "1 client connected :" << pc_ws->getRemoteAddress();
+             LOG_S(INFO) << "1 client connected :" << pc_ws->getRemoteAddress()
+                         << " (Total: " << m_vecWebSocketClients.size() << ")";
            },
          .message =
            [](
@@ -222,7 +223,8 @@ namespace argos {
                  m_vecWebSocketClients.erase(m_vecWebSocketClients.begin() + i);
                }
              }
-             LOG_S(INFO) << "1 client disconnected";
+             LOG_S(INFO) << "1 client disconnected"
+                         << " (Total: " << m_vecWebSocketClients.size() << ")";
            }});
 
       /****************************************/
