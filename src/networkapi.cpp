@@ -11,6 +11,10 @@ namespace argos {
       std::thread(&CNetworkAPI::SimulationThreadFunction, this);
     m_bFastForwarding = false;
 
+    /* Disable Colors in LOG, as its going to be shown in web and not in CLI */
+    argos::LOG.DisableColoredOutput();
+    argos::LOGERR.DisableColoredOutput();
+
     /* Initialize the LOG streams from Execute thread */
     m_pcLogStream = new argos::NetworkAPI::CLogStream(
       argos::LOG.GetStream(), [this](std::string str_logData) {

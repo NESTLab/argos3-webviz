@@ -121,18 +121,22 @@ namespace argos {
             }
           }  // End of mutex block: m_mutex4EventQueue
 
+          /* Initialize Log string */
+          str_LogString = "";
+
           /*
            * Mutex block for m_mutex4LogQueue
            */
           {
             std::lock_guard<std::mutex> guard(m_mutex4LogQueue);
 
-            if (!m_cLogQueue.empty()) {
-              str_LogString = m_cLogQueue.front();
+            /* Get all log messages in one string with \n */
+            /* TODO: change string to stringstream, better concatinations */
+            while (!m_cLogQueue.empty()) {
+              str_LogString += m_cLogQueue.front() + "\n";
               m_cLogQueue.pop();
-            } else {
-              str_LogString = "";
             }
+
           }  // End of mutex block: m_mutex4LogQueue
 
           std::lock_guard<std::mutex> guard(m_mutex4VecWebClients);
