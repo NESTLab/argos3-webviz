@@ -24,7 +24,7 @@ namespace argos {
       m_cBroadcastDuration = std::chrono::milliseconds(1000 / un_freq);
 
       /* Initialize broadcast Timer */
-      m_cBroadcastTimer = NetworkAPI::Timer();  // TODO memory leak ?
+      m_cBroadcastTimer = argos::NetworkAPI::CTimer();  // TODO memory leak ?
 
       m_strBroadcastString = "";
     }
@@ -72,6 +72,7 @@ namespace argos {
         /* Declaring local static here to help with lambda catching inside */
         static std::string str_broadcastString;
         static std::string str_EventString;
+        static std::string str_LogString;
 
         // TODO : use thread notifying
         while (true) {
@@ -120,6 +121,20 @@ namespace argos {
             }
           }  // End of mutex block: m_mutex4EventQueue
 
+          /*
+           * Mutex block for m_mutex4LogQueue
+           */
+          {
+            std::lock_guard<std::mutex> guard(m_mutex4LogQueue);
+
+            if (!m_cLogQueue.empty()) {
+              str_LogString = m_cLogQueue.front();
+              m_cLogQueue.pop();
+            } else {
+              str_LogString = "";
+            }
+          }  // End of mutex block: m_mutex4LogQueue
+
           std::lock_guard<std::mutex> guard(m_mutex4VecWebClients);
 
           /* Send the string to each client */
@@ -140,6 +155,14 @@ namespace argos {
                   wsStruct.m_cWS->publish(
                     "events",
                     str_EventString,
+                    uWS::OpCode::TEXT,
+                    true);  // Compress = true
+                }
+
+                if (!str_LogString.empty()) {
+                  wsStruct.m_cWS->publish(
+                    "logs",
+                    str_LogString,
                     uWS::OpCode::TEXT,
                     true);  // Compress = true
                 }
@@ -190,6 +213,7 @@ namespace argos {
                 */
                pc_ws->subscribe("broadcast");
                pc_ws->subscribe("events");
+               pc_ws->subscribe("logs");
              }
 
              // Guard the mutex which locks m_vecWebSocketClients
@@ -319,16 +343,33 @@ namespace argos {
     /****************************************/
 
     void CWebServer::EmitEvent(
-      std::string_view strv_event_name, NetworkAPI::EExperimentState e_state) {
+      std::string_view strv_event_name,
+      argos::NetworkAPI::EExperimentState e_state) {
       nlohmann::json cMyJson;
       cMyJson["event"] = strv_event_name;
-      cMyJson["state"] = NetworkAPI::EExperimentStateToStr(e_state);
+      cMyJson["state"] = argos::NetworkAPI::EExperimentStateToStr(e_state);
 
       // Guard the mutex which locks m_mutex4EventQueue
       std::lock_guard<std::mutex> guard(m_mutex4EventQueue);
 
       /* Add to the event queue */
       m_cEventQueue.push(cMyJson.dump());
+    }
+
+    /****************************************/
+    /****************************************/
+
+    void CWebServer::EmitLog(
+      std::string str_log_name, std::string str_log_data) {
+      nlohmann::json cMyJson;
+      cMyJson["log_name"] = str_log_name;
+      cMyJson["log_data"] = str_log_data;
+
+      // Guard the mutex which locks m_mutex4LogQueue
+      std::lock_guard<std::mutex> guard(m_mutex4LogQueue);
+
+      /* Add to the Log queue */
+      m_cLogQueue.push(cMyJson.dump());
     }
 
     /****************************************/

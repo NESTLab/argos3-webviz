@@ -7,7 +7,7 @@
 
 namespace argos {
   namespace NetworkAPI {
-    class Timer {
+    class CTimer {
       typedef typename std::conditional<
         std::chrono::high_resolution_clock::is_steady,
         std::chrono::high_resolution_clock,
@@ -16,7 +16,7 @@ namespace argos {
       typedef std::chrono::milliseconds TMilliseconds;
 
      public:
-      Timer() { Reset(); }
+      CTimer() { Reset(); }
 
       /****************************************/
       /****************************************/
@@ -69,7 +69,7 @@ namespace argos {
 
       template <typename T, typename Traits>
       friend std::basic_ostream<T, Traits>& operator<<(
-        std::basic_ostream<T, Traits>& out, const Timer& timer) {
+        std::basic_ostream<T, Traits>& out, const CTimer& timer) {
         return out << timer.Elapsed().count();
       }
 

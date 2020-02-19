@@ -3,11 +3,9 @@
 [ ] Add ping pong to WebSockets to enable testing connection
 [ ] Add Logs to websockets (Emit on Error channel)
 [ ] Checking compatibility with simulator for IsRealTimeClock()
-[ ] Implement Fast forward
 [ ] Implement ~CNetworkAPI(), Reset(), Destroy() of CNetworkAPI
 [ ] Write unit tests
 [ ] Check the logic for when the Experiment state is EXPERIMENT_INITIALIZED, EXPERIMENT_DONE
 [ ] Add support for PositionalEntity if required in BroadcastExperimentState
-[ ] Implement Rate for emitting
 [ ] document: event is sent in next cycle of broadcast loop (which depends on broadcast frequency)
 [ ] Note: Step counter/number is unsigned long long, maximum limits implies

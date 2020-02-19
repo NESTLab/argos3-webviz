@@ -26,7 +26,7 @@ namespace argos {
       std::chrono::milliseconds m_cBroadcastDuration;
 
       /** broadcast cycle timer */
-      NetworkAPI::Timer m_cBroadcastTimer;
+      argos::NetworkAPI::CTimer m_cBroadcastTimer;
 
       /** mutexed string using m_mutex4BroadcastString to broadcast */
       std::string m_strBroadcastString;
@@ -39,6 +39,9 @@ namespace argos {
 
       /** A Queue to push events to client */
       std::queue<std::string> m_cEventQueue;
+
+      /** A Queue to push logs to client */
+      std::queue<std::string> m_cLogQueue;
 
       /** Struct to hold websocket with its loop thread */
       struct SWebSocketClient {
@@ -57,6 +60,9 @@ namespace argos {
 
       /** Mutex to protect access to m_cEventQueue */
       std::mutex m_mutex4EventQueue;
+
+      /** Mutex to protect access to m_cLogQueue */
+      std::mutex m_mutex4LogQueue;
 
       /** Data attached to each socket, ws->getUserData returns one of these */
       struct m_sPerSocketData {};
@@ -80,7 +86,10 @@ namespace argos {
       void Start();
 
       /** Broadcasts on event channel to all the connected clients */
-      void EmitEvent(std::string_view, NetworkAPI::EExperimentState);
+      void EmitEvent(std::string_view, argos::NetworkAPI::EExperimentState);
+
+      /** Broadcasts on log channels to all the connected clients */
+      void EmitLog(std::string, std::string);
 
       /** Broadcasts JSON to all the connected clients */
       void Broadcast(nlohmann::json);

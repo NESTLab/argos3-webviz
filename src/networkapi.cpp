@@ -10,6 +10,19 @@ namespace argos {
     m_cSimulationThread =
       std::thread(&CNetworkAPI::SimulationThreadFunction, this);
     m_bFastForwarding = false;
+
+    /* Initialize the LOG streams from Execute thread */
+    m_pcLogStream = new argos::NetworkAPI::CLogStream(
+      argos::LOG.GetStream(), [this](std::string str_logData) {
+        // LOG_S(INFO) << "ARGOS_LOG:" << str_logData;
+        m_cWebServer->EmitLog("LOG", str_logData);
+      });
+
+    m_pcLogErrStream = new argos::NetworkAPI::CLogStream(
+      argos::LOGERR.GetStream(), [this](std::string str_logData) {
+        // LOG_S(INFO) << "ARGOS_LOGERR:" << str_logData;
+        m_cWebServer->EmitLog("LOGERR", str_logData);
+      });
   }
 
   /****************************************/
@@ -39,7 +52,7 @@ namespace argos {
   /****************************************/
 
   void CNetworkAPI::Execute() {
-    /* Start from 0 */
+    /* Start the frame counter from 0 */
     m_unStepCounter = 0;
 
     std::thread t2([&]() { m_cWebServer->Start(); });
@@ -53,9 +66,9 @@ namespace argos {
     while (true) {
       if (
         m_eExperimentState ==
-          NetworkAPI::EExperimentState::EXPERIMENT_PLAYING ||
+          argos::NetworkAPI::EExperimentState::EXPERIMENT_PLAYING ||
         m_eExperimentState ==
-          NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
+          argos::NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
         if (!m_cSimulator.IsExperimentFinished()) {
           /* Run user's pre step function */
           m_cSimulator.GetLoopFunctions().PreStep();
@@ -141,8 +154,9 @@ namespace argos {
     /* Make sure we are in the right state */
     if (
       m_eExperimentState !=
-        NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED &&
-      m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PAUSED) {
+        argos::NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED &&
+      m_eExperimentState !=
+        argos::NetworkAPI::EExperimentState::EXPERIMENT_PAUSED) {
       LOG_S(WARNING) << "CNetworkAPI::PlayExperiment() called in wrong state: "
                      << argos::NetworkAPI::EExperimentStateToStr(
                           m_eExperimentState)
@@ -158,7 +172,8 @@ namespace argos {
       (long int)(CPhysicsEngine::GetSimulationClockTick() * 1000.0f));
 
     /* Change state and emit signals */
-    m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PLAYING;
+    m_eExperimentState =
+      argos::NetworkAPI::EExperimentState::EXPERIMENT_PLAYING;
     m_cWebServer->EmitEvent("Experiment playing", m_eExperimentState);
 
     LOG_S(INFO) << "Experiment playing";
@@ -173,8 +188,9 @@ namespace argos {
     /* Make sure we are in the right state */
     if (
       m_eExperimentState !=
-        NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED &&
-      m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PAUSED) {
+        argos::NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED &&
+      m_eExperimentState !=
+        argos::NetworkAPI::EExperimentState::EXPERIMENT_PAUSED) {
       LOG_S(WARNING)
         << "CNetworkAPI::FastForwardExperiment() called in wrong state: "
         << argos::NetworkAPI::EExperimentStateToStr(m_eExperimentState)
@@ -187,7 +203,7 @@ namespace argos {
 
     /* Change state and emit signals */
     m_eExperimentState =
-      NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING;
+      argos::NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING;
     m_cWebServer->EmitEvent("Experiment fast-forwarding", m_eExperimentState);
 
     LOG_S(INFO) << "Experiment fast-forwarding";
@@ -201,9 +217,10 @@ namespace argos {
   void CNetworkAPI::PauseExperiment() {
     /* Make sure we are in the right state */
     if (
-      m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PLAYING &&
       m_eExperimentState !=
-        NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
+        argos::NetworkAPI::EExperimentState::EXPERIMENT_PLAYING &&
+      m_eExperimentState !=
+        argos::NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
       LOG_S(WARNING) << "CNetworkAPI::PauseExperiment() called in wrong "
                         "state: "
                      << argos::NetworkAPI::EExperimentStateToStr(
@@ -217,7 +234,7 @@ namespace argos {
     m_bFastForwarding = false;
 
     /* Change state and emit signals */
-    m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PAUSED;
+    m_eExperimentState = argos::NetworkAPI::EExperimentState::EXPERIMENT_PAUSED;
     m_cWebServer->EmitEvent("Experiment paused", m_eExperimentState);
 
     LOG_S(INFO) << "Experiment paused";
@@ -229,9 +246,10 @@ namespace argos {
   void CNetworkAPI::StepExperiment() {
     /* Make sure we are in the right state */
     if (
-      m_eExperimentState == NetworkAPI::EExperimentState::EXPERIMENT_PLAYING ||
       m_eExperimentState ==
-        NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
+        argos::NetworkAPI::EExperimentState::EXPERIMENT_PLAYING ||
+      m_eExperimentState ==
+        argos::NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
       LOG_S(WARNING) << "CNetworkAPI::StepExperiment() called in wrong "
                         "state: "
                      << argos::NetworkAPI::EExperimentStateToStr(
@@ -239,7 +257,8 @@ namespace argos {
                      << " pausing the experiment to run a step";
 
       /* Make experiment pause */
-      m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PAUSED;
+      m_eExperimentState =
+        argos::NetworkAPI::EExperimentState::EXPERIMENT_PAUSED;
     }
 
     /* Disable fast-forward */
@@ -288,7 +307,8 @@ namespace argos {
     /* Reset Counter */
     m_unStepCounter = 0;
 
-    m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED;
+    m_eExperimentState =
+      argos::NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED;
 
     /* Change state and emit signals */
     m_cWebServer->EmitEvent("Experiment reset", m_eExperimentState);
@@ -363,16 +383,17 @@ namespace argos {
     cStateJson["entities"] = vecEntitiesJson;
 
     /* Current state of the experiment */
-    cStateJson["state"] = NetworkAPI::EExperimentStateToStr(m_eExperimentState);
+    cStateJson["state"] =
+      argos::NetworkAPI::EExperimentStateToStr(m_eExperimentState);
 
     /* Current Step from the counter */
     cStateJson["steps"] = m_unStepCounter;
 
     /* Added Unix Epoch in milliseconds */
-    cStateJson["timestamp"] =
-      std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch())
-        .count();
+    cStateJson["timestamp"] = m_cSpace.GetSimulationClock();
+    // std::chrono::duration_cast<std::chrono::milliseconds>(
+    //   std::chrono::system_clock::now().time_since_epoch())
+    //   .count();
 
     m_cWebServer->Broadcast(cStateJson);
   }
@@ -380,7 +401,11 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  CNetworkAPI::~CNetworkAPI() { delete m_cWebServer; }
+  CNetworkAPI::~CNetworkAPI() {
+    delete m_cWebServer;
+    delete m_pcLogStream;
+    delete m_pcLogErrStream;
+  }
 
   /****************************************/
   /****************************************/

@@ -9,8 +9,9 @@
 #include <atomic>
 #include <loguru.hpp>
 #include <thread>
+#include "helpers/CTimer.h"
 #include "helpers/EExperimentState.h"
-#include "helpers/Timer.h"
+#include "helpers/LogStream.h"
 #include "networkapi_webserver.h"
 
 namespace argos {
@@ -54,7 +55,7 @@ namespace argos {
     std::atomic<NetworkAPI::EExperimentState> m_eExperimentState;
 
     /** Timer used for the loop */
-    NetworkAPI::Timer m_cTimer;
+    argos::NetworkAPI::CTimer m_cTimer;
 
     /** Steps Counter */
     unsigned long long m_unStepCounter;
@@ -63,7 +64,7 @@ namespace argos {
     std::chrono::milliseconds m_cSimulatorTickMillis;
 
     /** Webserver */
-    NetworkAPI::CWebServer* m_cWebServer;
+    argos::NetworkAPI::CWebServer* m_cWebServer;
 
     /** THread to run simulation steps */
     std::thread m_cSimulationThread;
@@ -76,6 +77,10 @@ namespace argos {
 
     /** number of frames to drop in Fast-forwarding */
     unsigned short m_unDrawFrameEvery;
+
+    /** Log stream objects, to catch logs from Argos */
+    argos::NetworkAPI::CLogStream* m_pcLogStream;
+    argos::NetworkAPI::CLogStream* m_pcLogErrStream;
 
     /** Function to run simulation step in realtime */
     void RealTimeStep();
