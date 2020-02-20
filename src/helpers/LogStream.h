@@ -24,10 +24,16 @@ namespace argos {
         m_cStream.rdbuf(this);
       }
 
+      /****************************************/
+      /****************************************/
+
       virtual ~CLogStream() {
         /* Replace old buffer */
         m_cStream.rdbuf(m_pcOldStream);
       }
+
+      /****************************************/
+      /****************************************/
 
       virtual int_type overflow(int_type t_value) {
         if (t_value == '\n') {
@@ -46,6 +52,9 @@ namespace argos {
         }
         return t_value;
       }
+
+      /****************************************/
+      /****************************************/
 
       virtual std::streamsize xsputn(
         const char* pc_message, std::streamsize un_size) {

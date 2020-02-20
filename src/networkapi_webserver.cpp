@@ -230,12 +230,13 @@ namespace argos {
              LOG_S(INFO) << "1 client connected"
                          << " (Total: " << m_vecWebSocketClients.size() << ")";
            },
-         .message =
-           [](
-             auto *pc_ws, std::string_view strv_message, uWS::OpCode e_opCode) {
-             /* broadcast every single message it got */
-             pc_ws->publish("broadcast", strv_message, e_opCode);
-           },
+         //  .message =
+         //    [](
+         //      auto *pc_ws, std::string_view strv_message, uWS::OpCode
+         //      e_opCode) {
+         //      /* broadcast every single message it got */
+         //      pc_ws->publish("broadcast", strv_message, e_opCode);
+         //    },
          .close =
            [&](auto *pc_ws, int n_code, std::string_view strv_message) {
              /* it automatically unsubscribe from any topic here */

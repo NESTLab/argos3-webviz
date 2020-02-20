@@ -1,7 +1,76 @@
 #ifndef ARGOS_NETWORKAPI_UTILITIES_H
 #define ARGOS_NETWORKAPI_UTILITIES_H
 
+#include <argos3/core/simulator/space/space.h>
 #include <algorithm>
+#include <nlohmann/json.hpp>
+
+/****************************************/
+/****************************************/
+
+static inline nlohmann::json GetEntitiesAsJSON(argos::CSpace& c_space) {
+  std::vector<nlohmann::json> vecEntitiesJson;
+
+  argos::CEntity::TVector& cvecEntities = c_space.GetRootEntityVector();
+  for (argos::CEntity::TVector::iterator itEntities = cvecEntities.begin();
+       itEntities != cvecEntities.end();
+       ++itEntities) {
+    nlohmann::json cEntityJson;
+
+    /* Get the type of the entity */
+    cEntityJson["type"] = (*itEntities)->GetTypeDescription();
+
+    /* Try to get embodied entity */
+
+    /* Is the entity embodied itself? */
+    argos::CEmbodiedEntity* pcEmbodiedEntity =
+      dynamic_cast<argos::CEmbodiedEntity*>(*itEntities);
+
+    if (pcEmbodiedEntity == NULL) {
+      /* Is the entity composable with an embodied component? */
+      argos::CComposableEntity* pcComposableTest =
+        dynamic_cast<argos::CComposableEntity*>(*itEntities);
+      if (pcComposableTest != NULL) {
+        if (pcComposableTest->HasComponent("body")) {
+          pcEmbodiedEntity =
+            &(pcComposableTest->GetComponent<argos::CEmbodiedEntity>("body"));
+        }
+      }
+    }
+
+    if (pcEmbodiedEntity == NULL) {
+      /* cannot find EmbodiedEntity */
+      LOG_S(WARNING) << "Not an Embodied Entity :"
+                     << (*itEntities)->GetTypeDescription();
+      continue;
+    }
+
+    /* Get the position of the entity */
+    const argos::CVector3& cPosition =
+      pcEmbodiedEntity->GetOriginAnchor().Position;
+
+    /* Add it to json as=>  position:{x, y, z} */
+    cEntityJson["position"]["x"] = cPosition.GetX();
+    cEntityJson["position"]["y"] = cPosition.GetY();
+    cEntityJson["position"]["z"] = cPosition.GetZ();
+
+    /* Get the orientation of the entity */
+    const argos::CQuaternion& cOrientation =
+      pcEmbodiedEntity->GetOriginAnchor().Orientation;
+
+    cEntityJson["orientation"]["x"] = cOrientation.GetX();
+    cEntityJson["orientation"]["y"] = cOrientation.GetY();
+    cEntityJson["orientation"]["z"] = cOrientation.GetZ();
+    cEntityJson["orientation"]["w"] = cOrientation.GetW();
+
+    // m_cModel.DrawEntity(c_entity);
+    vecEntitiesJson.push_back(cEntityJson);
+  }
+  return vecEntitiesJson;
+}
+
+/****************************************/
+/****************************************/
 
 template <typename T>
 static inline void EraseFromVector(std::vector<T>& deque, T const& value) {

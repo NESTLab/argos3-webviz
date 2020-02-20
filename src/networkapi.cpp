@@ -1,4 +1,5 @@
 #include "networkapi.h"
+#include <typeinfo>  // operator typeid
 #include "helpers/utils.h"
 
 namespace argos {
@@ -327,64 +328,16 @@ namespace argos {
   /****************************************/
 
   void CNetworkAPI::BroadcastExperimentState() {
-    /* Draw the objects */
-    std::vector<nlohmann::json> vecEntitiesJson;
-
-    CEntity::TVector& cvecEntities = m_cSpace.GetRootEntityVector();
-    for (CEntity::TVector::iterator itEntities = cvecEntities.begin();
-         itEntities != cvecEntities.end();
-         ++itEntities) {
-      nlohmann::json cEntityJson;
-
-      /* Get the type of the entity */
-      cEntityJson["type"] = (*itEntities)->GetTypeDescription();
-
-      /* Try to get embodied entity */
-
-      /* Is the entity embodied itself? */
-      CEmbodiedEntity* pcEmbodiedEntity =
-        dynamic_cast<CEmbodiedEntity*>(*itEntities);
-
-      if (pcEmbodiedEntity == NULL) {
-        /* Is the entity composable with an embodied component? */
-        CComposableEntity* pcComposableTest =
-          dynamic_cast<CComposableEntity*>(*itEntities);
-        if (pcComposableTest != NULL) {
-          if (pcComposableTest->HasComponent("body")) {
-            pcEmbodiedEntity =
-              &(pcComposableTest->GetComponent<CEmbodiedEntity>("body"));
-          }
-        }
-      }
-
-      if (pcEmbodiedEntity == NULL) {
-        /* cannot find EmbodiedEntity */
-        LOG_S(WARNING) << "Not an Embodied Entity :"
-                       << (*itEntities)->GetTypeDescription();
-        continue;
-      }
-      /* Get the position of the entity */
-      const CVector3& cPosition = pcEmbodiedEntity->GetOriginAnchor().Position;
-
-      /* Add it to json as=>  position:{x, y, z} */
-      cEntityJson["position"]["x"] = cPosition.GetX();
-      cEntityJson["position"]["y"] = cPosition.GetY();
-      cEntityJson["position"]["z"] = cPosition.GetZ();
-
-      /* Get the orientation of the entity */
-      const CQuaternion& cOrientation =
-        pcEmbodiedEntity->GetOriginAnchor().Orientation;
-
-      cEntityJson["orientation"]["x"] = cOrientation.GetX();
-      cEntityJson["orientation"]["y"] = cOrientation.GetY();
-      cEntityJson["orientation"]["z"] = cOrientation.GetZ();
-      cEntityJson["orientation"]["w"] = cOrientation.GetW();
-
-      // m_cModel.DrawEntity(c_entity);
-      vecEntitiesJson.push_back(cEntityJson);
-    }
     nlohmann::json cStateJson;
-    cStateJson["entities"] = vecEntitiesJson;
+
+    cStateJson["entities"] = GetEntitiesAsJSON(m_cSpace);
+
+    cStateJson["timestamp"] = m_cSpace.GetSimulationClock();
+
+    /* Added Unix Epoch in milliseconds */
+    // std::chrono::duration_cast<std::chrono::milliseconds>(
+    //   std::chrono::system_clock::now().time_since_epoch())
+    //   .count();
 
     /* Current state of the experiment */
     cStateJson["state"] =
@@ -393,12 +346,7 @@ namespace argos {
     /* Current Step from the counter */
     cStateJson["steps"] = m_unStepCounter;
 
-    /* Added Unix Epoch in milliseconds */
-    cStateJson["timestamp"] = m_cSpace.GetSimulationClock();
-    // std::chrono::duration_cast<std::chrono::milliseconds>(
-    //   std::chrono::system_clock::now().time_since_epoch())
-    //   .count();
-
+    /* Send to webserver to broadcast */
     m_cWebServer->Broadcast(cStateJson);
   }
 
