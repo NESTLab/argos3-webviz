@@ -1,4 +1,14 @@
+#
+# List of all the entities files to compile
+#
+SET(ENTITIES_SOURCE_FILES
+  entity/networkapi_box.cpp
+  entity/networkapi_footbot.cpp
+)
 
+
+
+############################## PROJECT SETUP ##############################
 #
 # Download uWebSockets library from github
 #
@@ -45,18 +55,12 @@ INCLUDE_DIRECTORIES(
 
 
 #
-# create variables
-#
-
-
-#
 # Headers
 #
 # argos3/plugins/simulator/visualizations/network-api
 SET(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI
   networkapi.h
-  networkapi_webserver.h
-  entity/networkapi_box.h)
+  networkapi_webserver.h)
 
 #
 # Source files
@@ -66,7 +70,7 @@ SET(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI
   ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI}
   networkapi.cpp
   networkapi_webserver.cpp
-  entity/networkapi_box.cpp)
+  ${ENTITIES_SOURCE_FILES})
 
 
 SET(TARGET_NAME

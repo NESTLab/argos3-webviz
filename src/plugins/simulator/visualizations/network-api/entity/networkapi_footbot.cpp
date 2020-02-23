@@ -1,6 +1,6 @@
 /**
  * @file
- * <argos3/plugins/simulator/visualizations/network-api/entity/networkapi_box.cpp>
+ * <argos3/plugins/simulator/visualizations/network-api/entity/networkapi_footbot.cpp>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -8,7 +8,7 @@
  * Copyright (c) 2020 NEST Lab
  */
 
-#include <argos3/plugins/simulator/entities/box_entity.h>
+#include <argos3/plugins/robots/foot-bot/simulator/footbot_entity.h>
 #include <argos3/plugins/simulator/entities/led_equipped_entity.h>
 #include <argos3/plugins/simulator/visualizations/network-api/networkapi.h>
 #include <iomanip>
@@ -20,22 +20,17 @@ namespace argos {
     /****************************************/
     /****************************************/
 
-    class CNetworkAPIOperationGenerateBoxJSON
+    class CNetworkAPIOperationGenerateFootbotJSON
         : public CNetworkAPIOperationGenerateJSON {
      public:
-      nlohmann::json ApplyTo(CNetworkAPI& c_networkapi, CBoxEntity& c_entity) {
+      nlohmann::json ApplyTo(
+        CNetworkAPI& c_networkapi, CFootBotEntity& c_entity) {
         nlohmann::json cJson;
 
         cJson["type"] = c_entity.GetTypeDescription();
         cJson["id"] = c_entity.GetId();
 
-        /* Get Scale of the box */
-        const argos::CVector3& cScale = c_entity.GetSize();
-        cJson["scale"]["x"] = cScale.GetX();
-        cJson["scale"]["y"] = cScale.GetY();
-        cJson["scale"]["z"] = cScale.GetZ();
-
-        /* Get the position of the box */
+        /* Get the position of the foot-bot */
         const argos::CVector3& cPosition =
           c_entity.GetEmbodiedEntity().GetOriginAnchor().Position;
 
@@ -44,7 +39,7 @@ namespace argos {
         cJson["position"]["y"] = cPosition.GetY();
         cJson["position"]["z"] = cPosition.GetZ();
 
-        /* Get the orientation of the box */
+        /* Get the orientation of the foot-bot */
         const argos::CQuaternion& cOrientation =
           c_entity.GetEmbodiedEntity().GetOriginAnchor().Orientation;
 
@@ -57,31 +52,21 @@ namespace argos {
           c_entity.GetLEDEquippedEntity();
 
         if (cLEDEquippedEntity.GetLEDs().size() > 0) {
+          std::stringstream str_LEDsStream;
+
           /* Building a string of all led colors */
-
-          for (UInt32 i = 0; i < cLEDEquippedEntity.GetLEDs().size(); i++) {
-            nlohmann::json cLedJson;
-
-            std::stringstream str_LEDStream;
+          for (UInt32 i = 0; i < 12; i++) {
             const CColor& cColor = cLEDEquippedEntity.GetLED(i).GetColor();
+            /* Convert to hex color*/
+            str_LEDsStream << "#" << std::setfill('0') << std::setw(6)
+                           << std::hex
+                           << (cColor.GetRed() << 16 | cColor.GetGreen() << 8 |
+                               cColor.GetBlue());
 
-            str_LEDStream << "#" << std::setfill('0') << std::setw(6)
-                          << std::hex
-                          << (cColor.GetRed() << 16 | cColor.GetGreen() << 8 |
-                              cColor.GetBlue());
-            cLedJson["color"] = str_LEDStream.str();
-
-            /* Get the position of the box */
-            const argos::CVector3& cPosition =
-              cLEDEquippedEntity.GetLED(i).GetPosition();
-
-            /* Add it to json as => position:{x, y, z} */
-            cLedJson["position"]["x"] = cPosition.GetX();
-            cLedJson["position"]["y"] = cPosition.GetY();
-            cLedJson["position"]["z"] = cPosition.GetZ();
-
-            cJson["leds"].push_back(cLedJson);
+            str_LEDsStream << ";";
           }
+
+          cJson["leds"] = str_LEDsStream.str();
         }
 
         return cJson;
@@ -90,8 +75,8 @@ namespace argos {
 
     REGISTER_NETWORKAPI_ENTITY_OPERATION(
       CNetworkAPIOperationGenerateJSON,
-      CNetworkAPIOperationGenerateBoxJSON,
-      CBoxEntity);
+      CNetworkAPIOperationGenerateFootbotJSON,
+      CFootBotEntity);
 
   }  // namespace NetworkAPI
 }  // namespace argos

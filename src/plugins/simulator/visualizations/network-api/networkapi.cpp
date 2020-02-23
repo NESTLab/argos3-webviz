@@ -334,10 +334,13 @@ namespace argos {
     for (CEntity::TVector::iterator itEntities = vecEntities.begin();
          itEntities != vecEntities.end();
          ++itEntities) {
-      cStateJson["entities"].push_back(CallEntityOperation<
-                                       CNetworkAPIOperationGenerateJSON,
-                                       CNetworkAPI,
-                                       nlohmann::json>(*this, **itEntities));
+      nlohmann::json c_json = CallEntityOperation<
+        CNetworkAPIOperationGenerateJSON,
+        CNetworkAPI,
+        nlohmann::json>(*this, **itEntities);
+      if (c_json != NULL) {
+        LOG_S(INFO) << c_json << std::endl;
+      }
     }
 
     cStateJson["timestamp"] = m_cSpace.GetSimulationClock();
