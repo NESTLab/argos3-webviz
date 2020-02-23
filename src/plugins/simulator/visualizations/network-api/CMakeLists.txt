@@ -55,7 +55,8 @@ INCLUDE_DIRECTORIES(
 # argos3/plugins/simulator/visualizations/network-api
 SET(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI
   networkapi.h
-  networkapi_webserver.h)
+  networkapi_webserver.h
+  entity/networkapi_box.h)
 
 #
 # Source files
@@ -64,7 +65,8 @@ SET(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI
 SET(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI
   ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI}
   networkapi.cpp
-  networkapi_webserver.cpp)
+  networkapi_webserver.cpp
+  entity/networkapi_box.cpp)
 
 
 SET(TARGET_NAME

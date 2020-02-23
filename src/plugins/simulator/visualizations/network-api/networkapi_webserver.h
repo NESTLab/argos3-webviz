@@ -30,10 +30,10 @@ namespace argos {
 #include <queue>
 #include <string_view>
 #include "App.h"  // uWebSockets
-#include "helpers/CTimer.h"
-#include "helpers/EExperimentState.h"
-#include "helpers/utils.h"
 #include "networkapi.h"
+#include "utility/CTimer.h"
+#include "utility/EExperimentState.h"
+#include "utility/utils.h"
 
 namespace argos {
   namespace NetworkAPI {

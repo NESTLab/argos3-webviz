@@ -24,20 +24,45 @@ namespace argos {
   }  // namespace NetworkAPI
 }  // namespace argos
 
+#include <argos3/core/simulator/entity/entity.h>
+#include <nlohmann/json.hpp>
+
+namespace argos {
+  typedef nlohmann::json json;
+
+  /****************************************/
+  /****************************************/
+
+  class CNetworkAPIOperationGenerateJSON : public CEntityOperation<
+                                             CNetworkAPIOperationGenerateJSON,
+                                             CNetworkAPI,
+                                             json> {
+   public:
+    virtual ~CNetworkAPIOperationGenerateJSON() {}
+  };
+
+#define REGISTER_NETWORKAPI_ENTITY_OPERATION(ACTION, OPERATION, ENTITY) \
+  REGISTER_ENTITY_OPERATION(ACTION, CNetworkAPI, OPERATION, json, ENTITY);
+
+}  // namespace argos
+
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/visualization/visualization.h>
 #include <argos3/core/utility/logging/argos_log.h>
 #include <atomic>
 #include <loguru.hpp>
+
 #include <thread>
-#include "helpers/CTimer.h"
-#include "helpers/EExperimentState.h"
-#include "helpers/LogStream.h"
-#include "helpers/utils.h"
 #include "networkapi_webserver.h"
+#include "utility/CTimer.h"
+#include "utility/EExperimentState.h"
+#include "utility/LogStream.h"
 
 namespace argos {
+  /****************************************/
+  /****************************************/
+
   class CNetworkAPI : public CVisualization {
    public:
     CNetworkAPI();
@@ -127,6 +152,6 @@ namespace argos {
     void BroadcastExperimentState();
   };
 
-}  // namespace argos
+};  // namespace argos
 
 #endif

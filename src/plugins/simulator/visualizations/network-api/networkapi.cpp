@@ -327,7 +327,18 @@ namespace argos {
   void CNetworkAPI::BroadcastExperimentState() {
     nlohmann::json cStateJson;
 
-    cStateJson["entities"] = GetEntitiesAsJSON(m_cSpace);
+    // cStateJson["entities"]// GetEntitiesAsJSON(m_cSpace);
+
+    /* Get all entities in the experiment */
+    CEntity::TVector& vecEntities = m_cSpace.GetRootEntityVector();
+    for (CEntity::TVector::iterator itEntities = vecEntities.begin();
+         itEntities != vecEntities.end();
+         ++itEntities) {
+      cStateJson["entities"].push_back(CallEntityOperation<
+                                       CNetworkAPIOperationGenerateJSON,
+                                       CNetworkAPI,
+                                       nlohmann::json>(*this, **itEntities));
+    }
 
     cStateJson["timestamp"] = m_cSpace.GetSimulationClock();
 

@@ -209,15 +209,11 @@ namespace argos {
            [&](auto *pc_ws, uWS::HttpRequest *pc_req) {
              /* Selectivly subscribe to different channels */
              if (pc_req->getQuery().size() > 0) {
-               std::vector<std::string_view> vecQueries =
-                 SplitSV(pc_req->getQuery(), ",");
-
-               std::for_each(
-                 vecQueries.begin(),
-                 vecQueries.end(),
-                 [pc_ws](std::string_view strv_channel) {
-                   pc_ws->subscribe(strv_channel);
-                 });
+               std::stringstream str_stream(std::string(pc_req->getQuery()));
+               std::string str_token;
+               while (std::getline(str_stream, str_token, ',')) {
+                 pc_ws->subscribe(str_token);
+               }
              } else {
                /*
                 * making every connection subscribe to the
