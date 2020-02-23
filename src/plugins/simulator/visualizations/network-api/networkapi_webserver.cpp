@@ -10,8 +10,6 @@
 
 #include "networkapi_webserver.h"
 
-#include "helpers/utils.h"
-
 namespace argos {
   namespace NetworkAPI {
 
@@ -96,8 +94,8 @@ namespace argos {
               m_cBroadcastDuration - m_cBroadcastTimer.Elapsed());
           } else {
             LOG_S(WARNING) << "Broadcast tick took " << m_cBroadcastTimer
-                           << " sec, more than the expected "
-                           << m_cBroadcastDuration.count() << " sec. "
+                           << " milli-secs, more than the expected "
+                           << m_cBroadcastDuration.count() << " milli-secs. "
                            << "Not able to reach all clients, Please reduce "
                               "the \'broadcast_frequency\' in "
                               "configuration file.\n";
@@ -203,9 +201,9 @@ namespace argos {
         "/*",
         {/* Settings */
          .compression = uWS::SHARED_COMPRESSOR,
-         .maxPayloadLength = 16 * 1024 * 1024,
+         .maxPayloadLength = 256 * 1024 * 1024,
          .idleTimeout = 10,
-         .maxBackpressure = 1 * 1024 * 1204,
+         .maxBackpressure = 256 * 1024 * 1204,
          /* Handlers */
          .open =
            [&](auto *pc_ws, uWS::HttpRequest *pc_req) {
@@ -223,7 +221,7 @@ namespace argos {
              } else {
                /*
                 * making every connection subscribe to the
-                * "broadcast" and "events" topics
+                * "broadcast", "events" and "logs" topics
                 */
                pc_ws->subscribe("broadcast");
                pc_ws->subscribe("events");

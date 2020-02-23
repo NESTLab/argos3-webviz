@@ -10,17 +10,31 @@
 #ifndef ARGOS_NETWORKAPI_H
 #define ARGOS_NETWORKAPI_H
 
-#include <argos3/core/simulator/entity/composable_entity.h>
+/* Loguru with streams interface */
+#define LOGURU_WITH_STREAMS 1
+
+namespace argos {
+  class CNetworkAPI;
+
+  namespace NetworkAPI {
+    class CWebServer;
+    class CTimer;
+    class CLogStream;
+    enum class EExperimentState;
+  }  // namespace NetworkAPI
+}  // namespace argos
+
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/visualization/visualization.h>
-#include <sys/time.h>
+#include <argos3/core/utility/logging/argos_log.h>
 #include <atomic>
 #include <loguru.hpp>
 #include <thread>
 #include "helpers/CTimer.h"
 #include "helpers/EExperimentState.h"
 #include "helpers/LogStream.h"
+#include "helpers/utils.h"
 #include "networkapi_webserver.h"
 
 namespace argos {
@@ -35,36 +49,45 @@ namespace argos {
     void Init(TConfigurationNode& t_tree);
 
     /**
-     * Plays the experiment.
+     * @brief Plays the experiment.
+     *
      * Internally sets a timer whose period corresponds to the
      * XML attribute 'ticks_per_second' in the .argos file.
      */
     void PlayExperiment();
 
     /**
-     * Pauses the experiment.
+     * @brief Pauses the experiment.
+     *
      * The experiment can be resumed with PlayExperiment()
      */
     void PauseExperiment();
 
-    /** Executes one experiment time step. */
+    /**
+     * @brief Executes one experiment time step.
+     *
+     */
     void StepExperiment();
 
     /**
-     * Fast forwards the experiment.
+     * @brief Fast forwards the experiment.
+     *
      */
     void FastForwardExperiment();
 
-    /** Resets the state of the experiment to its state right after
-     * initialization.*/
+    /**
+     * @brief Resets the state of the experiment to its state right after
+     * initialization
+     *
+     */
     void ResetExperiment();
 
    private:
-    /* Experiment State, is used by many threads, so atomic */
+    /** Experiment State, declared atomic as it is used by many threads */
     std::atomic<NetworkAPI::EExperimentState> m_eExperimentState;
 
     /** Timer used for the loop */
-    argos::NetworkAPI::CTimer m_cTimer;
+    NetworkAPI::CTimer m_cTimer;
 
     /** Steps Counter */
     unsigned long long m_unStepCounter;
@@ -73,7 +96,7 @@ namespace argos {
     std::chrono::milliseconds m_cSimulatorTickMillis;
 
     /** Webserver */
-    argos::NetworkAPI::CWebServer* m_cWebServer;
+    NetworkAPI::CWebServer* m_cWebServer;
 
     /** THread to run simulation steps */
     std::thread m_cSimulationThread;
@@ -88,16 +111,19 @@ namespace argos {
     unsigned short m_unDrawFrameEvery;
 
     /** Log stream objects, to catch logs from Argos */
-    argos::NetworkAPI::CLogStream* m_pcLogStream;
-    argos::NetworkAPI::CLogStream* m_pcLogErrStream;
+    NetworkAPI::CLogStream* m_pcLogStream;
+    NetworkAPI::CLogStream* m_pcLogErrStream;
 
-    /** Function to run simulation step in realtime */
-    void RealTimeStep();
-
-    /** Thread to run in Simulation thread */
+    /**
+     * @brief Function which run in Simulation thread
+     *
+     */
     void SimulationThreadFunction();
 
-    /** Function to broadcast experiment state */
+    /**
+     * @brief Function which broadcast experiment state
+     *
+     */
     void BroadcastExperimentState();
   };
 

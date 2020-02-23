@@ -11,19 +11,29 @@
 #ifndef ARGOS_NETWORKAPI_WEBSERVER_H
 #define ARGOS_NETWORKAPI_WEBSERVER_H
 
-#include "networkapi_webserver.fwd.h"
+/* Loguru with streams interface */
+#define LOGURU_WITH_STREAMS 1
 
-#include "networkapi.fwd.h"
+namespace argos {
+  class CNetworkAPI;
 
-#include "networkapi.h"
+  namespace NetworkAPI {
+    class CWebServer;
+    class CTimer;
+    enum class EExperimentState;
+  }  // namespace NetworkAPI
+}  // namespace argos
 
 #include <loguru.hpp>
 #include <mutex>
 #include <nlohmann/json.hpp>
 #include <queue>
 #include <string_view>
-#include "App.h"
+#include "App.h"  // uWebSockets
+#include "helpers/CTimer.h"
 #include "helpers/EExperimentState.h"
+#include "helpers/utils.h"
+#include "networkapi.h"
 
 namespace argos {
   namespace NetworkAPI {
@@ -36,13 +46,13 @@ namespace argos {
       std::chrono::milliseconds m_cBroadcastDuration;
 
       /** broadcast cycle timer */
-      argos::NetworkAPI::CTimer m_cBroadcastTimer;
+      CTimer m_cBroadcastTimer;
 
       /** mutexed string using m_mutex4BroadcastString to broadcast */
       std::string m_strBroadcastString;
 
       /** Reference to CNetworkAPI object to call function over it */
-      argos::CNetworkAPI* m_pcMyNetworkAPI;
+      CNetworkAPI* m_pcMyNetworkAPI;
 
       /** Threads serving web requests */
       std::vector<std::thread*> m_vecWebThreads;
@@ -90,13 +100,13 @@ namespace argos {
         std::string = "400 Bad Request");
 
      public:
-      CWebServer(argos::CNetworkAPI*, unsigned short, unsigned short);
+      CWebServer(CNetworkAPI*, unsigned short, unsigned short);
       ~CWebServer();
 
       void Start();
 
       /** Broadcasts on event channel to all the connected clients */
-      void EmitEvent(std::string_view, argos::NetworkAPI::EExperimentState);
+      void EmitEvent(std::string_view, EExperimentState);
 
       /** Broadcasts on log channels to all the connected clients */
       void EmitLog(std::string, std::string);

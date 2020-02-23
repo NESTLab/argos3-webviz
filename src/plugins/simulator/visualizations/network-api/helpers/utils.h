@@ -10,6 +10,7 @@
 #ifndef ARGOS_NETWORKAPI_UTILITIES_H
 #define ARGOS_NETWORKAPI_UTILITIES_H
 
+#include <argos3/core/simulator/entity/composable_entity.h>
 #include <argos3/core/simulator/space/space.h>
 #include <algorithm>
 #include <nlohmann/json.hpp>
