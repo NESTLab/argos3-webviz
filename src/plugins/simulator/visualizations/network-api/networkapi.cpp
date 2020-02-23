@@ -1,3 +1,12 @@
+/**
+ * @file <argos3/plugins/simulator/visualizations/network-api/networkapi.cpp>
+ *
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ *
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
+
 #include "networkapi.h"
 #include <typeinfo>  // operator typeid
 #include "helpers/utils.h"

@@ -18,7 +18,7 @@
   <controllers>
 
     <footbot_diffusion_controller id="fdc"
-                                  library="build/tests/controllers/libfootbot_diffusion.so">
+                                  library="build/testing/controllers/libfootbot_diffusion.so">
       <actuators>
         <differential_steering implementation="default" />
       </actuators>

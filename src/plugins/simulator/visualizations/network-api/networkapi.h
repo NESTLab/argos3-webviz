@@ -1,3 +1,12 @@
+/**
+ * @file <argos3/plugins/simulator/visualizations/network-api/networkapi.h>
+ *
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ *
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
+
 #ifndef ARGOS_NETWORKAPI_H
 #define ARGOS_NETWORKAPI_H
 

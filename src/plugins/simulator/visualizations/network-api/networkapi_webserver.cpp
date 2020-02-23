@@ -1,3 +1,13 @@
+/**
+ * @file
+ * <argos3/plugins/simulator/visualizations/network-api/networkapi_webserver.cpp>
+ *
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ *
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
+
 #include "networkapi_webserver.h"
 
 #include "helpers/utils.h"

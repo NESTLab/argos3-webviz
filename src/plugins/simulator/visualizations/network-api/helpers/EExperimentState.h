@@ -1,3 +1,13 @@
+/**
+ * @file
+ * <argos3/plugins/simulator/visualizations/network-api/helpers/EExperimentState.h>
+ *
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ *
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
+
 #ifndef ARGOS_NETWORKAPI_EEXPERIMENTSTATE_H
 #define ARGOS_NETWORKAPI_EEXPERIMENTSTATE_H
 
