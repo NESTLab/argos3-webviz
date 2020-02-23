@@ -70,14 +70,11 @@ namespace argos {
   /****************************************/
 
   void CNetworkAPI::Execute() {
-    /* Start the frame counter from 0 */
-    m_unStepCounter = 0;
-
     std::thread t2([&]() { m_cWebServer->Start(); });
     t2.join();
     m_cSimulationThread.join();
 
-    // Finish all..
+    // TODO Finish all..
   }
 
   void CNetworkAPI::SimulationThreadFunction() {
@@ -106,9 +103,6 @@ namespace argos {
 
             /* Steps counter in this while loop */
             --unFFStepCounter;
-
-            /* Increment global Counter */
-            m_unStepCounter++;
           }
 
           /* Broadcast current experiment state */
@@ -280,9 +274,6 @@ namespace argos {
       /* Run one step */
       m_cSimulator.UpdateSpace();
 
-      /* Increment Counter */
-      m_unStepCounter++;
-
       /* Run user's post step function */
       m_cSimulator.GetLoopFunctions().PostStep();
 
@@ -313,9 +304,6 @@ namespace argos {
     /* Disable fast-forward */
     m_bFastForwarding = false;
 
-    /* Reset Counter */
-    m_unStepCounter = 0;
-
     m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED;
 
     /* Change state and emit signals */
@@ -333,8 +321,6 @@ namespace argos {
   void CNetworkAPI::BroadcastExperimentState() {
     nlohmann::json cStateJson;
 
-    // cStateJson["entities"]// GetEntitiesAsJSON(m_cSpace);
-
     /* Get all entities in the experiment */
     CEntity::TVector& vecEntities = m_cSpace.GetRootEntityVector();
     for (CEntity::TVector::iterator itEntities = vecEntities.begin();
@@ -346,18 +332,17 @@ namespace argos {
                                        nlohmann::json>(*this, **itEntities));
     }
 
-    cStateJson["timestamp"] = m_cSpace.GetSimulationClock();
-
     /* Added Unix Epoch in milliseconds */
-    // std::chrono::duration_cast<std::chrono::milliseconds>(
-    //   std::chrono::system_clock::now().time_since_epoch())
-    //   .count();
+    cStateJson["timestamp"] =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch())
+        .count();
 
     /* Current state of the experiment */
     cStateJson["state"] = NetworkAPI::EExperimentStateToStr(m_eExperimentState);
 
     /* Current Step from the counter */
-    cStateJson["steps"] = m_unStepCounter;
+    cStateJson["steps"] = m_cSpace.GetSimulationClock();
 
     /* Send to webserver to broadcast */
     m_cWebServer->Broadcast(cStateJson);

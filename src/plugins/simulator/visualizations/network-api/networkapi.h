@@ -52,7 +52,6 @@ namespace argos {
 #include <argos3/core/utility/logging/argos_log.h>
 #include <atomic>
 #include <loguru.hpp>
-
 #include <thread>
 #include "networkapi_webserver.h"
 #include "utility/CTimer.h"
@@ -113,9 +112,6 @@ namespace argos {
 
     /** Timer used for the loop */
     NetworkAPI::CTimer m_cTimer;
-
-    /** Steps Counter */
-    unsigned long long m_unStepCounter;
 
     /** Milliseconds required for one tick of simulator */
     std::chrono::milliseconds m_cSimulatorTickMillis;
