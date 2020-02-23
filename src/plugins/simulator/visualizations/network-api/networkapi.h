@@ -50,6 +50,7 @@ namespace argos {
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/visualization/visualization.h>
 #include <argos3/core/utility/logging/argos_log.h>
+#include <argos3/core/utility/math/vector3.h>
 #include <atomic>
 #include <loguru.hpp>
 #include <thread>

@@ -331,6 +331,19 @@ namespace argos {
                                        CNetworkAPI,
                                        nlohmann::json>(*this, **itEntities));
     }
+    m_cSpace.GetArenaSize();
+
+    const CVector3& cArenaSize = m_cSpace.GetArenaSize();
+    cStateJson["arena"]["size"]["x"] = cArenaSize.GetX();
+    cStateJson["arena"]["size"]["y"] = cArenaSize.GetY();
+    cStateJson["arena"]["size"]["z"] = cArenaSize.GetZ();
+
+    const CVector3& cArenaCenter = m_cSpace.GetArenaCenter();
+    cStateJson["arena"]["center"]["x"] = cArenaCenter.GetX();
+    cStateJson["arena"]["center"]["y"] = cArenaCenter.GetY();
+    cStateJson["arena"]["center"]["z"] = cArenaCenter.GetZ();
+
+    // m_cSpace.GetArenaLimits();
 
     /* Added Unix Epoch in milliseconds */
     cStateJson["timestamp"] =
@@ -341,7 +354,7 @@ namespace argos {
     /* Current state of the experiment */
     cStateJson["state"] = NetworkAPI::EExperimentStateToStr(m_eExperimentState);
 
-    /* Current Step from the counter */
+    /* Number of step from the simulator */
     cStateJson["steps"] = m_cSpace.GetSimulationClock();
 
     /* Send to webserver to broadcast */
