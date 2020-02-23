@@ -52,6 +52,12 @@ namespace argos {
     GetNodeAttributeOrDefault(
       t_tree, "broadcast_frequency", unBroadcastFrequency, UInt16(10));
 
+    if (unBroadcastFrequency < 1 || 1000 < unBroadcastFrequency) {
+      LOG_F(ERROR, "Frequency set in config is out of range [1,1000]");
+      exit(1);
+      return;
+    }
+
     GetNodeAttributeOrDefault(
       t_tree, "ff_draw_frames_every", m_unDrawFrameEvery, UInt16(2));
 
@@ -334,13 +340,10 @@ namespace argos {
     for (CEntity::TVector::iterator itEntities = vecEntities.begin();
          itEntities != vecEntities.end();
          ++itEntities) {
-      nlohmann::json c_json = CallEntityOperation<
-        CNetworkAPIOperationGenerateJSON,
-        CNetworkAPI,
-        nlohmann::json>(*this, **itEntities);
-      if (c_json != NULL) {
-        LOG_S(INFO) << c_json << std::endl;
-      }
+      cStateJson["entities"].push_back(CallEntityOperation<
+                                       CNetworkAPIOperationGenerateJSON,
+                                       CNetworkAPI,
+                                       nlohmann::json>(*this, **itEntities));
     }
 
     cStateJson["timestamp"] = m_cSpace.GetSimulationClock();
