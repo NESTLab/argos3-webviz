@@ -6,10 +6,11 @@ Run the following in a folder of your choice (you can delete it once installed)
 
 ```bash
 # Download
-git clone --recursive https://github.com/NESTLab/argos3-network-api
-mkdir argos3-network-api/build
-cd argos3-network-api/build
-cmake ..
+git clone https://github.com/NESTLab/argos3-network-api
+cd argos3-network-api
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Debug ../src
 make
 sudo make install
 ```
@@ -18,7 +19,7 @@ sudo make install
 A test project can be run from `root folder` of this project,
 
 ```bash
-argos3 -c tests/diffusion_10.argos
+argos3 -c src/testing/testexperiment.argos
 ```
 
 ## Contributing

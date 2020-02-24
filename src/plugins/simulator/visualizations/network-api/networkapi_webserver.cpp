@@ -1,6 +1,14 @@
-#include "networkapi_webserver.h"
+/**
+ * @file
+ * <argos3/plugins/simulator/visualizations/network-api/networkapi_webserver.cpp>
+ *
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ *
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
 
-#include "helpers/utils.h"
+#include "networkapi_webserver.h"
 
 namespace argos {
   namespace NetworkAPI {
@@ -86,8 +94,8 @@ namespace argos {
               m_cBroadcastDuration - m_cBroadcastTimer.Elapsed());
           } else {
             LOG_S(WARNING) << "Broadcast tick took " << m_cBroadcastTimer
-                           << " sec, more than the expected "
-                           << m_cBroadcastDuration.count() << " sec. "
+                           << " milli-secs, more than the expected "
+                           << m_cBroadcastDuration.count() << " milli-secs. "
                            << "Not able to reach all clients, Please reduce "
                               "the \'broadcast_frequency\' in "
                               "configuration file.\n";
@@ -193,27 +201,23 @@ namespace argos {
         "/*",
         {/* Settings */
          .compression = uWS::SHARED_COMPRESSOR,
-         .maxPayloadLength = 16 * 1024 * 1024,
+         .maxPayloadLength = 256 * 1024 * 1024,
          .idleTimeout = 10,
-         .maxBackpressure = 1 * 1024 * 1204,
+         .maxBackpressure = 256 * 1024 * 1204,
          /* Handlers */
          .open =
            [&](auto *pc_ws, uWS::HttpRequest *pc_req) {
              /* Selectivly subscribe to different channels */
              if (pc_req->getQuery().size() > 0) {
-               std::vector<std::string_view> vecQueries =
-                 SplitSV(pc_req->getQuery(), ",");
-
-               std::for_each(
-                 vecQueries.begin(),
-                 vecQueries.end(),
-                 [pc_ws](std::string_view strv_channel) {
-                   pc_ws->subscribe(strv_channel);
-                 });
+               std::stringstream str_stream(std::string(pc_req->getQuery()));
+               std::string str_token;
+               while (std::getline(str_stream, str_token, ',')) {
+                 pc_ws->subscribe(str_token);
+               }
              } else {
                /*
                 * making every connection subscribe to the
-                * "broadcast" and "events" topics
+                * "broadcast", "events" and "logs" topics
                 */
                pc_ws->subscribe("broadcast");
                pc_ws->subscribe("events");
