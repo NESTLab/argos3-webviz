@@ -73,8 +73,6 @@ void CDiffusion::ControlStep() {
   const CCI_KheperaIVProximitySensor::TReadings& tProxReads =
     m_pcProximity->GetReadings();
 
-  m_pcLEDs->SetAllColors(CColor(255, 255, 255));
-
   /* Sum them together */
   CVector2 cAccumulator;
   for (size_t i = 0; i < tProxReads.size(); ++i) {
@@ -90,12 +88,18 @@ void CDiffusion::ControlStep() {
     cAccumulator.Length() < m_fDelta) {
     /* Go straight */
     m_pcWheels->SetLinearVelocity(m_fWheelVelocity, m_fWheelVelocity);
+    m_pcLEDs->SetSingleColor(0, CColor(255, 255, 255));
+    m_pcLEDs->SetSingleColor(2, CColor(255, 255, 255));
   } else {
     /* Turn, depending on the sign of the angle */
     if (cAngle.GetValue() > 0.0f) {
       m_pcWheels->SetLinearVelocity(m_fWheelVelocity, 0.0f);
+      m_pcLEDs->SetSingleColor(0, CColor(0, 0, 0));
+      m_pcLEDs->SetSingleColor(2, CColor(0, 255, 0));
     } else {
       m_pcWheels->SetLinearVelocity(0.0f, m_fWheelVelocity);
+      m_pcLEDs->SetSingleColor(0, CColor(0, 255, 0));
+      m_pcLEDs->SetSingleColor(2, CColor(0, 0, 0));
     }
   }
 
