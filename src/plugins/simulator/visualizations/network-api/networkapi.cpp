@@ -331,7 +331,6 @@ namespace argos {
                                        CNetworkAPI,
                                        nlohmann::json>(*this, **itEntities));
     }
-    m_cSpace.GetArenaSize();
 
     const CVector3& cArenaSize = m_cSpace.GetArenaSize();
     cStateJson["arena"]["size"]["x"] = cArenaSize.GetX();

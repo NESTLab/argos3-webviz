@@ -111,10 +111,11 @@
   <!-- ****************** -->
   <visualization>
     <!-- frequency can be only between 1 and 1000 Hz (both inclusive) -->
-    <!-- <network-api  port="4000"
+    <!-- <qt-opengl /> -->
+    <network-api  port="4000"
                   broadcast_frequency="10"
-                  ff_draw_frames_every="10" /> -->
-    <qt-opengl />
+                  ff_draw_frames_every="10" />
+    
   </visualization>
 
 </argos-configuration>
