@@ -8,6 +8,10 @@
  * Copyright (c) 2020 NEST Lab
  */
 
+#include <argos3/plugins/robots/generic/control_interface/ci_leds_actuator.h>
+
+#include <argos3/plugins/robots/generic/control_interface/ci_proximity_sensor.h>
+#include <argos3/plugins/robots/kheperaiv/control_interface/ci_kheperaiv_proximity_sensor.h>
 #include <argos3/plugins/robots/kheperaiv/simulator/kheperaiv_entity.h>
 #include <argos3/plugins/simulator/entities/led_equipped_entity.h>
 #include <argos3/plugins/simulator/visualizations/network-api/networkapi.h>
@@ -22,7 +26,20 @@ namespace argos {
 
     class CNetworkAPIOperationGenerateFootbotJSON
         : public CNetworkAPIOperationGenerateJSON {
+     private:
+      CCI_KheperaIVProximitySensor* m_pcProximitySensor;
+
+     private:
+      CVector3 m_cRayVector;
+
      public:
+      /**
+       * @brief Function called to generate a JSON representation of KheperaIV
+       *
+       * @param c_networkapi
+       * @param c_entity
+       * @return nlohmann::json
+       */
       nlohmann::json ApplyTo(
         CNetworkAPI& c_networkapi, CKheperaIVEntity& c_entity) {
         nlohmann::json cJson;
@@ -48,26 +65,75 @@ namespace argos {
         cJson["orientation"]["z"] = cOrientation.GetZ();
         cJson["orientation"]["w"] = cOrientation.GetW();
 
+        /* Actuators */
         CLEDEquippedEntity& cLEDEquippedEntity =
           c_entity.GetLEDEquippedEntity();
 
         if (cLEDEquippedEntity.GetLEDs().size() > 0) {
-          std::stringstream str_LEDsStream;
+          std::stringstream strLEDsStream;
 
           /* Building a string of all led colors */
           for (UInt32 i = 0; i < 3; i++) {
             const CColor& cColor = cLEDEquippedEntity.GetLED(i).GetColor();
             /* Convert to hex color*/
-            str_LEDsStream << "0x" << std::setfill('0') << std::setw(6)
-                           << std::hex
-                           << (cColor.GetRed() << 16 | cColor.GetGreen() << 8 |
-                               cColor.GetBlue());
+            strLEDsStream << "0x" << std::setfill('0') << std::setw(6)
+                          << std::hex
+                          << (cColor.GetRed() << 16 | cColor.GetGreen() << 8 |
+                              cColor.GetBlue());
 
-            str_LEDsStream << ";";
+            strLEDsStream << ";";
           }
 
-          cJson["leds"] = str_LEDsStream.str();
+          cJson["leds"] = strLEDsStream.str();
         }
+
+        /* Rays */
+        std::vector<std::pair<bool, CRay3>>& vecRays =
+          c_entity.GetControllableEntity().GetCheckedRays();
+
+        cJson["rays"] = json::array();  // Empty array
+
+        /*
+          For each ray as a string,
+          Output format -> "BoolIsChecked:Vec3StartPoint:Vec3EndPoint"
+          For example -> "true:1,2,3:1,2,4"
+        */
+        for (UInt32 i = 0; i < vecRays.size(); ++i) {
+          std::stringstream strRayStream;
+          if (vecRays[i].first) {
+            strRayStream << "true";
+          } else {
+            strRayStream << "false";
+          }
+
+          /* Substract the body position, to get relative position of ray */
+          CVector3 cStartVec = (vecRays[i].second.GetStart() - cPosition);
+          CVector3 cEndVec = (vecRays[i].second.GetEnd() - cPosition);
+
+          /* Negate the rotation of body along Z axis to remove rotation from
+           * the vector */
+          CQuaternion cInvZRotation = cOrientation;
+          cInvZRotation.SetZ(-cOrientation.GetZ());
+
+          cStartVec.Rotate(cInvZRotation);
+          cEndVec.Rotate(cInvZRotation);
+
+          /* append vectors to string */
+          strRayStream << ":";
+          strRayStream << cStartVec;
+          strRayStream << ":";
+          strRayStream << cEndVec;
+
+          cJson["rays"].push_back(strRayStream.str());
+        }
+
+        // TODO Intersection points
+
+        // for (UInt32 i = 0; i < c_entity.GetIntersectionPoints().size(); ++i)
+        // {
+        //   const CVector3& cPoint = c_entity.GetIntersectionPoints()[i];
+        //   glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
+        // }
 
         return cJson;
       }
