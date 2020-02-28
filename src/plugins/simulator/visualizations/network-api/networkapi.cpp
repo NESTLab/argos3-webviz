@@ -262,6 +262,10 @@ namespace argos {
 
       /* Make experiment pause */
       m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PAUSED;
+
+      /* Do not go further, as the while loop in SimulationThreadFunction might
+       * be halfway into execution */
+      return;
     }
 
     /* Disable fast-forward */

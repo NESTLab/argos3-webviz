@@ -81,7 +81,7 @@ SET(TARGET_NAME
 #
 # Build Network-API Plugin
 #
-ADD_LIBRARY(${TARGET_NAME} SHARED  ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI})
+ADD_LIBRARY(${TARGET_NAME} SHARED ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI})
 
 TARGET_LINK_LIBRARIES(${TARGET_NAME} 
   argos3plugin_${ARGOS_BUILD_FOR}_entities
@@ -111,10 +111,3 @@ INSTALL(TARGETS ${TARGET_NAME}
     # Use if we want to publish header files
     PUBLIC_HEADER DESTINATION include/argos3/plugins/simulator/visualizations/network-api
 )
-
-
-# Already added in root CMake
-# ## Add Uninstall target
-# ADD_CUSTOM_TARGET(uninstall
-#   "${CMAKE_COMMAND}" -P "${CMAKE_SOURCE_DIR}/cmake/uninstall.cmake"
-# )
