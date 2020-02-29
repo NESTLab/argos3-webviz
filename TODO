@@ -1,11 +1,18 @@
 [ ] Enable SSL
 [ ] Documenting Usage (like port,default values) in CLI (Registration of viz)
 [ ] Add ping pong to WebSockets to enable testing connection
-[ ] Add Logs to websockets (Emit on Error channel)
-[ ] Checking compatibility with simulator for IsRealTimeClock()
 [ ] Implement ~CNetworkAPI(), Reset(), Destroy() of CNetworkAPI
 [ ] Write unit tests
 [ ] Check the logic for when the Experiment state is EXPERIMENT_INITIALIZED, EXPERIMENT_DONE
 [ ] Add support for PositionalEntity if required in BroadcastExperimentState
 [ ] document: event is sent in next cycle of broadcast loop (which depends on broadcast frequency)
-[ ] Note: Step counter/number is unsigned long long, maximum limits implies
+[ ] Entities to implement:
+    [ ] Box with LEDs
+    [ ] Footbot
+    [ ] spiri
+    [ ] cylinder
+    [ ] light
+    [ ] camera
+    [ ] lua editor
+[ ] Implement floor image
+[ ] draw arena boundaries

@@ -9,7 +9,7 @@
     <system threads="2" />
     <experiment length="0"
                 ticks_per_second="10"
-                random_seed="14" />
+                random_seed="124" />
   </framework>
 
   <!-- *************** -->
@@ -58,7 +58,7 @@
     <distribute>
       <position method="uniform" min="-2,-2,0" max="2,2,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
-      <entity quantity="1" max_trials="100">
+      <entity quantity="10" max_trials="100">
         <kheperaiv id="khiv">
           <controller config="khivdc" />
         </kheperaiv>
@@ -112,9 +112,7 @@
   <visualization>
     <!-- frequency can be only between 1 and 1000 Hz (both inclusive) -->
     <!-- <qt-opengl /> -->
-    <network-api  port="4000"
-                  broadcast_frequency="10"
-                  ff_draw_frames_every="10" />
+    <network-api ff_draw_frames_every="10" />
     
   </visualization>
 
