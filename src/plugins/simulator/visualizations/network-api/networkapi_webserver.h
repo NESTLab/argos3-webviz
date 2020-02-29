@@ -33,7 +33,6 @@ namespace argos {
 #include "networkapi.h"
 #include "utility/CTimer.h"
 #include "utility/EExperimentState.h"
-#include "utility/utils.h"
 
 namespace argos {
   namespace NetworkAPI {

@@ -1,6 +1,6 @@
 /**
  * @file
- * <argos3/plugins/simulator/visualizations/network-api/entity/networkapi_footbot.cpp>
+ * <argos3/plugins/simulator/visualizations/network-api/entity/networkapi_kheperaiv.cpp>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -8,7 +8,11 @@
  * Copyright (c) 2020 NEST Lab
  */
 
-#include <argos3/plugins/robots/foot-bot/simulator/footbot_entity.h>
+#include <argos3/plugins/robots/generic/control_interface/ci_leds_actuator.h>
+
+#include <argos3/plugins/robots/generic/control_interface/ci_proximity_sensor.h>
+#include <argos3/plugins/robots/kheperaiv/control_interface/ci_kheperaiv_proximity_sensor.h>
+#include <argos3/plugins/robots/kheperaiv/simulator/kheperaiv_entity.h>
 #include <argos3/plugins/simulator/entities/led_equipped_entity.h>
 #include <argos3/plugins/simulator/visualizations/network-api/networkapi.h>
 #include <iomanip>
@@ -22,9 +26,22 @@ namespace argos {
 
     class CNetworkAPIOperationGenerateFootbotJSON
         : public CNetworkAPIOperationGenerateJSON {
+     private:
+      CCI_KheperaIVProximitySensor* m_pcProximitySensor;
+
+     private:
+      CVector3 m_cRayVector;
+
      public:
+      /**
+       * @brief Function called to generate a JSON representation of KheperaIV
+       *
+       * @param c_networkapi
+       * @param c_entity
+       * @return nlohmann::json
+       */
       nlohmann::json ApplyTo(
-        CNetworkAPI& c_networkapi, CFootBotEntity& c_entity) {
+        CNetworkAPI& c_networkapi, CKheperaIVEntity& c_entity) {
         nlohmann::json cJson;
 
         cJson["type"] = c_entity.GetTypeDescription();
@@ -48,12 +65,13 @@ namespace argos {
         cJson["orientation"]["z"] = cOrientation.GetZ();
         cJson["orientation"]["w"] = cOrientation.GetW();
 
+        /* Actuators */
         CLEDEquippedEntity& cLEDEquippedEntity =
           c_entity.GetLEDEquippedEntity();
 
         if (cLEDEquippedEntity.GetLEDs().size() > 0) {
           /* Building a string of all led colors */
-          for (UInt32 i = 0; i < 12; i++) {
+          for (UInt32 i = 0; i < 3; i++) {
             std::stringstream strLEDsStream;
 
             const CColor& cColor = cLEDEquippedEntity.GetLED(i).GetColor();
@@ -137,7 +155,7 @@ namespace argos {
     REGISTER_NETWORKAPI_ENTITY_OPERATION(
       CNetworkAPIOperationGenerateJSON,
       CNetworkAPIOperationGenerateFootbotJSON,
-      CFootBotEntity);
+      CKheperaIVEntity);
 
   }  // namespace NetworkAPI
 }  // namespace argos

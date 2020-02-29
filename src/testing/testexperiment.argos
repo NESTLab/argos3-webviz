@@ -9,7 +9,7 @@
     <system threads="2" />
     <experiment length="0"
                 ticks_per_second="10"
-                random_seed="14" />
+                random_seed="124" />
   </framework>
 
   <!-- *************** -->
@@ -17,16 +17,23 @@
   <!-- *************** -->
   <controllers>
 
-    <footbot_diffusion_controller id="fdc"
-                                  library="build/testing/controllers/libfootbot_diffusion.so">
+    <diffusion_controller id="khivdc"
+                                  library="build/testing/controllers/libdiffusion.so">
       <actuators>
         <differential_steering implementation="default" />
+        <leds                  implementation="default" medium="leds" />
+        <range_and_bearing     implementation="default" />
       </actuators>
       <sensors>
-        <footbot_proximity implementation="default" show_rays="true" />
+        <kheperaiv_proximity implementation="default" show_rays="true" />
+        <!-- <kheperaiv_light      implementation="rot_z_only" show_rays="true" />
+        <kheperaiv_ultrasound implementation="default" show_rays="true" />
+        <kheperaiv_lidar      implementation="default" show_rays="true" />
+        <range_and_bearing    implementation="medium" medium="rab" show_rays="true" noise_std_dev="0" />
+        <positioning          implementation="default" /> -->
       </sensors>
       <params alpha="7.5" delta="0.1" velocity="5" />
-    </footbot_diffusion_controller>
+    </diffusion_controller>
 
   </controllers>
 
@@ -48,48 +55,39 @@
       <body position="-2,0,0" orientation="90,0,0" />
     </box>
 
-    <!--
-        You can distribute entities randomly. Here, we distribute
-        10 foot-bots in this way:
-        - the position is uniformly distributed
-        on the ground, in the square whose corners are (-2,-2) and (2,2)
-        - the orientations are non-zero only when rotating around Z and chosen
-        from a gaussian distribution, whose mean is zero degrees and
-        standard deviation is 360 degrees.
-    -->
     <distribute>
       <position method="uniform" min="-2,-2,0" max="2,2,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
-      <entity quantity="1" max_trials="100">
-        <foot-bot id="fb">
-          <controller config="fdc" />
-        </foot-bot>
+      <entity quantity="10" max_trials="100">
+        <kheperaiv id="khiv">
+          <controller config="khivdc" />
+        </kheperaiv>
       </entity>
     </distribute>
 
     <!--
         We distribute 5 boxes uniformly in position and rotation around Z.
     -->
-    <!-- <distribute>
+    <distribute>
       <position method="uniform" min="-2,-2,0" max="2,2,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
       <entity quantity="5" max_trials="100">
         <box id="b" size="0.3,0.3,0.5" movable="false" />
       </entity>
-    </distribute> -->
+    </distribute>
 
     <!--
         We distribute cylinders uniformly in position and with
         constant rotation (rotating a cylinder around Z does not
         matter)
     -->
-    <!-- <distribute>
+    <distribute>
       <position method="uniform" min="-2,-2,0" max="2,2,0" />
       <orientation method="constant" values="0,0,0" />
       <entity quantity="5" max_trials="100">
         <cylinder id="c" height="0.5" radius="0.15" movable="false" />
       </entity>
-    </distribute> -->
+    </distribute>
 
   </arena>
 
@@ -103,17 +101,19 @@
   <!-- ********* -->
   <!-- * Media * -->
   <!-- ********* -->
-  <media />
+  <media>
+    <range_and_bearing id="rab" />
+    <led id="leds" />
+  </media>
 
   <!-- ****************** -->
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
     <!-- frequency can be only between 1 and 1000 Hz (both inclusive) -->
-    <network-api  port="4000"
-                  broadcast_frequency="10"
-                  ff_draw_frames_every="10" />
     <!-- <qt-opengl /> -->
+    <network-api ff_draw_frames_every="10" />
+    
   </visualization>
 
 </argos-configuration>

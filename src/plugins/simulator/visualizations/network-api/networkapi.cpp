@@ -64,20 +64,19 @@ namespace argos {
     /* Initialize Webserver */
     m_cWebServer =
       new NetworkAPI::CWebServer(this, unPort, unBroadcastFrequency);
+
+    m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED;
   }
 
   /****************************************/
   /****************************************/
 
   void CNetworkAPI::Execute() {
-    /* Start the frame counter from 0 */
-    m_unStepCounter = 0;
-
     std::thread t2([&]() { m_cWebServer->Start(); });
     t2.join();
     m_cSimulationThread.join();
 
-    // Finish all..
+    // TODO Finish all..
   }
 
   void CNetworkAPI::SimulationThreadFunction() {
@@ -106,9 +105,6 @@ namespace argos {
 
             /* Steps counter in this while loop */
             --unFFStepCounter;
-
-            /* Increment global Counter */
-            m_unStepCounter++;
           }
 
           /* Broadcast current experiment state */
@@ -268,6 +264,10 @@ namespace argos {
 
       /* Make experiment pause */
       m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PAUSED;
+
+      /* Do not go further, as the while loop in SimulationThreadFunction might
+       * be halfway into execution */
+      return;
     }
 
     /* Disable fast-forward */
@@ -279,9 +279,6 @@ namespace argos {
 
       /* Run one step */
       m_cSimulator.UpdateSpace();
-
-      /* Increment Counter */
-      m_unStepCounter++;
 
       /* Run user's post step function */
       m_cSimulator.GetLoopFunctions().PostStep();
@@ -313,9 +310,6 @@ namespace argos {
     /* Disable fast-forward */
     m_bFastForwarding = false;
 
-    /* Reset Counter */
-    m_unStepCounter = 0;
-
     m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED;
 
     /* Change state and emit signals */
@@ -333,31 +327,47 @@ namespace argos {
   void CNetworkAPI::BroadcastExperimentState() {
     nlohmann::json cStateJson;
 
-    // cStateJson["entities"]// GetEntitiesAsJSON(m_cSpace);
-
     /* Get all entities in the experiment */
     CEntity::TVector& vecEntities = m_cSpace.GetRootEntityVector();
     for (CEntity::TVector::iterator itEntities = vecEntities.begin();
          itEntities != vecEntities.end();
          ++itEntities) {
-      cStateJson["entities"].push_back(CallEntityOperation<
-                                       CNetworkAPIOperationGenerateJSON,
-                                       CNetworkAPI,
-                                       nlohmann::json>(*this, **itEntities));
+      auto cEntityJSON = CallEntityOperation<
+        CNetworkAPIOperationGenerateJSON,
+        CNetworkAPI,
+        nlohmann::json>(*this, **itEntities);
+      if (cEntityJSON != nullptr) {
+        cStateJson["entities"].push_back(cEntityJSON);
+      } else {
+        LOG_S(ERROR) << "Entity cannot be converted";
+        LOG_S(ERROR) << (**itEntities).GetTypeDescription();
+        /* TODO : Light */
+      }
     }
 
-    cStateJson["timestamp"] = m_cSpace.GetSimulationClock();
+    const CVector3& cArenaSize = m_cSpace.GetArenaSize();
+    cStateJson["arena"]["size"]["x"] = cArenaSize.GetX();
+    cStateJson["arena"]["size"]["y"] = cArenaSize.GetY();
+    cStateJson["arena"]["size"]["z"] = cArenaSize.GetZ();
+
+    const CVector3& cArenaCenter = m_cSpace.GetArenaCenter();
+    cStateJson["arena"]["center"]["x"] = cArenaCenter.GetX();
+    cStateJson["arena"]["center"]["y"] = cArenaCenter.GetY();
+    cStateJson["arena"]["center"]["z"] = cArenaCenter.GetZ();
+
+    // m_cSpace.GetArenaLimits();
 
     /* Added Unix Epoch in milliseconds */
-    // std::chrono::duration_cast<std::chrono::milliseconds>(
-    //   std::chrono::system_clock::now().time_since_epoch())
-    //   .count();
+    cStateJson["timestamp"] =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch())
+        .count();
 
     /* Current state of the experiment */
     cStateJson["state"] = NetworkAPI::EExperimentStateToStr(m_eExperimentState);
 
-    /* Current Step from the counter */
-    cStateJson["steps"] = m_unStepCounter;
+    /* Number of step from the simulator */
+    cStateJson["steps"] = m_cSpace.GetSimulationClock();
 
     /* Send to webserver to broadcast */
     m_cWebServer->Broadcast(cStateJson);
