@@ -94,6 +94,12 @@ namespace argos {
         cJson["rays"] = json::array();  // Empty array
 
         /*
+         * To make rays relative, negate the rotation of body along Z axis
+         */
+        CQuaternion cInvZRotation = cOrientation;
+        cInvZRotation.SetZ(-cOrientation.GetZ());
+
+        /*
           For each ray as a string,
           Output format -> "BoolIsChecked:Vec3StartPoint:Vec3EndPoint"
           For example -> "true:1,2,3:1,2,4"
@@ -107,13 +113,10 @@ namespace argos {
           }
 
           /* Substract the body position, to get relative position of ray */
-          CVector3 cStartVec = (vecRays[i].second.GetStart() - cPosition);
-          CVector3 cEndVec = (vecRays[i].second.GetEnd() - cPosition);
-
-          /* Negate the rotation of body along Z axis to remove rotation from
-           * the vector */
-          CQuaternion cInvZRotation = cOrientation;
-          cInvZRotation.SetZ(-cOrientation.GetZ());
+          CVector3 cStartVec = vecRays[i].second.GetStart();
+          cStartVec -= cPosition;
+          CVector3 cEndVec = vecRays[i].second.GetEnd();
+          cEndVec -= cPosition;
 
           cStartVec.Rotate(cInvZRotation);
           cEndVec.Rotate(cInvZRotation);
@@ -127,13 +130,25 @@ namespace argos {
           cJson["rays"].push_back(strRayStream.str());
         }
 
-        // TODO Intersection points
+        std::vector<argos::CVector3>& vecPoints =
+          c_entity.GetControllableEntity().GetIntersectionPoints();
 
-        // for (UInt32 i = 0; i < c_entity.GetIntersectionPoints().size(); ++i)
-        // {
-        //   const CVector3& cPoint = c_entity.GetIntersectionPoints()[i];
-        //   glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
-        // }
+        cJson["points"] = json::array();  // Empty array
+
+        for (UInt32 i = 0; i < vecPoints.size(); ++i) {
+          CVector3& cPoint = vecPoints[i];
+          cPoint -= cPosition;
+          cPoint.Rotate(cInvZRotation);
+
+          std::stringstream strPointStream;
+          strPointStream << cPoint.GetX();
+          strPointStream << ",";
+          strPointStream << cPoint.GetY();
+          strPointStream << ",";
+          strPointStream << cPoint.GetZ();
+
+          cJson["points"].push_back(strPointStream.str());
+        }
 
         return cJson;
       }

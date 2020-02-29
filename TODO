@@ -16,3 +16,4 @@
     [ ] lua editor
 [ ] Implement floor image
 [ ] draw arena boundaries
+[ ] Check if port is already being used
