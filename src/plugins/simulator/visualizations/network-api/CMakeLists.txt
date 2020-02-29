@@ -4,6 +4,7 @@
 SET(ENTITIES_SOURCE_FILES
   entity/networkapi_box.cpp
   entity/networkapi_light.cpp
+  entity/networkapi_cylinder.cpp
   entity/networkapi_footbot.cpp
   entity/networkapi_kheperaiv.cpp
 )

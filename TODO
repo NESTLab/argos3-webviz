@@ -8,12 +8,13 @@
 [ ] document: event is sent in next cycle of broadcast loop (which depends on broadcast frequency)
 [ ] Entities to implement:
     [ ] Box with LEDs
-    [ ] Footbot
+    [ ] Footbot (only 3d model is remaining)
     [ ] spiri
-    [ ] cylinder
-    [ ] light
+    [ ] cylinder with leds
     [ ] camera
     [ ] lua editor
+    [ ] floor
+    [ ] floor color
 [ ] Implement floor image
 [ ] draw arena boundaries
 [ ] Check if port is already being used

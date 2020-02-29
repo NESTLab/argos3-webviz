@@ -1,6 +1,6 @@
 /**
  * @file
- * <argos3/plugins/simulator/visualizations/network-api/entity/networkapi_box.cpp>
+ * <argos3/plugins/simulator/visualizations/network-api/entity/networkapi_cylinder.cpp>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -8,7 +8,7 @@
  * Copyright (c) 2020 NEST Lab
  */
 
-#include <argos3/plugins/simulator/entities/box_entity.h>
+#include <argos3/plugins/simulator/entities/cylinder_entity.h>
 #include <argos3/plugins/simulator/entities/led_equipped_entity.h>
 #include <argos3/plugins/simulator/visualizations/network-api/networkapi.h>
 #include <iomanip>
@@ -20,22 +20,20 @@ namespace argos {
     /****************************************/
     /****************************************/
 
-    class CNetworkAPIOperationGenerateBoxJSON
+    class CNetworkAPIOperationGenerateCylinderJSON
         : public CNetworkAPIOperationGenerateJSON {
      public:
-      nlohmann::json ApplyTo(CNetworkAPI& c_networkapi, CBoxEntity& c_entity) {
+      nlohmann::json ApplyTo(
+        CNetworkAPI& c_networkapi, CCylinderEntity& c_entity) {
         nlohmann::json cJson;
 
         cJson["type"] = c_entity.GetTypeDescription();
         cJson["id"] = c_entity.GetId();
-
         cJson["is_movable"] = c_entity.GetEmbodiedEntity().IsMovable();
 
-        /* Get Scale of the box */
-        const argos::CVector3& cScale = c_entity.GetSize();
-        cJson["scale"]["x"] = cScale.GetX();
-        cJson["scale"]["y"] = cScale.GetY();
-        cJson["scale"]["z"] = cScale.GetZ();
+        /* Get Size of the Cylinder */
+        cJson["height"] = c_entity.GetHeight();
+        cJson["radius"] = c_entity.GetRadius();
 
         /* Get the position of the box */
         const argos::CVector3& cPosition =
@@ -92,8 +90,8 @@ namespace argos {
 
     REGISTER_NETWORKAPI_ENTITY_OPERATION(
       CNetworkAPIOperationGenerateJSON,
-      CNetworkAPIOperationGenerateBoxJSON,
-      CBoxEntity);
+      CNetworkAPIOperationGenerateCylinderJSON,
+      CCylinderEntity);
 
   }  // namespace NetworkAPI
 }  // namespace argos

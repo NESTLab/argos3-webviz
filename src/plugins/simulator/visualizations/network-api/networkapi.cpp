@@ -64,6 +64,8 @@ namespace argos {
     /* Initialize Webserver */
     m_cWebServer =
       new NetworkAPI::CWebServer(this, unPort, unBroadcastFrequency);
+
+    m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED;
   }
 
   /****************************************/

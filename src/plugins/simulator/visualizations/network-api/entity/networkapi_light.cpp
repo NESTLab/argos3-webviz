@@ -1,6 +1,6 @@
 /**
  * @file
- * <argos3/plugins/simulator/visualizations/network-api/entity/networkapi_box.cpp>
+ * <argos3/plugins/simulator/visualizations/network-api/entity/networkapi_light.cpp>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
