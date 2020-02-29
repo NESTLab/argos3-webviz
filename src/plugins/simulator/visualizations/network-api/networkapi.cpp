@@ -330,10 +330,17 @@ namespace argos {
     for (CEntity::TVector::iterator itEntities = vecEntities.begin();
          itEntities != vecEntities.end();
          ++itEntities) {
-      cStateJson["entities"].push_back(CallEntityOperation<
-                                       CNetworkAPIOperationGenerateJSON,
-                                       CNetworkAPI,
-                                       nlohmann::json>(*this, **itEntities));
+      auto cEntityJSON = CallEntityOperation<
+        CNetworkAPIOperationGenerateJSON,
+        CNetworkAPI,
+        nlohmann::json>(*this, **itEntities);
+      if (cEntityJSON != nullptr) {
+        cStateJson["entities"].push_back(cEntityJSON);
+      } else {
+        LOG_S(ERROR) << "Entity cannot be converted";
+        LOG_S(ERROR) << (**itEntities).GetTypeDescription();
+        /* TODO : Light */
+      }
     }
 
     const CVector3& cArenaSize = m_cSpace.GetArenaSize();

@@ -52,21 +52,82 @@ namespace argos {
           c_entity.GetLEDEquippedEntity();
 
         if (cLEDEquippedEntity.GetLEDs().size() > 0) {
-          std::stringstream str_LEDsStream;
-
           /* Building a string of all led colors */
           for (UInt32 i = 0; i < 12; i++) {
+            std::stringstream strLEDsStream;
+
             const CColor& cColor = cLEDEquippedEntity.GetLED(i).GetColor();
             /* Convert to hex color*/
-            str_LEDsStream << "#" << std::setfill('0') << std::setw(6)
-                           << std::hex
-                           << (cColor.GetRed() << 16 | cColor.GetGreen() << 8 |
-                               cColor.GetBlue());
+            strLEDsStream << "0x" << std::setfill('0') << std::setw(6)
+                          << std::hex
+                          << (cColor.GetRed() << 16 | cColor.GetGreen() << 8 |
+                              cColor.GetBlue());
 
-            str_LEDsStream << ";";
+            cJson["leds"].push_back(strLEDsStream.str());
+          }
+        }
+
+        /* Rays */
+        std::vector<std::pair<bool, CRay3>>& vecRays =
+          c_entity.GetControllableEntity().GetCheckedRays();
+
+        cJson["rays"] = json::array();  // Empty array
+
+        /*
+         * To make rays relative, negate the rotation of body along Z axis
+         */
+        CQuaternion cInvZRotation = cOrientation;
+        cInvZRotation.SetZ(-cOrientation.GetZ());
+
+        /*
+          For each ray as a string,
+          Output format -> "BoolIsChecked:Vec3StartPoint:Vec3EndPoint"
+          For example -> "true:1,2,3:1,2,4"
+        */
+        for (UInt32 i = 0; i < vecRays.size(); ++i) {
+          std::stringstream strRayStream;
+          if (vecRays[i].first) {
+            strRayStream << "true";
+          } else {
+            strRayStream << "false";
           }
 
-          cJson["leds"] = str_LEDsStream.str();
+          /* Substract the body position, to get relative position of ray */
+          CVector3 cStartVec = vecRays[i].second.GetStart();
+          cStartVec -= cPosition;
+          CVector3 cEndVec = vecRays[i].second.GetEnd();
+          cEndVec -= cPosition;
+
+          cStartVec.Rotate(cInvZRotation);
+          cEndVec.Rotate(cInvZRotation);
+
+          /* append vectors to string */
+          strRayStream << ":";
+          strRayStream << cStartVec;
+          strRayStream << ":";
+          strRayStream << cEndVec;
+
+          cJson["rays"].push_back(strRayStream.str());
+        }
+
+        std::vector<argos::CVector3>& vecPoints =
+          c_entity.GetControllableEntity().GetIntersectionPoints();
+
+        cJson["points"] = json::array();  // Empty array
+
+        for (UInt32 i = 0; i < vecPoints.size(); ++i) {
+          CVector3& cPoint = vecPoints[i];
+          cPoint -= cPosition;
+          cPoint.Rotate(cInvZRotation);
+
+          std::stringstream strPointStream;
+          strPointStream << cPoint.GetX();
+          strPointStream << ",";
+          strPointStream << cPoint.GetY();
+          strPointStream << ",";
+          strPointStream << cPoint.GetZ();
+
+          cJson["points"].push_back(strPointStream.str());
         }
 
         return cJson;

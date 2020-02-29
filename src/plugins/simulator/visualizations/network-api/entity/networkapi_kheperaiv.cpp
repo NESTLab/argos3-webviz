@@ -70,10 +70,10 @@ namespace argos {
           c_entity.GetLEDEquippedEntity();
 
         if (cLEDEquippedEntity.GetLEDs().size() > 0) {
-          std::stringstream strLEDsStream;
-
           /* Building a string of all led colors */
           for (UInt32 i = 0; i < 3; i++) {
+            std::stringstream strLEDsStream;
+
             const CColor& cColor = cLEDEquippedEntity.GetLED(i).GetColor();
             /* Convert to hex color*/
             strLEDsStream << "0x" << std::setfill('0') << std::setw(6)
@@ -81,10 +81,8 @@ namespace argos {
                           << (cColor.GetRed() << 16 | cColor.GetGreen() << 8 |
                               cColor.GetBlue());
 
-            strLEDsStream << ";";
+            cJson["leds"].push_back(strLEDsStream.str());
           }
-
-          cJson["leds"] = strLEDsStream.str();
         }
 
         /* Rays */
