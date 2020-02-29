@@ -18,3 +18,4 @@
 [ ] Implement floor image
 [ ] draw arena boundaries
 [ ] Check if port is already being used
+[ ] Add camera configuration through .argos experiment file
