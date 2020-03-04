@@ -148,7 +148,6 @@ namespace argos {
 
           cJson["points"].push_back(strPointStream.str());
         }
-        LOG_S(INFO) << cJson["points"];
         return cJson;
       }
     };
