@@ -134,7 +134,8 @@ namespace argos {
         cJson["points"] = json::array();  // Empty array
 
         for (UInt32 i = 0; i < vecPoints.size(); ++i) {
-          CVector3& cPoint = vecPoints[i];
+          // NO NOT TAKE IT BY REFERENCE HERE, we are updating them below
+          CVector3 cPoint = vecPoints[i];
           cPoint -= cPosition;
           cPoint.Rotate(cInvZRotation);
 
@@ -147,7 +148,7 @@ namespace argos {
 
           cJson["points"].push_back(strPointStream.str());
         }
-
+        LOG_S(INFO) << cJson["points"];
         return cJson;
       }
     };
