@@ -4,6 +4,7 @@
 SET(ENTITIES_SOURCE_FILES
   entity/networkapi_box.cpp
   entity/networkapi_light.cpp
+  entity/networkapi_floor.cpp
   entity/networkapi_cylinder.cpp
   entity/networkapi_footbot.cpp
   entity/networkapi_kheperaiv.cpp
@@ -96,7 +97,7 @@ TARGET_LINK_LIBRARIES(${TARGET_NAME}
 SET_TARGET_PROPERTIES( 
   ${TARGET_NAME}  
 PROPERTIES 
-  VERSION 0.1.0
+  VERSION 0.3.29
   PUBLIC_HEADER "${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI}"
   ARCHIVE_OUTPUT_DIRECTORY "lib/argos3"
   LIBRARY_OUTPUT_DIRECTORY "lib/argos3"
