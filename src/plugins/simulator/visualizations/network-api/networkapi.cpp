@@ -99,7 +99,11 @@ namespace argos {
           }
 
           /* Loop for steps (multiple for fast-forward) */
-          while (unFFStepCounter > 0 && !m_cSimulator.IsExperimentFinished()) {
+          while (unFFStepCounter > 0 && !m_cSimulator.IsExperimentFinished() &&
+                 (m_eExperimentState ==
+                    NetworkAPI::EExperimentState::EXPERIMENT_PLAYING ||
+                  m_eExperimentState ==
+                    NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING)) {
             /* Run one step */
             m_cSimulator.UpdateSpace();
 
