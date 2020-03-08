@@ -239,13 +239,18 @@ namespace argos {
              LOG << "1 client connected (Total: "
                  << m_vecWebSocketClients.size() << ")";
            },
-         //  .message =
-         //    [](
-         //      auto *pc_ws, std::string_view strv_message, uWS::OpCode
-         //      e_opCode) {
-         //      /* broadcast every single message it got */
-         //      pc_ws->publish("broadcast", strv_message, e_opCode);
-         //    },
+         .message =
+           [](
+             auto *pc_ws, std::string_view strv_message, uWS::OpCode e_opCode) {
+             /* broadcast every single message it got */
+             /* pc_ws->publish("broadcast", strv_message, e_opCode); */
+           },
+         .drain =
+           [](auto *ws) {
+             std::cout << "Drainage: " << ws->getBufferedAmount() << std::endl;
+           },
+         .ping = [](auto *ws) { std::cout << "Ping" << std::endl; },
+         .pong = [](auto *ws) { std::cout << "Pong" << std::endl; },
          .close =
            [&](auto *pc_ws, int n_code, std::string_view strv_message) {
              /* it automatically unsubscribe from any topic here */
