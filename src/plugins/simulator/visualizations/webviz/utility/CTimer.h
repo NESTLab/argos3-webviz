@@ -1,5 +1,5 @@
 /**
- * @file <argos3/plugins/simulator/visualizations/webviz/helpers/CTimer.h>
+ * @file <argos3/plugins/simulator/visualizations/webviz/utility/CTimer.h>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *

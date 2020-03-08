@@ -23,8 +23,7 @@ namespace argos {
     class CWebvizOperationGenerateFootbotJSON
         : public CWebvizOperationGenerateJSON {
      public:
-      nlohmann::json ApplyTo(
-        CWebviz& c_webviz, CFootBotEntity& c_entity) {
+      nlohmann::json ApplyTo(CWebviz& c_webviz, CFootBotEntity& c_entity) {
         nlohmann::json cJson;
 
         cJson["type"] = c_entity.GetTypeDescription();

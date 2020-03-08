@@ -1,6 +1,5 @@
 /**
- * @file
- * <argos3/plugins/simulator/visualizations/webviz/helpers/LogStream.h>
+ * @file <argos3/plugins/simulator/visualizations/webviz/utility/LogStream.h>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *

@@ -1,6 +1,5 @@
 /**
- * @file
- * <argos3/plugins/simulator/visualizations/webviz/webviz_webserver.h>
+ * @file <argos3/plugins/simulator/visualizations/webviz/webviz_webserver.h>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
