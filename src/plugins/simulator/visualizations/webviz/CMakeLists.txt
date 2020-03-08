@@ -89,20 +89,26 @@ TARGET_LINK_LIBRARIES(${TARGET_NAME}
 SET_TARGET_PROPERTIES( 
   ${TARGET_NAME}  
 PROPERTIES 
-  VERSION 0.3.29
+  VERSION 0.3.32
   PUBLIC_HEADER "${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ}"
   ARCHIVE_OUTPUT_DIRECTORY "lib/argos3"
   LIBRARY_OUTPUT_DIRECTORY "lib/argos3"
   OUTPUT_NAME ${TARGET_NAME}
 )
 
-
-TARGET_COMPILE_OPTIONS(${TARGET_NAME} PRIVATE -Wfatal-errors)
-
+# Install main project libs and headers
 INSTALL(TARGETS ${TARGET_NAME}
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib/argos3
-    ARCHIVE DESTINATION lib/argos3
-    # Use if we want to publish header files
-    PUBLIC_HEADER DESTINATION include/argos3/plugins/simulator/visualizations/webviz
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib/argos3
+  ARCHIVE DESTINATION lib/argos3
+  # Use if we want to publish header files
+  PUBLIC_HEADER DESTINATION include/argos3/plugins/simulator/visualizations/webviz
 )
+
+# Install assets
+INSTALL(DIRECTORY assets
+  DESTINATION include/argos3/plugins/simulator/visualizations/webviz
+)
+
+# Stop compiling on first error
+TARGET_COMPILE_OPTIONS(${TARGET_NAME} PRIVATE -Wfatal-errors)

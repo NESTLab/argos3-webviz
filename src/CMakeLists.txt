@@ -60,7 +60,7 @@ INCLUDE(${CMAKE_SOURCE_DIR}/cmake/ARGoSPackaging.cmake)
 ADD_SUBDIRECTORY(plugins)
 ADD_SUBDIRECTORY(testing)
 
-## Add Uninstall target
+# Add Uninstall target
 ADD_CUSTOM_TARGET(uninstall
   "${CMAKE_COMMAND}" -P "${CMAKE_SOURCE_DIR}/cmake/uninstall.cmake"
 )
