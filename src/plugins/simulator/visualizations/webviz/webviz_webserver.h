@@ -11,9 +11,6 @@
 #ifndef ARGOS_WEBVIZ_WEBSERVER_H
 #define ARGOS_WEBVIZ_WEBSERVER_H
 
-/* Loguru with streams interface */
-#define LOGURU_WITH_STREAMS 1
-
 namespace argos {
   class CWebviz;
 
@@ -24,7 +21,6 @@ namespace argos {
   }  // namespace Webviz
 }  // namespace argos
 
-#include <loguru.hpp>
 #include <mutex>
 #include <nlohmann/json.hpp>
 #include <queue>
@@ -38,23 +34,23 @@ namespace argos {
   namespace Webviz {
     class CWebServer {
      private:
+      /** Reference to CWebviz object to call function over it */
+      CWebviz* m_pcMyWebviz;
+
       /** HTTP Port to Listen to */
       unsigned short m_unPort;
 
-      /** max time for one broadcast cycle */
-      std::chrono::milliseconds m_cBroadcastDuration;
+      /** Threads serving web requests */
+      std::vector<std::thread*> m_vecWebThreads;
 
       /** broadcast cycle timer */
       CTimer m_cBroadcastTimer;
 
+      /** max time for one broadcast cycle */
+      std::chrono::milliseconds m_cBroadcastDuration;
+
       /** mutexed string using m_mutex4BroadcastString to broadcast */
       std::string m_strBroadcastString;
-
-      /** Reference to CWebviz object to call function over it */
-      CWebviz* m_pcMyWebviz;
-
-      /** Threads serving web requests */
-      std::vector<std::thread*> m_vecWebThreads;
 
       /** A Queue to push events to client */
       std::queue<std::string> m_cEventQueue;

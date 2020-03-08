@@ -14,35 +14,18 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  CWebviz::CWebviz() : m_cTimer(), m_cSpace(m_cSimulator.GetSpace()) {
-    m_cSimulationThread = std::thread(&CWebviz::SimulationThreadFunction, this);
-    m_bFastForwarding = false;
-
-    /* Disable Colors in LOG, as its going to be shown in web and not in CLI */
-    LOG.DisableColoredOutput();
-    LOGERR.DisableColoredOutput();
-
-    /* Initialize the LOG streams from Execute thread */
-    m_pcLogStream =
-      new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData) {
-        // LOG_S(INFO) << "ARGOS_LOG:" << str_logData;
-        m_cWebServer->EmitLog("LOG", str_logData);
-      });
-
-    m_pcLogErrStream = new Webviz::CLogStream(
-      LOGERR.GetStream(), [this](std::string str_logData) {
-        // LOG_S(INFO) << "ARGOS_LOGERR:" << str_logData;
-        m_cWebServer->EmitLog("LOGERR", str_logData);
-      });
-  }
+  CWebviz::CWebviz()
+      : m_eExperimentState(Webviz::EExperimentState::EXPERIMENT_INITIALIZED),
+        m_cTimer(),
+        m_cSimulationThread(
+          std::thread(&CWebviz::SimulationThreadFunction, this)),
+        m_cSpace(m_cSimulator.GetSpace()),
+        m_bFastForwarding(false) {}
 
   /****************************************/
   /****************************************/
 
   void CWebviz::Init(TConfigurationNode& t_tree) {
-    /* Setting up Logging */
-    LOG_SCOPE_FUNCTION(INFO);
-
     unsigned short unPort;
     unsigned short unBroadcastFrequency;
 
@@ -51,33 +34,66 @@ namespace argos {
     GetNodeAttributeOrDefault(
       t_tree, "broadcast_frequency", unBroadcastFrequency, UInt16(10));
 
-    if (unBroadcastFrequency < 1 || 1000 < unBroadcastFrequency) {
-      LOG_F(ERROR, "Frequency set in config is out of range [1,1000]");
-      exit(1);
-      return;
+    if (unBroadcastFrequency < 1 || 10 < unBroadcastFrequency) {
+      throw CARGoSException(
+        "Broadcast frequency set in configuration is out of range [1,1000]");
+      return;  // just for readability
     }
-
     GetNodeAttributeOrDefault(
       t_tree, "ff_draw_frames_every", m_unDrawFrameEvery, UInt16(2));
 
     /* Initialize Webserver */
     m_cWebServer = new Webviz::CWebServer(this, unPort, unBroadcastFrequency);
 
-    m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_INITIALIZED;
+    /* Write all the pending stuff */
+    LOG.Flush();
+    LOGERR.Flush();
+
+    /* Disable Colors in LOG, as its going to be shown in web and not in CLI */
+    LOG.DisableColoredOutput();
+    LOGERR.DisableColoredOutput();
+
+    /* Initialize the LOG streams from Execute thread */
+    m_pcLogStream =
+      new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData) {
+        m_cWebServer->EmitLog("LOG", str_logData);
+      });
+
+    m_pcLogErrStream = new Webviz::CLogStream(
+      LOGERR.GetStream(), [this](std::string str_logData) {
+        m_cWebServer->EmitLog("LOGERR", str_logData);
+      });
   }
 
   /****************************************/
   /****************************************/
 
   void CWebviz::Execute() {
-    std::thread t2([&]() { m_cWebServer->Start(); });
+    std::thread t2([&]() {
+      /* Set up thread-safe buffers for this new thread */
+      LOG.AddThreadSafeBuffer();
+      LOGERR.AddThreadSafeBuffer();
+
+      m_cWebServer->Start();
+    });
+
     t2.join();
     m_cSimulationThread.join();
 
+    LOG.Flush();
+    LOGERR.Flush();
     // TODO Finish all..
   }
 
+  /* main simulation thread */
   void CWebviz::SimulationThreadFunction() {
+    /* Set up thread-safe buffers for this new thread */
+    LOG.AddThreadSafeBuffer();
+    LOGERR.AddThreadSafeBuffer();
+
+    /* Fast forward steps counter used inside */
+    int unFFStepCounter = 1;
+
     while (true) {
       if (
         m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_PLAYING ||
@@ -87,12 +103,12 @@ namespace argos {
           /* Run user's pre step function */
           m_cSimulator.GetLoopFunctions().PreStep();
 
-          /* For non-fastforwarding mode, steps is 1 */
-          int unFFStepCounter = 1;
-
           if (m_bFastForwarding) {
             /* Number of frames to drop in fast-forward */
             unFFStepCounter = m_unDrawFrameEvery;
+          } else {
+            /* For non-fastforwarding mode, steps is 1 */
+            unFFStepCounter = 1;
           }
 
           /* Loop for steps (multiple for fast-forward) */
@@ -123,7 +139,7 @@ namespace argos {
 
             /* Change state and emit signals */
             m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
-            LOG_S(INFO) << "Experiment done\n";
+            LOG << "[INFO] Experiment done\n";
             return; /* Go back once done */
           }
 
@@ -135,15 +151,15 @@ namespace argos {
             /* Sleep for the difference duration */
             std::this_thread::sleep_for(
               m_cSimulatorTickMillis - m_cTimer.Elapsed());
-            /* Restart Timer */
-            m_cTimer.Start();
           } else {
-            LOG_S(WARNING) << "Clock tick took " << m_cTimer
-                           << " milli-secs, more than the expected "
-                           << m_cSimulatorTickMillis.count() << " milli-secs. "
-                           << "Recovering in next cycle." << std::endl;
-            m_cTimer.Start();
+            LOG << "[WARNING] Clock tick took " << m_cTimer
+                << " milli-secs, more than the expected "
+                << m_cSimulatorTickMillis.count() << " milli-secs. "
+                << "Recovering in next cycle." << std::endl;
           }
+
+          /* Restart Timer */
+          m_cTimer.Start();
         } else {
           /* The experiment is already done */
           m_cSimulator.GetLoopFunctions().PostExperiment();
@@ -152,12 +168,16 @@ namespace argos {
 
           /* Change state and emit signals */
           m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
-          LOG_S(INFO) << "Experiment done\n";
+          LOG << "[INFO] Experiment done\n";
         }
       } else {
-        /* Broadcast stopped state of experiment at 4 Hz */
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
+        /*
+         * Update the experiment state variable and sleep for some time,
+         * we sleep to reduce the number of updates done in
+         * "PAUSED"/"INITIALIZED" state
+         */
         BroadcastExperimentState();
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
       }
     }
   }
@@ -170,9 +190,8 @@ namespace argos {
     if (
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_INITIALIZED &&
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PAUSED) {
-      LOG_S(WARNING) << "CWebviz::PlayExperiment() called in wrong state: "
-                     << Webviz::EExperimentStateToStr(m_eExperimentState)
-                     << std::endl;
+      LOG << "[WARNING] CWebviz::PlayExperiment() called in wrong state: "
+          << Webviz::EExperimentStateToStr(m_eExperimentState) << std::endl;
 
       // silently return;
       return;
@@ -187,7 +206,7 @@ namespace argos {
     m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_PLAYING;
     m_cWebServer->EmitEvent("Experiment playing", m_eExperimentState);
 
-    LOG_S(INFO) << "Experiment playing";
+    LOG << "[INFO] Experiment playing";
 
     m_cTimer.Start();
   }
@@ -200,10 +219,9 @@ namespace argos {
     if (
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_INITIALIZED &&
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PAUSED) {
-      LOG_S(WARNING)
-        << "CWebviz::FastForwardExperiment() called in wrong state: "
-        << Webviz::EExperimentStateToStr(m_eExperimentState)
-        << "\nRunning the experiment in FastForward mode" << std::endl;
+      LOG << "[WARNING] CWebviz::FastForwardExperiment() called in wrong state:"
+          << Webviz::EExperimentStateToStr(m_eExperimentState)
+          << "\nRunning the experiment in FastForward mode" << std::endl;
     }
     m_bFastForwarding = true;
 
@@ -214,7 +232,7 @@ namespace argos {
     m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING;
     m_cWebServer->EmitEvent("Experiment fast-forwarding", m_eExperimentState);
 
-    LOG_S(INFO) << "Experiment fast-forwarding";
+    LOG << "[INFO] Experiment fast-forwarding";
 
     m_cTimer.Start();
   }
@@ -228,9 +246,8 @@ namespace argos {
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PLAYING &&
       m_eExperimentState !=
         Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
-      LOG_S(WARNING) << "CWebviz::PauseExperiment() called in wrong "
-                        "state: "
-                     << Webviz::EExperimentStateToStr(m_eExperimentState);
+      LOG << "[WARNING] CWebviz::PauseExperiment() called in wrong state: "
+          << Webviz::EExperimentStateToStr(m_eExperimentState);
       throw std::runtime_error(
         "Cannot pause the experiment, current state : " +
         Webviz::EExperimentStateToStr(m_eExperimentState));
@@ -243,7 +260,7 @@ namespace argos {
     m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_PAUSED;
     m_cWebServer->EmitEvent("Experiment paused", m_eExperimentState);
 
-    LOG_S(INFO) << "Experiment paused";
+    LOG << "[INFO] Experiment paused";
   }
 
   /****************************************/
@@ -255,10 +272,9 @@ namespace argos {
       m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_PLAYING ||
       m_eExperimentState ==
         Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
-      LOG_S(WARNING) << "CWebviz::StepExperiment() called in wrong "
-                        "state: "
-                     << Webviz::EExperimentStateToStr(m_eExperimentState)
-                     << " pausing the experiment to run a step";
+      LOG << "[WARNING] CWebviz::StepExperiment() called in wrong state: "
+          << Webviz::EExperimentStateToStr(m_eExperimentState)
+          << " pausing the experiment to run a step";
 
       /* Make experiment pause */
       m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_PAUSED;
@@ -291,7 +307,7 @@ namespace argos {
 
       /* Change state and emit signals */
       m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
-      LOG_S(INFO) << "Experiment done\n";
+      LOG << "[INFO] Experiment done\n";
     }
 
     /* Broadcast current experiment state */
@@ -316,7 +332,7 @@ namespace argos {
     /* Broadcast current experiment state */
     BroadcastExperimentState();
 
-    LOG_S(INFO) << "Experiment reset";
+    LOG << "[INFO] Experiment reset";
   }
 
   /****************************************/
@@ -337,9 +353,8 @@ namespace argos {
       if (cEntityJSON != nullptr) {
         cStateJson["entities"].push_back(cEntityJSON);
       } else {
-        LOG_S(ERROR) << "Entity cannot be converted";
-        LOG_S(ERROR) << (**itEntities).GetTypeDescription();
-        /* TODO : Light */
+        LOGERR << "[ERROR] Entity cannot be converted:";
+        LOGERR << (**itEntities).GetTypeDescription();
       }
     }
 

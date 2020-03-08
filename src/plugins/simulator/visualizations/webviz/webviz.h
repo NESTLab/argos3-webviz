@@ -10,9 +10,6 @@
 #ifndef ARGOS_WEBVIZ_H
 #define ARGOS_WEBVIZ_H
 
-/* Loguru with streams interface */
-#define LOGURU_WITH_STREAMS 1
-
 namespace argos {
   class CWebviz;
 
@@ -33,10 +30,8 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  class CWebvizOperationGenerateJSON : public CEntityOperation<
-                                             CWebvizOperationGenerateJSON,
-                                             CWebviz,
-                                             json> {
+  class CWebvizOperationGenerateJSON
+      : public CEntityOperation<CWebvizOperationGenerateJSON, CWebviz, json> {
    public:
     virtual ~CWebvizOperationGenerateJSON() {}
   };
@@ -49,15 +44,14 @@ namespace argos {
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/visualization/visualization.h>
-#include <argos3/core/utility/logging/argos_log.h>
+#include <argos3/core/utility/configuration/argos_exception.h>
 #include <argos3/core/utility/math/vector3.h>
 #include <atomic>
-#include <loguru.hpp>
 #include <thread>
-#include "webviz_webserver.h"
 #include "utility/CTimer.h"
 #include "utility/EExperimentState.h"
 #include "utility/LogStream.h"
+#include "webviz_webserver.h"
 
 namespace argos {
   /****************************************/
@@ -114,20 +108,20 @@ namespace argos {
     /** Timer used for the loop */
     Webviz::CTimer m_cTimer;
 
-    /** Milliseconds required for one tick of simulator */
-    std::chrono::milliseconds m_cSimulatorTickMillis;
-
-    /** Webserver */
-    Webviz::CWebServer* m_cWebServer;
-
-    /** THread to run simulation steps */
+    /** Thread to run simulation steps */
     std::thread m_cSimulationThread;
 
     /** Reference to the space state */
     CSpace& m_cSpace;
 
     /** Boolean for fastForwarding */
-    bool m_bFastForwarding;
+    std::atomic<bool> m_bFastForwarding;
+
+    /** Milliseconds required for one tick of simulator */
+    std::chrono::milliseconds m_cSimulatorTickMillis;
+
+    /** Webserver */
+    Webviz::CWebServer* m_cWebServer;
 
     /** number of frames to drop in Fast-forwarding */
     unsigned short m_unDrawFrameEvery;

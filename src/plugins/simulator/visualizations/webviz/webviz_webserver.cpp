@@ -20,19 +20,20 @@ namespace argos {
       argos::CWebviz *pc_my_webviz,
       unsigned short un_port,
       unsigned short un_freq)
-        : m_vecWebThreads(std::thread::hardware_concurrency()) {
-      m_pcMyWebviz = pc_my_webviz;
-      m_unPort = un_port;
-
+        : m_pcMyWebviz(pc_my_webviz),
+          /* Port to host the application on */
+          m_unPort(un_port),
+          /* Initialize Threads to handle web traffic */
+          /* std::thread::hardware_concurrency() */
+          m_vecWebThreads(std::thread::hardware_concurrency()),
+          /* Initialize broadcast Timer */
+          m_cBroadcastTimer(argos::Webviz::CTimer()) {
       /* We dont want divide by zero or negative frequency */
       if (un_freq <= 0) {
         un_freq = 10;  // Defaults to 10 Hz
       }
       /* max allowed time for one broadcast cycle */
       m_cBroadcastDuration = std::chrono::milliseconds(1000 / un_freq);
-
-      /* Initialize broadcast Timer */
-      m_cBroadcastTimer = argos::Webviz::CTimer();  // TODO memory leak ?
 
       m_strBroadcastString = "";
     }
@@ -42,8 +43,8 @@ namespace argos {
 
     void CWebServer::Start() {
       try {
-        LOG_S(INFO) << "Starting " << m_vecWebThreads.size()
-                    << " threads for WebServer";
+        LOG << "Starting " << m_vecWebThreads.size()
+            << " threads for WebServer " << std::endl;
 
         /* Start Webserver */
         std::transform(
@@ -54,6 +55,10 @@ namespace argos {
             return new std::thread([&]() {
               auto cMyApp = uWS::App();
 
+              /* Set up thread-safe buffers for this new thread */
+              LOG.AddThreadSafeBuffer();
+              LOGERR.AddThreadSafeBuffer();
+
               this->SetupWebApp(cMyApp);
               /* Start listening to Port */
               cMyApp
@@ -61,12 +66,13 @@ namespace argos {
                   m_unPort,
                   [&](auto *pc_token) {
                     if (pc_token) {
-                      LOG_S(INFO) << "Thread listening on port " << m_unPort;
+                      LOG << "Thread listening on port " << m_unPort;
                     } else {
-                      ABORT_F(
-                        "WebServer::Execute() failed to listen on port "
-                        "%d",
-                        m_unPort);
+                      // TODO ASSERT
+                      // ABORT_F(
+                      //   "WebServer::Execute() failed to listen on port "
+                      //   "%d",
+                      //   m_unPort);
                       return;
                     }
                   })
@@ -93,12 +99,12 @@ namespace argos {
             std::this_thread::sleep_for(
               m_cBroadcastDuration - m_cBroadcastTimer.Elapsed());
           } else {
-            LOG_S(WARNING) << "Broadcast tick took " << m_cBroadcastTimer
-                           << " milli-secs, more than the expected "
-                           << m_cBroadcastDuration.count() << " milli-secs. "
-                           << "Not able to reach all clients, Please reduce "
-                              "the \'broadcast_frequency\' in "
-                              "configuration file.\n";
+            LOGERR << "[WARNING] Broadcast tick took " << m_cBroadcastTimer
+                   << " milli-secs, more than the expected "
+                   << m_cBroadcastDuration.count() << " milli-secs. "
+                   << "Not able to reach all clients, Please reduce "
+                      "the \'broadcast_frequency\' in "
+                      "configuration file.\n";
             break;
           }
 
@@ -231,8 +237,8 @@ namespace argos {
               * Add to list of clients connected
               */
              m_vecWebSocketClients.push_back({pc_ws, uWS::Loop::get()});
-             LOG_S(INFO) << "1 client connected"
-                         << " (Total: " << m_vecWebSocketClients.size() << ")";
+             LOG << "1 client connected (Total: "
+                 << m_vecWebSocketClients.size() << ")";
            },
          //  .message =
          //    [](
@@ -256,8 +262,8 @@ namespace argos {
                  m_vecWebSocketClients.erase(m_vecWebSocketClients.begin() + i);
                }
              }
-             LOG_S(INFO) << "1 client disconnected"
-                         << " (Total: " << m_vecWebSocketClients.size() << ")";
+             LOG << "1 client disconnected (Total: "
+                 << m_vecWebSocketClients.size() << ")";
            }});
 
       /****************************************/
@@ -387,6 +393,9 @@ namespace argos {
     void CWebServer::Broadcast(nlohmann::json cMyJson) {
       /* Guard the mutex which locks m_mutex4BroadcastString */
       std::lock_guard<std::mutex> guard(m_mutex4BroadcastString);
+      /* Replaces the existing state, even if it was not sent
+       * This enables us to discard stale experiment state
+       */
       m_strBroadcastString = cMyJson.dump();
     }
   }  // namespace Webviz

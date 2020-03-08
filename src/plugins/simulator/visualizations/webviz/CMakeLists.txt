@@ -40,12 +40,6 @@ SET(JSON_BuildTests OFF CACHE INTERNAL "")
 SET(JSON_Install OFF CACHE INTERNAL "")
 ADD_SUBDIRECTORY(${nlohmann_json_SOURCE_DIR} ${CMAKE_BINARY_DIR}/nlohmann-build)
 
-
-# Logging Library
-ADD_DEFINITIONS(-DLOGURU_WITH_STREAMS)
-ADD_SUBDIRECTORY(libs/loguru)
-SET_PROPERTY(TARGET loguru PROPERTY POSITION_INDEPENDENT_CODE ON)
-
 #
 # Setup Include paths
 #
@@ -54,7 +48,6 @@ INCLUDE_DIRECTORIES(
   ${CMAKE_BINARY_DIR}
   ${uWebSockets_SOURCE_DIR}/src/
   ${uWebSockets_SOURCE_DIR}/uSockets/src/
-  libs/loguru
 )
 
 
@@ -91,7 +84,6 @@ TARGET_LINK_LIBRARIES(${TARGET_NAME}
   ${ARGOS_WEBVIZ_LIBRARIES}
   ${uWebSockets_SOURCE_DIR}/uSockets/uSockets.a
   nlohmann_json::nlohmann_json
-  loguru
 )
 
 SET_TARGET_PROPERTIES( 
