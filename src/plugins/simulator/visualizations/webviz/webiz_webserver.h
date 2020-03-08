@@ -1,6 +1,6 @@
 /**
  * @file
- * <argos3/plugins/simulator/visualizations/network-api/networkapi_webserver.h>
+ * <argos3/plugins/simulator/visualizations/webviz/webviz_webserver.h>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -8,20 +8,20 @@
  * Copyright (c) 2020 NEST Lab
  */
 
-#ifndef ARGOS_NETWORKAPI_WEBSERVER_H
-#define ARGOS_NETWORKAPI_WEBSERVER_H
+#ifndef ARGOS_WEBVIZ_WEBSERVER_H
+#define ARGOS_WEBVIZ_WEBSERVER_H
 
 /* Loguru with streams interface */
 #define LOGURU_WITH_STREAMS 1
 
 namespace argos {
-  class CNetworkAPI;
+  class CWebviz;
 
-  namespace NetworkAPI {
+  namespace Webviz {
     class CWebServer;
     class CTimer;
     enum class EExperimentState;
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos
 
 #include <loguru.hpp>
@@ -30,12 +30,12 @@ namespace argos {
 #include <queue>
 #include <string_view>
 #include "App.h"  // uWebSockets
-#include "networkapi.h"
 #include "utility/CTimer.h"
 #include "utility/EExperimentState.h"
+#include "webviz.h"
 
 namespace argos {
-  namespace NetworkAPI {
+  namespace Webviz {
     class CWebServer {
      private:
       /** HTTP Port to Listen to */
@@ -50,8 +50,8 @@ namespace argos {
       /** mutexed string using m_mutex4BroadcastString to broadcast */
       std::string m_strBroadcastString;
 
-      /** Reference to CNetworkAPI object to call function over it */
-      CNetworkAPI* m_pcMyNetworkAPI;
+      /** Reference to CWebviz object to call function over it */
+      CWebviz* m_pcMyWebviz;
 
       /** Threads serving web requests */
       std::vector<std::thread*> m_vecWebThreads;
@@ -99,7 +99,7 @@ namespace argos {
         std::string = "400 Bad Request");
 
      public:
-      CWebServer(CNetworkAPI*, unsigned short, unsigned short);
+      CWebServer(CWebviz*, unsigned short, unsigned short);
       ~CWebServer();
 
       void Start();
@@ -113,6 +113,6 @@ namespace argos {
       /** Broadcasts JSON to all the connected clients */
       void Broadcast(nlohmann::json);
     };
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos
 #endif

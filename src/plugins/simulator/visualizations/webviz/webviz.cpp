@@ -1,5 +1,5 @@
 /**
- * @file <argos3/plugins/simulator/visualizations/network-api/networkapi.cpp>
+ * @file <argos3/plugins/simulator/visualizations/webviz/webviz.cpp>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -7,16 +7,15 @@
  * Copyright (c) 2020 NEST Lab
  */
 
-#include "networkapi.h"
+#include "webviz.h"
 
 namespace argos {
 
   /****************************************/
   /****************************************/
 
-  CNetworkAPI::CNetworkAPI() : m_cTimer(), m_cSpace(m_cSimulator.GetSpace()) {
-    m_cSimulationThread =
-      std::thread(&CNetworkAPI::SimulationThreadFunction, this);
+  CWebviz::CWebviz() : m_cTimer(), m_cSpace(m_cSimulator.GetSpace()) {
+    m_cSimulationThread = std::thread(&CWebviz::SimulationThreadFunction, this);
     m_bFastForwarding = false;
 
     /* Disable Colors in LOG, as its going to be shown in web and not in CLI */
@@ -24,13 +23,13 @@ namespace argos {
     LOGERR.DisableColoredOutput();
 
     /* Initialize the LOG streams from Execute thread */
-    m_pcLogStream = new NetworkAPI::CLogStream(
-      LOG.GetStream(), [this](std::string str_logData) {
+    m_pcLogStream =
+      new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData) {
         // LOG_S(INFO) << "ARGOS_LOG:" << str_logData;
         m_cWebServer->EmitLog("LOG", str_logData);
       });
 
-    m_pcLogErrStream = new NetworkAPI::CLogStream(
+    m_pcLogErrStream = new Webviz::CLogStream(
       LOGERR.GetStream(), [this](std::string str_logData) {
         // LOG_S(INFO) << "ARGOS_LOGERR:" << str_logData;
         m_cWebServer->EmitLog("LOGERR", str_logData);
@@ -40,7 +39,7 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  void CNetworkAPI::Init(TConfigurationNode& t_tree) {
+  void CWebviz::Init(TConfigurationNode& t_tree) {
     /* Setting up Logging */
     LOG_SCOPE_FUNCTION(INFO);
 
@@ -62,16 +61,15 @@ namespace argos {
       t_tree, "ff_draw_frames_every", m_unDrawFrameEvery, UInt16(2));
 
     /* Initialize Webserver */
-    m_cWebServer =
-      new NetworkAPI::CWebServer(this, unPort, unBroadcastFrequency);
+    m_cWebServer = new Webviz::CWebServer(this, unPort, unBroadcastFrequency);
 
-    m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED;
+    m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_INITIALIZED;
   }
 
   /****************************************/
   /****************************************/
 
-  void CNetworkAPI::Execute() {
+  void CWebviz::Execute() {
     std::thread t2([&]() { m_cWebServer->Start(); });
     t2.join();
     m_cSimulationThread.join();
@@ -79,13 +77,12 @@ namespace argos {
     // TODO Finish all..
   }
 
-  void CNetworkAPI::SimulationThreadFunction() {
+  void CWebviz::SimulationThreadFunction() {
     while (true) {
       if (
+        m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_PLAYING ||
         m_eExperimentState ==
-          NetworkAPI::EExperimentState::EXPERIMENT_PLAYING ||
-        m_eExperimentState ==
-          NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
+          Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
         if (!m_cSimulator.IsExperimentFinished()) {
           /* Run user's pre step function */
           m_cSimulator.GetLoopFunctions().PreStep();
@@ -101,9 +98,9 @@ namespace argos {
           /* Loop for steps (multiple for fast-forward) */
           while (unFFStepCounter > 0 && !m_cSimulator.IsExperimentFinished() &&
                  (m_eExperimentState ==
-                    NetworkAPI::EExperimentState::EXPERIMENT_PLAYING ||
+                    Webviz::EExperimentState::EXPERIMENT_PLAYING ||
                   m_eExperimentState ==
-                    NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING)) {
+                    Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING)) {
             /* Run one step */
             m_cSimulator.UpdateSpace();
 
@@ -168,14 +165,13 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  void CNetworkAPI::PlayExperiment() {
+  void CWebviz::PlayExperiment() {
     /* Make sure we are in the right state */
     if (
-      m_eExperimentState !=
-        NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED &&
-      m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PAUSED) {
-      LOG_S(WARNING) << "CNetworkAPI::PlayExperiment() called in wrong state: "
-                     << NetworkAPI::EExperimentStateToStr(m_eExperimentState)
+      m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_INITIALIZED &&
+      m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PAUSED) {
+      LOG_S(WARNING) << "CWebviz::PlayExperiment() called in wrong state: "
+                     << Webviz::EExperimentStateToStr(m_eExperimentState)
                      << std::endl;
 
       // silently return;
@@ -188,7 +184,7 @@ namespace argos {
       (long int)(CPhysicsEngine::GetSimulationClockTick() * 1000.0f));
 
     /* Change state and emit signals */
-    m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PLAYING;
+    m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_PLAYING;
     m_cWebServer->EmitEvent("Experiment playing", m_eExperimentState);
 
     LOG_S(INFO) << "Experiment playing";
@@ -199,15 +195,14 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  void CNetworkAPI::FastForwardExperiment() {
+  void CWebviz::FastForwardExperiment() {
     /* Make sure we are in the right state */
     if (
-      m_eExperimentState !=
-        NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED &&
-      m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PAUSED) {
+      m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_INITIALIZED &&
+      m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PAUSED) {
       LOG_S(WARNING)
-        << "CNetworkAPI::FastForwardExperiment() called in wrong state: "
-        << NetworkAPI::EExperimentStateToStr(m_eExperimentState)
+        << "CWebviz::FastForwardExperiment() called in wrong state: "
+        << Webviz::EExperimentStateToStr(m_eExperimentState)
         << "\nRunning the experiment in FastForward mode" << std::endl;
     }
     m_bFastForwarding = true;
@@ -216,8 +211,7 @@ namespace argos {
       (long int)(CPhysicsEngine::GetSimulationClockTick() * 1000.0f));
 
     /* Change state and emit signals */
-    m_eExperimentState =
-      NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING;
+    m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING;
     m_cWebServer->EmitEvent("Experiment fast-forwarding", m_eExperimentState);
 
     LOG_S(INFO) << "Experiment fast-forwarding";
@@ -228,25 +222,25 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  void CNetworkAPI::PauseExperiment() {
+  void CWebviz::PauseExperiment() {
     /* Make sure we are in the right state */
     if (
-      m_eExperimentState != NetworkAPI::EExperimentState::EXPERIMENT_PLAYING &&
+      m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PLAYING &&
       m_eExperimentState !=
-        NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
-      LOG_S(WARNING) << "CNetworkAPI::PauseExperiment() called in wrong "
+        Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
+      LOG_S(WARNING) << "CWebviz::PauseExperiment() called in wrong "
                         "state: "
-                     << NetworkAPI::EExperimentStateToStr(m_eExperimentState);
+                     << Webviz::EExperimentStateToStr(m_eExperimentState);
       throw std::runtime_error(
         "Cannot pause the experiment, current state : " +
-        NetworkAPI::EExperimentStateToStr(m_eExperimentState));
+        Webviz::EExperimentStateToStr(m_eExperimentState));
       return;
     }
     /* Disable fast-forward */
     m_bFastForwarding = false;
 
     /* Change state and emit signals */
-    m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PAUSED;
+    m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_PAUSED;
     m_cWebServer->EmitEvent("Experiment paused", m_eExperimentState);
 
     LOG_S(INFO) << "Experiment paused";
@@ -255,19 +249,19 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  void CNetworkAPI::StepExperiment() {
+  void CWebviz::StepExperiment() {
     /* Make sure we are in the right state */
     if (
-      m_eExperimentState == NetworkAPI::EExperimentState::EXPERIMENT_PLAYING ||
+      m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_PLAYING ||
       m_eExperimentState ==
-        NetworkAPI::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
-      LOG_S(WARNING) << "CNetworkAPI::StepExperiment() called in wrong "
+        Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
+      LOG_S(WARNING) << "CWebviz::StepExperiment() called in wrong "
                         "state: "
-                     << NetworkAPI::EExperimentStateToStr(m_eExperimentState)
+                     << Webviz::EExperimentStateToStr(m_eExperimentState)
                      << " pausing the experiment to run a step";
 
       /* Make experiment pause */
-      m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_PAUSED;
+      m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_PAUSED;
 
       /* Do not go further, as the while loop in SimulationThreadFunction might
        * be halfway into execution */
@@ -307,14 +301,14 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  void CNetworkAPI::ResetExperiment() {
+  void CWebviz::ResetExperiment() {
     /* Reset Simulator */
     m_cSimulator.Reset();
 
     /* Disable fast-forward */
     m_bFastForwarding = false;
 
-    m_eExperimentState = NetworkAPI::EExperimentState::EXPERIMENT_INITIALIZED;
+    m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_INITIALIZED;
 
     /* Change state and emit signals */
     m_cWebServer->EmitEvent("Experiment reset", m_eExperimentState);
@@ -328,7 +322,7 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  void CNetworkAPI::BroadcastExperimentState() {
+  void CWebviz::BroadcastExperimentState() {
     nlohmann::json cStateJson;
 
     /* Get all entities in the experiment */
@@ -337,8 +331,8 @@ namespace argos {
          itEntities != vecEntities.end();
          ++itEntities) {
       auto cEntityJSON = CallEntityOperation<
-        CNetworkAPIOperationGenerateJSON,
-        CNetworkAPI,
+        CWebvizOperationGenerateJSON,
+        CWebviz,
         nlohmann::json>(*this, **itEntities);
       if (cEntityJSON != nullptr) {
         cStateJson["entities"].push_back(cEntityJSON);
@@ -368,7 +362,7 @@ namespace argos {
         .count();
 
     /* Current state of the experiment */
-    cStateJson["state"] = NetworkAPI::EExperimentStateToStr(m_eExperimentState);
+    cStateJson["state"] = Webviz::EExperimentStateToStr(m_eExperimentState);
 
     /* Number of step from the simulator */
     cStateJson["steps"] = m_cSpace.GetSimulationClock();
@@ -380,7 +374,7 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  CNetworkAPI::~CNetworkAPI() {
+  CWebviz::~CWebviz() {
     delete m_cWebServer;
     delete m_pcLogStream;
     delete m_pcLogErrStream;
@@ -389,28 +383,28 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  void CNetworkAPI::Reset() {}
+  void CWebviz::Reset() {}
 
   /****************************************/
   /****************************************/
 
-  void CNetworkAPI::Destroy() {}
+  void CWebviz::Destroy() {}
   /****************************************/
   /****************************************/
 
   REGISTER_VISUALIZATION(
-    CNetworkAPI,
-    "network-api",
+    CWebviz,
+    "webviz",
     "Prajankya [contact@prajankya.me]",
     "1.0",
-    "Network API to render over network in clientside.",
+    "WebViz to render over web in clientside.",
     " -- .\n",
     "It allows the user to watch and modify the "
     "simulation as it's running in an\n"
     "intuitive way.\n\n"
     "REQUIRED XML CONFIGURATION\n\n"
     "  <visualization>\n"
-    "    <network-api />\n"
+    "    <webviz />\n"
     "  </visualization>\n\n"
     "OPTIONAL XML CONFIGURATION\n\n");
 }  // namespace argos

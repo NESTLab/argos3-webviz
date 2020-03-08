@@ -112,7 +112,7 @@
   <visualization>
     <!-- frequency can be only between 1 and 1000 Hz (both inclusive) -->
     <!-- <qt-opengl /> -->
-    <network-api ff_draw_frames_every="10" />
+    <webviz ff_draw_frames_every="10" />
     
   </visualization>
 

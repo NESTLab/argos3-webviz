@@ -1,7 +1,7 @@
 [ ] Enable SSL
 [ ] Documenting Usage (like port,default values) in CLI (Registration of viz)
 [ ] Add ping pong to WebSockets to enable testing connection
-[ ] Implement ~CNetworkAPI(), Reset(), Destroy() of CNetworkAPI
+[ ] Implement ~CWebviz(), Reset(), Destroy() of CWebviz
 [ ] Write unit tests
 [ ] Check the logic for when the Experiment state is EXPERIMENT_INITIALIZED, EXPERIMENT_DONE
 [ ] To document: event is sent in next cycle of broadcast loop (which depends on broadcast frequency)

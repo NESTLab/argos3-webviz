@@ -1,6 +1,6 @@
 /**
  * @file
- * <argos3/plugins/simulator/visualizations/network-api/entity/networkapi_kheperaiv.cpp>
+ * <argos3/plugins/simulator/visualizations/webviz/entity/webviz_kheperaiv.cpp>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -14,18 +14,18 @@
 #include <argos3/plugins/robots/kheperaiv/control_interface/ci_kheperaiv_proximity_sensor.h>
 #include <argos3/plugins/robots/kheperaiv/simulator/kheperaiv_entity.h>
 #include <argos3/plugins/simulator/entities/led_equipped_entity.h>
-#include <argos3/plugins/simulator/visualizations/network-api/networkapi.h>
+#include <argos3/plugins/simulator/visualizations/webviz/webviz.h>
 #include <iomanip>
 #include <nlohmann/json.hpp>
 
 namespace argos {
-  namespace NetworkAPI {
+  namespace Webviz {
 
     /****************************************/
     /****************************************/
 
-    class CNetworkAPIOperationGenerateFootbotJSON
-        : public CNetworkAPIOperationGenerateJSON {
+    class CWebvizOperationGenerateFootbotJSON
+        : public CWebvizOperationGenerateJSON {
      private:
       CCI_KheperaIVProximitySensor* m_pcProximitySensor;
 
@@ -36,12 +36,11 @@ namespace argos {
       /**
        * @brief Function called to generate a JSON representation of KheperaIV
        *
-       * @param c_networkapi
+       * @param c_webviz
        * @param c_entity
        * @return nlohmann::json
        */
-      nlohmann::json ApplyTo(
-        CNetworkAPI& c_networkapi, CKheperaIVEntity& c_entity) {
+      nlohmann::json ApplyTo(CWebviz& c_webviz, CKheperaIVEntity& c_entity) {
         nlohmann::json cJson;
 
         cJson["type"] = c_entity.GetTypeDescription();
@@ -152,10 +151,10 @@ namespace argos {
       }
     };
 
-    REGISTER_NETWORKAPI_ENTITY_OPERATION(
-      CNetworkAPIOperationGenerateJSON,
-      CNetworkAPIOperationGenerateFootbotJSON,
+    REGISTER_WEBVIZ_ENTITY_OPERATION(
+      CWebvizOperationGenerateJSON,
+      CWebvizOperationGenerateFootbotJSON,
       CKheperaIVEntity);
 
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos

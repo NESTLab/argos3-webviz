@@ -2,7 +2,7 @@
 # Set minimum required version
 #
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
-PROJECT(network-api)
+PROJECT(webviz)
 
 #
 # Set C++ Version 17
@@ -38,7 +38,7 @@ include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
 # Make sure we are under Unix
 #
 IF(NOT UNIX)
-    MESSAGE(FATAL_ERROR "Network-API compiles only under UNIX, sorry!")
+    MESSAGE(FATAL_ERROR "WebViz compiles only under UNIX, sorry!")
 ENDIF(NOT UNIX)
 
 #

@@ -1,6 +1,6 @@
 /**
  * @file
- * <argos3/plugins/simulator/visualizations/network-api/entity/networkapi_floor.cpp>
+ * <argos3/plugins/simulator/visualizations/webviz/entity/webviz_floor.cpp>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -9,21 +9,20 @@
  */
 
 #include <argos3/core/simulator/entity/floor_entity.h>
-#include <argos3/plugins/simulator/visualizations/network-api/networkapi.h>
+#include <argos3/plugins/simulator/visualizations/webviz/webviz.h>
 #include <iomanip>
 #include <nlohmann/json.hpp>
 
 namespace argos {
-  namespace NetworkAPI {
+  namespace Webviz {
 
     /****************************************/
     /****************************************/
 
-    class CNetworkAPIOperationGenerateFloorJSON
-        : public CNetworkAPIOperationGenerateJSON {
+    class CWebvizOperationGenerateFloorJSON
+        : public CWebvizOperationGenerateJSON {
      public:
-      nlohmann::json ApplyTo(
-        CNetworkAPI& c_networkapi, CFloorEntity& c_entity) {
+      nlohmann::json ApplyTo(CWebviz& c_webviz, CFloorEntity& c_entity) {
         nlohmann::json cJson;
 
         cJson["type"] = c_entity.GetTypeDescription();
@@ -36,10 +35,10 @@ namespace argos {
       }
     };
 
-    REGISTER_NETWORKAPI_ENTITY_OPERATION(
-      CNetworkAPIOperationGenerateJSON,
-      CNetworkAPIOperationGenerateFloorJSON,
+    REGISTER_WEBVIZ_ENTITY_OPERATION(
+      CWebvizOperationGenerateJSON,
+      CWebvizOperationGenerateFloorJSON,
       CFloorEntity);
 
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos

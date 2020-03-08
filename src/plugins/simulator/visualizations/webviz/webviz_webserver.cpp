@@ -1,6 +1,6 @@
 /**
  * @file
- * <argos3/plugins/simulator/visualizations/network-api/networkapi_webserver.cpp>
+ * <argos3/plugins/simulator/visualizations/webviz/webviz_webserver.cpp>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -8,20 +8,20 @@
  * Copyright (c) 2020 NEST Lab
  */
 
-#include "networkapi_webserver.h"
+#include "webviz_webserver.h"
 
 namespace argos {
-  namespace NetworkAPI {
+  namespace Webviz {
 
     /****************************************/
     /****************************************/
 
     CWebServer::CWebServer(
-      argos::CNetworkAPI *pc_my_network_api,
+      argos::CWebviz *pc_my_webviz,
       unsigned short un_port,
       unsigned short un_freq)
         : m_vecWebThreads(std::thread::hardware_concurrency()) {
-      m_pcMyNetworkAPI = pc_my_network_api;
+      m_pcMyWebviz = pc_my_webviz;
       m_unPort = un_port;
 
       /* We dont want divide by zero or negative frequency */
@@ -32,7 +32,7 @@ namespace argos {
       m_cBroadcastDuration = std::chrono::milliseconds(1000 / un_freq);
 
       /* Initialize broadcast Timer */
-      m_cBroadcastTimer = argos::NetworkAPI::CTimer();  // TODO memory leak ?
+      m_cBroadcastTimer = argos::Webviz::CTimer();  // TODO memory leak ?
 
       m_strBroadcastString = "";
     }
@@ -264,7 +264,7 @@ namespace argos {
 
       /* Setup routes */
       c_MyApp.get("/start", [&](auto *pc_res, auto *pc_req) {
-        m_pcMyNetworkAPI->PlayExperiment();
+        m_pcMyWebviz->PlayExperiment();
         nlohmann::json cMyJson;
         cMyJson["status"] = "Started Playing";
         this->SendJSON(pc_res, cMyJson);
@@ -275,7 +275,7 @@ namespace argos {
       c_MyApp.get("/pause", [&](auto *pc_res, auto *pc_req) {
         nlohmann::json cMyJson;
         try {
-          m_pcMyNetworkAPI->PauseExperiment();
+          m_pcMyWebviz->PauseExperiment();
           cMyJson["status"] = "Experiment Paused";
           this->SendJSON(pc_res, cMyJson);
         } catch (const std::exception &e) {
@@ -290,7 +290,7 @@ namespace argos {
 
       c_MyApp.get("/step", [&](auto *pc_res, auto *pc_req) {
         nlohmann::json cMyJson;
-        m_pcMyNetworkAPI->StepExperiment();
+        m_pcMyWebviz->StepExperiment();
         cMyJson["status"] = "Experiment step done";
         this->SendJSON(pc_res, cMyJson);
       });
@@ -299,7 +299,7 @@ namespace argos {
 
       c_MyApp.get("/fastforward", [&](auto *pc_res, auto *pc_req) {
         nlohmann::json cMyJson;
-        m_pcMyNetworkAPI->FastForwardExperiment();
+        m_pcMyWebviz->FastForwardExperiment();
         cMyJson["status"] = "Experiment fast-forwarding";
         this->SendJSON(pc_res, cMyJson);
       });
@@ -309,7 +309,7 @@ namespace argos {
       c_MyApp.get("/reset", [&](auto *pc_res, auto *pc_req) {
         nlohmann::json cMyJson;
         try {
-          m_pcMyNetworkAPI->ResetExperiment();
+          m_pcMyWebviz->ResetExperiment();
           cMyJson["status"] = "Experiment Reset";
           this->SendJSON(pc_res, cMyJson);
         } catch (const std::exception &e) {
@@ -353,10 +353,10 @@ namespace argos {
 
     void CWebServer::EmitEvent(
       std::string_view strv_event_name,
-      argos::NetworkAPI::EExperimentState e_state) {
+      argos::Webviz::EExperimentState e_state) {
       nlohmann::json cMyJson;
       cMyJson["event"] = strv_event_name;
-      cMyJson["state"] = argos::NetworkAPI::EExperimentStateToStr(e_state);
+      cMyJson["state"] = argos::Webviz::EExperimentStateToStr(e_state);
 
       // Guard the mutex which locks m_mutex4EventQueue
       std::lock_guard<std::mutex> guard(m_mutex4EventQueue);
@@ -389,5 +389,5 @@ namespace argos {
       std::lock_guard<std::mutex> guard(m_mutex4BroadcastString);
       m_strBroadcastString = cMyJson.dump();
     }
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos

@@ -1,1 +1,1 @@
-ADD_SUBDIRECTORY(network-api)
+ADD_SUBDIRECTORY(webviz)

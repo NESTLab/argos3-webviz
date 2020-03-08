@@ -1,6 +1,5 @@
 /**
- * @file
- * <argos3/plugins/simulator/visualizations/network-api/entity/networkapi_box.cpp>
+ * @file <argos3/plugins/simulator/visualizations/webviz/entity/webviz_box.cpp>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -10,20 +9,20 @@
 
 #include <argos3/plugins/simulator/entities/box_entity.h>
 #include <argos3/plugins/simulator/entities/led_equipped_entity.h>
-#include <argos3/plugins/simulator/visualizations/network-api/networkapi.h>
+#include <argos3/plugins/simulator/visualizations/webviz/webviz.h>
 #include <iomanip>
 #include <nlohmann/json.hpp>
 
 namespace argos {
-  namespace NetworkAPI {
+  namespace Webviz {
 
     /****************************************/
     /****************************************/
 
-    class CNetworkAPIOperationGenerateBoxJSON
-        : public CNetworkAPIOperationGenerateJSON {
+    class CWebvizOperationGenerateBoxJSON
+        : public CWebvizOperationGenerateJSON {
      public:
-      nlohmann::json ApplyTo(CNetworkAPI& c_networkapi, CBoxEntity& c_entity) {
+      nlohmann::json ApplyTo(CWebviz& c_webviz, CBoxEntity& c_entity) {
         nlohmann::json cJson;
 
         cJson["type"] = c_entity.GetTypeDescription();
@@ -90,10 +89,10 @@ namespace argos {
       }
     };
 
-    REGISTER_NETWORKAPI_ENTITY_OPERATION(
-      CNetworkAPIOperationGenerateJSON,
-      CNetworkAPIOperationGenerateBoxJSON,
+    REGISTER_WEBVIZ_ENTITY_OPERATION(
+      CWebvizOperationGenerateJSON,
+      CWebvizOperationGenerateBoxJSON,
       CBoxEntity);
 
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos
