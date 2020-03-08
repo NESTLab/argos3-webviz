@@ -1,6 +1,6 @@
 /**
  * @file
- * <argos3/plugins/simulator/visualizations/network-api/networkapi_webserver.h>
+ * <argos3/plugins/simulator/visualizations/webviz/webviz_webserver.h>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -8,53 +8,49 @@
  * Copyright (c) 2020 NEST Lab
  */
 
-#ifndef ARGOS_NETWORKAPI_WEBSERVER_H
-#define ARGOS_NETWORKAPI_WEBSERVER_H
-
-/* Loguru with streams interface */
-#define LOGURU_WITH_STREAMS 1
+#ifndef ARGOS_WEBVIZ_WEBSERVER_H
+#define ARGOS_WEBVIZ_WEBSERVER_H
 
 namespace argos {
-  class CNetworkAPI;
+  class CWebviz;
 
-  namespace NetworkAPI {
+  namespace Webviz {
     class CWebServer;
     class CTimer;
     enum class EExperimentState;
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos
 
-#include <loguru.hpp>
 #include <mutex>
 #include <nlohmann/json.hpp>
 #include <queue>
 #include <string_view>
 #include "App.h"  // uWebSockets
-#include "networkapi.h"
 #include "utility/CTimer.h"
 #include "utility/EExperimentState.h"
+#include "webviz.h"
 
 namespace argos {
-  namespace NetworkAPI {
+  namespace Webviz {
     class CWebServer {
      private:
+      /** Reference to CWebviz object to call function over it */
+      CWebviz* m_pcMyWebviz;
+
       /** HTTP Port to Listen to */
       unsigned short m_unPort;
 
-      /** max time for one broadcast cycle */
-      std::chrono::milliseconds m_cBroadcastDuration;
+      /** Threads serving web requests */
+      std::vector<std::thread*> m_vecWebThreads;
 
       /** broadcast cycle timer */
       CTimer m_cBroadcastTimer;
 
+      /** max time for one broadcast cycle */
+      std::chrono::milliseconds m_cBroadcastDuration;
+
       /** mutexed string using m_mutex4BroadcastString to broadcast */
       std::string m_strBroadcastString;
-
-      /** Reference to CNetworkAPI object to call function over it */
-      CNetworkAPI* m_pcMyNetworkAPI;
-
-      /** Threads serving web requests */
-      std::vector<std::thread*> m_vecWebThreads;
 
       /** A Queue to push events to client */
       std::queue<std::string> m_cEventQueue;
@@ -99,7 +95,7 @@ namespace argos {
         std::string = "400 Bad Request");
 
      public:
-      CWebServer(CNetworkAPI*, unsigned short, unsigned short);
+      CWebServer(CWebviz*, unsigned short, unsigned short);
       ~CWebServer();
 
       void Start();
@@ -113,6 +109,6 @@ namespace argos {
       /** Broadcasts JSON to all the connected clients */
       void Broadcast(nlohmann::json);
     };
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos
 #endif

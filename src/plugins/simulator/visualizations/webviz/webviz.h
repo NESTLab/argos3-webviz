@@ -1,5 +1,5 @@
 /**
- * @file <argos3/plugins/simulator/visualizations/network-api/networkapi.h>
+ * @file <argos3/plugins/simulator/visualizations/webviz/webviz.h>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -7,21 +7,18 @@
  * Copyright (c) 2020 NEST Lab
  */
 
-#ifndef ARGOS_NETWORKAPI_H
-#define ARGOS_NETWORKAPI_H
-
-/* Loguru with streams interface */
-#define LOGURU_WITH_STREAMS 1
+#ifndef ARGOS_WEBVIZ_H
+#define ARGOS_WEBVIZ_H
 
 namespace argos {
-  class CNetworkAPI;
+  class CWebviz;
 
-  namespace NetworkAPI {
+  namespace Webviz {
     class CWebServer;
     class CTimer;
     class CLogStream;
     enum class EExperimentState;
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos
 
 #include <argos3/core/simulator/entity/entity.h>
@@ -33,40 +30,37 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  class CNetworkAPIOperationGenerateJSON : public CEntityOperation<
-                                             CNetworkAPIOperationGenerateJSON,
-                                             CNetworkAPI,
-                                             json> {
+  class CWebvizOperationGenerateJSON
+      : public CEntityOperation<CWebvizOperationGenerateJSON, CWebviz, json> {
    public:
-    virtual ~CNetworkAPIOperationGenerateJSON() {}
+    virtual ~CWebvizOperationGenerateJSON() {}
   };
 
-#define REGISTER_NETWORKAPI_ENTITY_OPERATION(ACTION, OPERATION, ENTITY) \
-  REGISTER_ENTITY_OPERATION(ACTION, CNetworkAPI, OPERATION, json, ENTITY);
+#define REGISTER_WEBVIZ_ENTITY_OPERATION(ACTION, OPERATION, ENTITY) \
+  REGISTER_ENTITY_OPERATION(ACTION, CWebviz, OPERATION, json, ENTITY);
 
 }  // namespace argos
 
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/visualization/visualization.h>
-#include <argos3/core/utility/logging/argos_log.h>
+#include <argos3/core/utility/configuration/argos_exception.h>
 #include <argos3/core/utility/math/vector3.h>
 #include <atomic>
-#include <loguru.hpp>
 #include <thread>
-#include "networkapi_webserver.h"
 #include "utility/CTimer.h"
 #include "utility/EExperimentState.h"
 #include "utility/LogStream.h"
+#include "webviz_webserver.h"
 
 namespace argos {
   /****************************************/
   /****************************************/
 
-  class CNetworkAPI : public CVisualization {
+  class CWebviz : public CVisualization {
    public:
-    CNetworkAPI();
-    ~CNetworkAPI();
+    CWebviz();
+    ~CWebviz();
 
     void Reset();
     void Destroy();
@@ -109,32 +103,32 @@ namespace argos {
 
    private:
     /** Experiment State, declared atomic as it is used by many threads */
-    std::atomic<NetworkAPI::EExperimentState> m_eExperimentState;
+    std::atomic<Webviz::EExperimentState> m_eExperimentState;
 
     /** Timer used for the loop */
-    NetworkAPI::CTimer m_cTimer;
+    Webviz::CTimer m_cTimer;
 
-    /** Milliseconds required for one tick of simulator */
-    std::chrono::milliseconds m_cSimulatorTickMillis;
-
-    /** Webserver */
-    NetworkAPI::CWebServer* m_cWebServer;
-
-    /** THread to run simulation steps */
+    /** Thread to run simulation steps */
     std::thread m_cSimulationThread;
 
     /** Reference to the space state */
     CSpace& m_cSpace;
 
     /** Boolean for fastForwarding */
-    bool m_bFastForwarding;
+    std::atomic<bool> m_bFastForwarding;
+
+    /** Milliseconds required for one tick of simulator */
+    std::chrono::milliseconds m_cSimulatorTickMillis;
+
+    /** Webserver */
+    Webviz::CWebServer* m_cWebServer;
 
     /** number of frames to drop in Fast-forwarding */
     unsigned short m_unDrawFrameEvery;
 
     /** Log stream objects, to catch logs from Argos */
-    NetworkAPI::CLogStream* m_pcLogStream;
-    NetworkAPI::CLogStream* m_pcLogErrStream;
+    Webviz::CLogStream* m_pcLogStream;
+    Webviz::CLogStream* m_pcLogErrStream;
 
     /**
      * @brief Function which run in Simulation thread

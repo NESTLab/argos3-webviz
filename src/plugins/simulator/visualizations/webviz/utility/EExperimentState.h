@@ -1,6 +1,6 @@
 /**
  * @file
- * <argos3/plugins/simulator/visualizations/network-api/helpers/EExperimentState.h>
+ * <argos3/plugins/simulator/visualizations/webviz/utility/EExperimentState.h>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -8,11 +8,11 @@
  * Copyright (c) 2020 NEST Lab
  */
 
-#ifndef ARGOS_NETWORKAPI_EEXPERIMENTSTATE_H
-#define ARGOS_NETWORKAPI_EEXPERIMENTSTATE_H
+#ifndef ARGOS_WEBVIZ_EEXPERIMENTSTATE_H
+#define ARGOS_WEBVIZ_EEXPERIMENTSTATE_H
 
 namespace argos {
-  namespace NetworkAPI {
+  namespace Webviz {
     enum class EExperimentState {
       EXPERIMENT_INITIALIZED = 0,
       EXPERIMENT_PLAYING,
@@ -53,7 +53,7 @@ namespace argos {
       }
       return os;
     };
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos
 
 #endif

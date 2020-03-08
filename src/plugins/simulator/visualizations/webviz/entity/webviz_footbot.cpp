@@ -1,6 +1,6 @@
 /**
  * @file
- * <argos3/plugins/simulator/visualizations/network-api/entity/networkapi_footbot.cpp>
+ * <argos3/plugins/simulator/visualizations/webviz/entity/webviz_footbot.cpp>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -10,21 +10,21 @@
 
 #include <argos3/plugins/robots/foot-bot/simulator/footbot_entity.h>
 #include <argos3/plugins/simulator/entities/led_equipped_entity.h>
-#include <argos3/plugins/simulator/visualizations/network-api/networkapi.h>
+#include <argos3/plugins/simulator/visualizations/webviz/webviz.h>
 #include <iomanip>
 #include <nlohmann/json.hpp>
 
 namespace argos {
-  namespace NetworkAPI {
+  namespace Webviz {
 
     /****************************************/
     /****************************************/
 
-    class CNetworkAPIOperationGenerateFootbotJSON
-        : public CNetworkAPIOperationGenerateJSON {
+    class CWebvizOperationGenerateFootbotJSON
+        : public CWebvizOperationGenerateJSON {
      public:
       nlohmann::json ApplyTo(
-        CNetworkAPI& c_networkapi, CFootBotEntity& c_entity) {
+        CWebviz& c_webviz, CFootBotEntity& c_entity) {
         nlohmann::json cJson;
 
         cJson["type"] = c_entity.GetTypeDescription();
@@ -116,7 +116,9 @@ namespace argos {
         cJson["points"] = json::array();  // Empty array
 
         for (UInt32 i = 0; i < vecPoints.size(); ++i) {
-          CVector3& cPoint = vecPoints[i];
+          // NO NOT TAKE IT BY REFERENCE HERE, we are updating them below
+          CVector3 cPoint = vecPoints[i];
+
           cPoint -= cPosition;
           cPoint.Rotate(cInvZRotation);
 
@@ -134,10 +136,10 @@ namespace argos {
       }
     };
 
-    REGISTER_NETWORKAPI_ENTITY_OPERATION(
-      CNetworkAPIOperationGenerateJSON,
-      CNetworkAPIOperationGenerateFootbotJSON,
+    REGISTER_WEBVIZ_ENTITY_OPERATION(
+      CWebvizOperationGenerateJSON,
+      CWebvizOperationGenerateFootbotJSON,
       CFootBotEntity);
 
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos

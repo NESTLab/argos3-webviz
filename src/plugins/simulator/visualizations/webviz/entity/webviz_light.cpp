@@ -1,6 +1,6 @@
 /**
  * @file
- * <argos3/plugins/simulator/visualizations/network-api/entity/networkapi_light.cpp>
+ * <argos3/plugins/simulator/visualizations/webviz/entity/webviz_light.cpp>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -9,20 +9,19 @@
  */
 
 #include <argos3/plugins/simulator/entities/light_entity.h>
-#include <argos3/plugins/simulator/visualizations/network-api/networkapi.h>
+#include <argos3/plugins/simulator/visualizations/webviz/webviz.h>
 #include <nlohmann/json.hpp>
 
 namespace argos {
-  namespace NetworkAPI {
+  namespace Webviz {
 
     /****************************************/
     /****************************************/
 
-    class CNetworkAPIOperationGenerateLightJSON
-        : public CNetworkAPIOperationGenerateJSON {
+    class CWebvizOperationGenerateLightJSON
+        : public CWebvizOperationGenerateJSON {
      public:
-      nlohmann::json ApplyTo(
-        CNetworkAPI& c_networkapi, CLightEntity& c_entity) {
+      nlohmann::json ApplyTo(CWebviz& c_webviz, CLightEntity& c_entity) {
         nlohmann::json cJson;
 
         cJson["type"] = c_entity.GetTypeDescription();
@@ -58,10 +57,10 @@ namespace argos {
       }
     };
 
-    REGISTER_NETWORKAPI_ENTITY_OPERATION(
-      CNetworkAPIOperationGenerateJSON,
-      CNetworkAPIOperationGenerateLightJSON,
+    REGISTER_WEBVIZ_ENTITY_OPERATION(
+      CWebvizOperationGenerateJSON,
+      CWebvizOperationGenerateLightJSON,
       CLightEntity);
 
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos

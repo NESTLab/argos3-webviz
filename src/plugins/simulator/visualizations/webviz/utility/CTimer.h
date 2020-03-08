@@ -1,5 +1,5 @@
 /**
- * @file <argos3/plugins/simulator/visualizations/network-api/helpers/CTimer.h>
+ * @file <argos3/plugins/simulator/visualizations/webviz/helpers/CTimer.h>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -7,15 +7,15 @@
  * Copyright (c) 2020 NEST Lab
  */
 
-#ifndef ARGOS_NETWORKAPI_TIMER_H
-#define ARGOS_NETWORKAPI_TIMER_H
+#ifndef ARGOS_WEBVIZ_TIMER_H
+#define ARGOS_WEBVIZ_TIMER_H
 
 #include <chrono>
 #include <ostream>
 #include <type_traits>
 
 namespace argos {
-  namespace NetworkAPI {
+  namespace Webviz {
     class CTimer {
       typedef typename std::conditional<
         std::chrono::high_resolution_clock::is_steady,
@@ -87,7 +87,7 @@ namespace argos {
       TClockType::time_point m_EndTime;
       bool m_bRunning;
     };
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos
 
 #endif

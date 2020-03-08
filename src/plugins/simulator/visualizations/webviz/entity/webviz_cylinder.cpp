@@ -1,6 +1,6 @@
 /**
  * @file
- * <argos3/plugins/simulator/visualizations/network-api/entity/networkapi_cylinder.cpp>
+ * <argos3/plugins/simulator/visualizations/webviz/entity/webviz_cylinder.cpp>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -10,21 +10,21 @@
 
 #include <argos3/plugins/simulator/entities/cylinder_entity.h>
 #include <argos3/plugins/simulator/entities/led_equipped_entity.h>
-#include <argos3/plugins/simulator/visualizations/network-api/networkapi.h>
+#include <argos3/plugins/simulator/visualizations/webviz/webviz.h>
 #include <iomanip>
 #include <nlohmann/json.hpp>
 
 namespace argos {
-  namespace NetworkAPI {
+  namespace Webviz {
 
     /****************************************/
     /****************************************/
 
-    class CNetworkAPIOperationGenerateCylinderJSON
-        : public CNetworkAPIOperationGenerateJSON {
+    class CWebvizOperationGenerateCylinderJSON
+        : public CWebvizOperationGenerateJSON {
      public:
       nlohmann::json ApplyTo(
-        CNetworkAPI& c_networkapi, CCylinderEntity& c_entity) {
+        CWebviz& c_webviz, CCylinderEntity& c_entity) {
         nlohmann::json cJson;
 
         cJson["type"] = c_entity.GetTypeDescription();
@@ -88,10 +88,10 @@ namespace argos {
       }
     };
 
-    REGISTER_NETWORKAPI_ENTITY_OPERATION(
-      CNetworkAPIOperationGenerateJSON,
-      CNetworkAPIOperationGenerateCylinderJSON,
+    REGISTER_WEBVIZ_ENTITY_OPERATION(
+      CWebvizOperationGenerateJSON,
+      CWebvizOperationGenerateCylinderJSON,
       CCylinderEntity);
 
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos

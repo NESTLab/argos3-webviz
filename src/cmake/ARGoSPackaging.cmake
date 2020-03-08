@@ -39,13 +39,13 @@ execute_process(
   OUTPUT_VARIABLE CPACK_PACKAGE_RELEASE)
 endif(NOT DEFINED CPACK_PACKAGE_RELEASE)
 # Other stuff
-set(CPACK_PACKAGE_DESCRIPTION "ARGoS-Network-API (NetworkAPI plugin for ARGoS)
- A plugin to support over the network control of ARGoS multi-robot 
+set(CPACK_PACKAGE_DESCRIPTION "ARGoS-WebViz (WebViz plugin for ARGoS)
+ A plugin to support over the web control of ARGoS multi-robot 
  simulator (http://www.argos-sim.info/).")
-set(CPACK_PACKAGE_HOMEPAGE "https://github.com/NESTLab/argos3-network-api/")
+set(CPACK_PACKAGE_HOMEPAGE "https://github.com/NESTLab/argos3-webviz/")
 set(CPACK_PACKAGE_MAINTAINER "Prajankya Sonar <contact@prajankya.me>")
-set(CPACK_PACKAGE_NAME "argos3plugins_${ARGOS_BUILD_FOR}_networkapi")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Networking support for ARGoS")
+set(CPACK_PACKAGE_NAME "argos3plugins_${ARGOS_BUILD_FOR}_webviz")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Web control support for ARGoS")
 set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/../LICENSE")

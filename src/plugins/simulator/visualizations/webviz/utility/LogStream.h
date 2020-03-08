@@ -1,6 +1,6 @@
 /**
  * @file
- * <argos3/plugins/simulator/visualizations/network-api/helpers/LogStream.h>
+ * <argos3/plugins/simulator/visualizations/webviz/helpers/LogStream.h>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -8,8 +8,8 @@
  * Copyright (c) 2020 NEST Lab
  */
 
-#ifndef ARGOS_NETWORKAPI_LOG_STREAM_H
-#define ARGOS_NETWORKAPI_LOG_STREAM_H
+#ifndef ARGOS_WEBVIZ_LOG_STREAM_H
+#define ARGOS_WEBVIZ_LOG_STREAM_H
 
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/space/space.h>
@@ -18,7 +18,7 @@
 #include <functional>
 
 namespace argos {
-  namespace NetworkAPI {
+  namespace Webviz {
     class CLogStream : public std::basic_streambuf<char> {
      public:
       CLogStream(
@@ -104,7 +104,7 @@ namespace argos {
       CSpace& m_cSpace;
       std::function<void(std::string)> m_fCallback;
     };
-  }  // namespace NetworkAPI
+  }  // namespace Webviz
 }  // namespace argos
 
 #endif

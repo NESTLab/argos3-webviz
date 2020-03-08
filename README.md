@@ -1,13 +1,13 @@
-# argos3-network-API
-A visualizer plugin for [ARGoS](https://www.argos-sim.info/) for controlling it over the network.
+# argos3-WebViz
+A visualizer plugin for [ARGoS](https://www.argos-sim.info/) for controlling it over the web.
 
 ## Installation
 Run the following in a folder of your choice (you can delete it once installed)
 
 ```bash
 # Download
-git clone https://github.com/NESTLab/argos3-network-api
-cd argos3-network-api
+git clone https://github.com/NESTLab/argos3-webviz
+cd argos3-webviz
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Debug ../src

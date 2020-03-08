@@ -6,7 +6,7 @@
   <!-- * General configuration * -->
   <!-- ************************* -->
   <framework>
-    <system threads="2" />
+    <system threads="0" />
     <experiment length="0"
                 ticks_per_second="10"
                 random_seed="124" />
@@ -112,7 +112,7 @@
   <visualization>
     <!-- frequency can be only between 1 and 1000 Hz (both inclusive) -->
     <!-- <qt-opengl /> -->
-    <network-api ff_draw_frames_every="10" />
+    <webviz ff_draw_frames_every="10" />
     
   </visualization>
 

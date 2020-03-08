@@ -2,11 +2,12 @@
 # List of all the entities files to compile
 #
 SET(ENTITIES_SOURCE_FILES
-  entity/networkapi_box.cpp
-  entity/networkapi_light.cpp
-  entity/networkapi_cylinder.cpp
-  entity/networkapi_footbot.cpp
-  entity/networkapi_kheperaiv.cpp
+  entity/webviz_box.cpp
+  entity/webviz_light.cpp
+  entity/webviz_floor.cpp
+  entity/webviz_cylinder.cpp
+  entity/webviz_footbot.cpp
+  entity/webviz_kheperaiv.cpp
 )
 
 
@@ -39,12 +40,6 @@ SET(JSON_BuildTests OFF CACHE INTERNAL "")
 SET(JSON_Install OFF CACHE INTERNAL "")
 ADD_SUBDIRECTORY(${nlohmann_json_SOURCE_DIR} ${CMAKE_BINARY_DIR}/nlohmann-build)
 
-
-# Logging Library
-ADD_DEFINITIONS(-DLOGURU_WITH_STREAMS)
-ADD_SUBDIRECTORY(libs/loguru)
-SET_PROPERTY(TARGET loguru PROPERTY POSITION_INDEPENDENT_CODE ON)
-
 #
 # Setup Include paths
 #
@@ -53,51 +48,49 @@ INCLUDE_DIRECTORIES(
   ${CMAKE_BINARY_DIR}
   ${uWebSockets_SOURCE_DIR}/src/
   ${uWebSockets_SOURCE_DIR}/uSockets/src/
-  libs/loguru
 )
 
 
 #
 # Headers
 #
-# argos3/plugins/simulator/visualizations/network-api
-SET(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI
-  networkapi.h
-  networkapi_webserver.h)
+# argos3/plugins/simulator/visualizations/webviz
+SET(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ
+  webviz.h
+  webviz_webserver.h)
 
 #
 # Source files
 #
 # Common for all builds
-SET(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI
-  ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI}
-  networkapi.cpp
-  networkapi_webserver.cpp
+SET(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ
+  ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ}
+  webviz.cpp
+  webviz_webserver.cpp
   ${ENTITIES_SOURCE_FILES})
 
 
 SET(TARGET_NAME
-  argos3plugin_${ARGOS_BUILD_FOR}_networkapi
+  argos3plugin_${ARGOS_BUILD_FOR}_webviz
 )
 
 #
-# Build Network-API Plugin
+# Build WebViz Plugin
 #
-ADD_LIBRARY(${TARGET_NAME} SHARED ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI})
+ADD_LIBRARY(${TARGET_NAME} SHARED ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ})
 
 TARGET_LINK_LIBRARIES(${TARGET_NAME} 
   argos3plugin_${ARGOS_BUILD_FOR}_entities
-  ${ARGOS_NETWORKAPI_LIBRARIES}
+  ${ARGOS_WEBVIZ_LIBRARIES}
   ${uWebSockets_SOURCE_DIR}/uSockets/uSockets.a
   nlohmann_json::nlohmann_json
-  loguru
 )
 
 SET_TARGET_PROPERTIES( 
   ${TARGET_NAME}  
 PROPERTIES 
-  VERSION 0.1.0
-  PUBLIC_HEADER "${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_NETWORKAPI}"
+  VERSION 0.3.29
+  PUBLIC_HEADER "${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ}"
   ARCHIVE_OUTPUT_DIRECTORY "lib/argos3"
   LIBRARY_OUTPUT_DIRECTORY "lib/argos3"
   OUTPUT_NAME ${TARGET_NAME}
@@ -111,5 +104,5 @@ INSTALL(TARGETS ${TARGET_NAME}
     LIBRARY DESTINATION lib/argos3
     ARCHIVE DESTINATION lib/argos3
     # Use if we want to publish header files
-    PUBLIC_HEADER DESTINATION include/argos3/plugins/simulator/visualizations/network-api
+    PUBLIC_HEADER DESTINATION include/argos3/plugins/simulator/visualizations/webviz
 )
