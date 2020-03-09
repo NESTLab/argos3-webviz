@@ -18,7 +18,7 @@ SET(ENTITIES_SOURCE_FILES
 #
 download_project(PROJ     uWebSockets
   GIT_REPOSITORY      https://github.com/uNetworking/uWebSockets.git
-  GIT_TAG             v0.17.1
+  GIT_TAG             v0.17.3
   UPDATE_DISCONNECTED 1
 )
 
