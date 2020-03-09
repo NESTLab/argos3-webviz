@@ -446,29 +446,61 @@ namespace argos {
     "webviz",
     "Prajankya [prajankya@gmail.com]",
     "0.4.21",
-    "WebViz to render over web in clientside.",
-    " -- .\n",
-    "It allows the user to watch and modify the "
-    "simulation as it's running in an\n"
+    "An interactive web interface to manage argos simulation over network\n",
+    "It allows the user to watch and modify the simulation as it's running in "
+    "an\n"
     "intuitive way.\n\n"
     "REQUIRED XML CONFIGURATION\n\n"
     "  <visualization>\n"
     "    <webviz />\n"
     "  </visualization>\n\n"
-    "OPTIONAL XML CONFIGURATION\n\n"
-    "You can auto-play the simulation at startup by specifying the 'autoplay'\n"
-    "attribute as follows:\n\n"
+    "OPTIONAL XML CONFIGURATION with all the defaults:\n\n"
     "  <visualization>\n"
-    "    <webviz autoplay=\"true\" />\n"
-    "  </visualization>\n\n");
+    "    <webviz port=3000\n"
+    "         broadcast_frequency=10\n"
+    "         ff_draw_frames_every=10\n"
+    "         autoplay=\"true\"\n"
+    "         ssl_key_file=\"NULL\"\n"
+    "         ssl_cert_file=\"NULL\"\n"
+    "         ssl_ca_file=\"NULL\"\n"
+    "         ssl_dh_params_file=\"NULL\"\n"
+    "         ssl_cert_passphrase=\"NULL\"\n"
+    "    />\n"
+    "  </visualization>\n\n"
+    "\n"
+    "Where:\n"
+    "port(unsigned short): is the network port to listen incoming \n"
+    "\ttraffic on (Websockets and HTTP both share the same port)\n"
+    "    Default: 10\n"
+    "    Range: [1,65535]\n"
+    "        Note: For ports < 1024 root privileges are required.\n\n"
 
-  // port
-  // broadcast_frequency
-  // ff_draw_frames_every
-  // ssl_key_file
-  // ssl_cert_file
-  // ssl_dh_params_file
-  // ssl_ca_file
-  // ssl_cert_passphrase
-  // TODO Add openSSL Cmake check and update the uWeBSockets make accordingly
+    "broadcast_frequency(unsigned short): Frequency (in Hertz) at which\n"
+    "\tto broadcast the updates(through websockets)\n"
+    "    Default: 10\n"
+    "    Range: [1,1000]\n\n"
+
+    "ff_draw_frames_every(unsigned short): Number of steps to skip\n"
+    "\twhen in fast forward mode\n"
+    "    Default: 10\n\n"
+
+    "autoplay(bool): Allows user to auto-play the simulation at startup\n"
+    "    Default: false\n\n"
+    "--\n\n"
+    "SSL CONFIGURATION\n"
+    "NOTE: You need OpenSSL installed while building this plugin from\n"
+    "\t source to have SSL support\n"
+    "\n"
+    "You might have to use any combination of the following to enable\n"
+    "\t SSL, depending upon your implementation.\n"
+    "\n"
+    "\t* ssl_key_file\n"
+    "\t* ssl_cert_file\n"
+    "\t* ssl_ca_file\n"
+    "\t* ssl_dh_params_file\n"
+    "\t* ssl_cert_passphrase\n"
+    "Of which all the file parameters shown above can be passed with \n"
+    "\trealtive path to the file. NOTE:(It needs read access to the files\n"
+    "\n",
+    "Usable");
 }  // namespace argos
