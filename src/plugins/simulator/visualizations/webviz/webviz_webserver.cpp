@@ -68,14 +68,10 @@ namespace argos {
       LOG << "Starting " << m_vecWebThreads.size() << " threads for WebServer "
           << std::endl;
 
-      std::cout << "Here 2" << std::endl;
-
       struct us_socket_context_options_t sEmptySSLOptions = {};
 
       const bool bIsSSLCopied =
         memcmp(&m_sSSLOptions, &sEmptySSLOptions, sizeof(sEmptySSLOptions));
-
-      std::cout << "Here 3 " << bIsSSLCopied << std::endl;
 
       /* As templates are handled at compile time */
       if (bIsSSLCopied) {
@@ -96,8 +92,6 @@ namespace argos {
 
       /** Mutex to protect access to vecWebSocketClients */
       std::mutex mutex4VecWebClients;
-
-      std::cout << "Here 4 " << SSL << std::endl;
 
       try {
         /* Loop through all threads */

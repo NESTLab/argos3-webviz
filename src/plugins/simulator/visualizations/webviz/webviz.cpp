@@ -72,8 +72,6 @@ namespace argos {
       strCAFilePath,
       strCertPassphrase);
 
-    std::cout << "Here 1" << std::endl;
-
     /* Write all the pending stuff */
     LOG.Flush();
     LOGERR.Flush();
@@ -83,16 +81,22 @@ namespace argos {
     LOGERR.DisableColoredOutput();
 
     // /* Initialize the LOG streams from Execute thread */
-    // m_pcLogStream =
-    //   new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData)
-    //   {
-    //     m_cWebServer->EmitLog("LOG", str_logData);
-    //   });
+    m_pcLogStream =
+      new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData) {
+        m_cWebServer->EmitLog("LOG", str_logData);
+      });
 
-    // m_pcLogErrStream = new Webviz::CLogStream(
-    //   LOGERR.GetStream(), [this](std::string str_logData) {
-    //     m_cWebServer->EmitLog("LOGERR", str_logData);
-    //   });
+    m_pcLogErrStream = new Webviz::CLogStream(
+      LOGERR.GetStream(), [this](std::string str_logData) {
+        m_cWebServer->EmitLog("LOGERR", str_logData);
+      });
+
+    /* Should we play instantly? */
+    bool bAutoPlay = false;
+    GetNodeAttributeOrDefault(t_tree, "autoplay", bAutoPlay, bAutoPlay);
+    if (bAutoPlay) {
+      PlayExperiment();
+    }
   }
 
   /****************************************/
@@ -440,8 +444,8 @@ namespace argos {
   REGISTER_VISUALIZATION(
     CWebviz,
     "webviz",
-    "Prajankya [contact@prajankya.me]",
-    "1.0",
+    "Prajankya [prajankya@gmail.com]",
+    "0.4.21",
     "WebViz to render over web in clientside.",
     " -- .\n",
     "It allows the user to watch and modify the "
@@ -451,5 +455,20 @@ namespace argos {
     "  <visualization>\n"
     "    <webviz />\n"
     "  </visualization>\n\n"
-    "OPTIONAL XML CONFIGURATION\n\n");
+    "OPTIONAL XML CONFIGURATION\n\n"
+    "You can auto-play the simulation at startup by specifying the 'autoplay'\n"
+    "attribute as follows:\n\n"
+    "  <visualization>\n"
+    "    <webviz autoplay=\"true\" />\n"
+    "  </visualization>\n\n");
+
+  // port
+  // broadcast_frequency
+  // ff_draw_frames_every
+  // ssl_key_file
+  // ssl_cert_file
+  // ssl_dh_params_file
+  // ssl_ca_file
+  // ssl_cert_passphrase
+  // TODO Add openSSL Cmake check and update the uWeBSockets make accordingly
 }  // namespace argos
