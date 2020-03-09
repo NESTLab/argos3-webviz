@@ -64,6 +64,11 @@ namespace argos {
     /****************************************/
     /****************************************/
 
+    CWebServer::~CWebServer() {}
+
+    /****************************************/
+    /****************************************/
+
     void CWebServer::Start() {
       LOG << "Starting " << m_vecWebThreads.size() << " threads for WebServer "
           << std::endl;
@@ -85,13 +90,16 @@ namespace argos {
     /****************************************/
 
     template <bool SSL>
-    void CWebServer::InitServer(
-      struct us_socket_context_options_t s_ssl_options) {
+    void CWebServer::InitServer(us_socket_context_options_t s_ssl_options) {
       /* Create a vector for list of all connected clients */
       std::vector<SWebSocketClient<SSL>> vecWebSocketClients;
 
       /** Mutex to protect access to vecWebSocketClients */
       std::mutex mutex4VecWebClients;
+
+      /* File Server to host all HTTP requests */
+      /* Initialize File server */
+      CFileServer m_cFileServer;
 
       try {
         /* Loop through all threads */
@@ -253,6 +261,16 @@ namespace argos {
                   this->SendJSONError(pc_res, cMyJson);
                 }
               });
+
+              /****************************************/
+
+              cMyApp.get("/*", [&](auto *pc_res, auto *pc_req) {
+                pc_res->cork([&]() {
+                  m_cFileServer.handle_file_request(*pc_res, *pc_req);
+                });
+              });
+
+              /****************************************/
 
               /* Start listening to Port */
               cMyApp
