@@ -18,14 +18,14 @@ SET(ENTITIES_SOURCE_FILES
 #
 download_project(PROJ     uWebSockets
   GIT_REPOSITORY      https://github.com/uNetworking/uWebSockets.git
-  GIT_TAG             v0.17.1
+  GIT_TAG             v0.17.3
   UPDATE_DISCONNECTED 1
 )
 
 # Build uSockets(inside uWebSockets directory)
 EXECUTE_PROCESS(
   WORKING_DIRECTORY ${uWebSockets_SOURCE_DIR}/uSockets
-  COMMAND make)
+  COMMAND make default WITH_OPENSSL=1)
 
 #
 # Download nlohmann/json library from github
@@ -79,30 +79,39 @@ SET(TARGET_NAME
 #
 ADD_LIBRARY(${TARGET_NAME} SHARED ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ})
 
+find_package(OpenSSL REQUIRED)
+
 TARGET_LINK_LIBRARIES(${TARGET_NAME} 
   argos3plugin_${ARGOS_BUILD_FOR}_entities
   ${ARGOS_WEBVIZ_LIBRARIES}
   ${uWebSockets_SOURCE_DIR}/uSockets/uSockets.a
   nlohmann_json::nlohmann_json
+  OpenSSL::SSL
 )
 
 SET_TARGET_PROPERTIES( 
   ${TARGET_NAME}  
 PROPERTIES 
-  VERSION 0.3.29
+  VERSION 0.4.21
   PUBLIC_HEADER "${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ}"
   ARCHIVE_OUTPUT_DIRECTORY "lib/argos3"
   LIBRARY_OUTPUT_DIRECTORY "lib/argos3"
   OUTPUT_NAME ${TARGET_NAME}
 )
 
-
-TARGET_COMPILE_OPTIONS(${TARGET_NAME} PRIVATE -Wfatal-errors)
-
+# Install main project libs and headers
 INSTALL(TARGETS ${TARGET_NAME}
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib/argos3
-    ARCHIVE DESTINATION lib/argos3
-    # Use if we want to publish header files
-    PUBLIC_HEADER DESTINATION include/argos3/plugins/simulator/visualizations/webviz
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib/argos3
+  ARCHIVE DESTINATION lib/argos3
+  # Use if we want to publish header files
+  PUBLIC_HEADER DESTINATION include/argos3/plugins/simulator/visualizations/webviz
 )
+
+# Install assets
+INSTALL(DIRECTORY assets
+  DESTINATION include/argos3/plugins/simulator/visualizations/webviz
+)
+
+# Stop compiling on first error
+TARGET_COMPILE_OPTIONS(${TARGET_NAME} PRIVATE -Wfatal-errors)

@@ -1,6 +1,5 @@
 /**
- * @file
- * <argos3/plugins/simulator/visualizations/webviz/webviz_webserver.h>
+ * @file <argos3/plugins/simulator/visualizations/webviz/webviz_webserver.h>
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
@@ -59,18 +58,13 @@ namespace argos {
       std::queue<std::string> m_cLogQueue;
 
       /** Struct to hold websocket with its loop thread */
+      template <bool SSL>
       struct SWebSocketClient {
-        uWS::WebSocket<false, true>* m_cWS;
+        uWS::WebSocket<SSL, true>* m_cWS;
         struct uWS::Loop* m_cLoop;
       };
 
-      /** List of all WebSocket clients connected */
-      std::vector<SWebSocketClient> m_vecWebSocketClients;
-
-      /** Mutex to protect access to m_vecWebSocketClients */
-      std::mutex m_mutex4VecWebClients;
-
-      /** Mutex to protect access to m_vecWebSocketClients */
+      /** Mutex to protect access to m_mutex4BroadcastString */
       std::mutex m_mutex4BroadcastString;
 
       /** Mutex to protect access to m_cEventQueue */
@@ -79,23 +73,42 @@ namespace argos {
       /** Mutex to protect access to m_cLogQueue */
       std::mutex m_mutex4LogQueue;
 
+      /** SSL settings */
+      struct us_socket_context_options_t m_sSSLOptions;
+
       /** Data attached to each socket, ws->getUserData returns one of these */
       struct m_sPerSocketData {};
 
-      /** Function to setup all routes and webhooks */
-      void SetupWebApp(uWS::App&);
+      /** Function to intialize server depending on SSL */
+      template <bool SSL>
+      void InitServer(struct us_socket_context_options_t);
+
+      /** Function to setup the webapp with all routes and webhooks */
+      template <bool SSL>
+      void SetupWebApp(uWS::TemplatedApp<SSL>&);
 
       /** Function to send JSON over HttpResponse */
-      void SendJSON(uWS::HttpResponse<false>*, nlohmann::json);
+      template <bool SSL>
+      void SendJSON(uWS::HttpResponse<SSL>*, nlohmann::json);
 
       /** Function to send JSON with Error over HttpResponse */
+      template <bool SSL>
       void SendJSONError(
-        uWS::HttpResponse<false>*,
+        uWS::HttpResponse<SSL>*,
         nlohmann::json,
         std::string = "400 Bad Request");
 
      public:
-      CWebServer(CWebviz*, unsigned short, unsigned short);
+      CWebServer(
+        CWebviz*,
+        unsigned short,
+        unsigned short,
+        std::string&,
+        std::string&,
+        std::string&,
+        std::string&,
+        std::string&);
+
       ~CWebServer();
 
       void Start();

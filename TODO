@@ -1,4 +1,3 @@
-[ ] Enable SSL
 [ ] Documenting Usage (like port,default values) in CLI (Registration of viz)
 [ ] Add ping pong to WebSockets to enable testing connection
 [ ] Implement ~CWebviz(), Reset(), Destroy() of CWebviz
@@ -16,3 +15,4 @@
 [ ] draw arena boundaries
 [ ] Check if port is already being used
 [ ] Add camera configuration through .argos experiment file
+[ ] BUG: Reset while fast-forwarding, goes to few steps(instead of 0 steps)
