@@ -29,21 +29,50 @@ namespace argos {
     unsigned short unPort;
     unsigned short unBroadcastFrequency;
 
+    std::string strKeyFilePath;
+    std::string strCertFilePath;
+    std::string strDHParamsFilePath;
+    std::string strCAFilePath;
+    std::string strCertPassphrase;
+
     /* Parse options from the XML */
     GetNodeAttributeOrDefault(t_tree, "port", unPort, UInt16(3000));
     GetNodeAttributeOrDefault(
       t_tree, "broadcast_frequency", unBroadcastFrequency, UInt16(10));
+    GetNodeAttributeOrDefault(
+      t_tree, "ff_draw_frames_every", m_unDrawFrameEvery, UInt16(2));
 
+    /* Get options for ssl certificate from XML */
+    GetNodeAttributeOrDefault(
+      t_tree, "ssl_key_file", strKeyFilePath, std::string(""));
+    GetNodeAttributeOrDefault(
+      t_tree, "ssl_cert_file", strCertFilePath, std::string(""));
+    GetNodeAttributeOrDefault(
+      t_tree, "ssl_dh_params_file", strDHParamsFilePath, std::string(""));
+    GetNodeAttributeOrDefault(
+      t_tree, "ssl_ca_file", strCAFilePath, std::string(""));
+    GetNodeAttributeOrDefault(
+      t_tree, "ssl_cert_passphrase", strCertPassphrase, std::string(""));
+
+    /* check parameters  */
     if (unBroadcastFrequency < 1 || 10 < unBroadcastFrequency) {
       throw CARGoSException(
         "Broadcast frequency set in configuration is out of range [1,1000]");
       return;  // just for readability
     }
-    GetNodeAttributeOrDefault(
-      t_tree, "ff_draw_frames_every", m_unDrawFrameEvery, UInt16(2));
 
     /* Initialize Webserver */
-    m_cWebServer = new Webviz::CWebServer(this, unPort, unBroadcastFrequency);
+    m_cWebServer = new Webviz::CWebServer(
+      this,
+      unPort,
+      unBroadcastFrequency,
+      strKeyFilePath,
+      strCertFilePath,
+      strDHParamsFilePath,
+      strCAFilePath,
+      strCertPassphrase);
+
+    std::cout << "Here 1" << std::endl;
 
     /* Write all the pending stuff */
     LOG.Flush();
@@ -53,16 +82,17 @@ namespace argos {
     LOG.DisableColoredOutput();
     LOGERR.DisableColoredOutput();
 
-    /* Initialize the LOG streams from Execute thread */
-    m_pcLogStream =
-      new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData) {
-        m_cWebServer->EmitLog("LOG", str_logData);
-      });
+    // /* Initialize the LOG streams from Execute thread */
+    // m_pcLogStream =
+    //   new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData)
+    //   {
+    //     m_cWebServer->EmitLog("LOG", str_logData);
+    //   });
 
-    m_pcLogErrStream = new Webviz::CLogStream(
-      LOGERR.GetStream(), [this](std::string str_logData) {
-        m_cWebServer->EmitLog("LOGERR", str_logData);
-      });
+    // m_pcLogErrStream = new Webviz::CLogStream(
+    //   LOGERR.GetStream(), [this](std::string str_logData) {
+    //     m_cWebServer->EmitLog("LOGERR", str_logData);
+    //   });
   }
 
   /****************************************/

@@ -25,7 +25,7 @@ download_project(PROJ     uWebSockets
 # Build uSockets(inside uWebSockets directory)
 EXECUTE_PROCESS(
   WORKING_DIRECTORY ${uWebSockets_SOURCE_DIR}/uSockets
-  COMMAND make)
+  COMMAND make default WITH_OPENSSL=1)
 
 #
 # Download nlohmann/json library from github
@@ -79,11 +79,14 @@ SET(TARGET_NAME
 #
 ADD_LIBRARY(${TARGET_NAME} SHARED ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ})
 
+find_package(OpenSSL REQUIRED)
+
 TARGET_LINK_LIBRARIES(${TARGET_NAME} 
   argos3plugin_${ARGOS_BUILD_FOR}_entities
   ${ARGOS_WEBVIZ_LIBRARIES}
   ${uWebSockets_SOURCE_DIR}/uSockets/uSockets.a
   nlohmann_json::nlohmann_json
+  OpenSSL::SSL
 )
 
 SET_TARGET_PROPERTIES( 
