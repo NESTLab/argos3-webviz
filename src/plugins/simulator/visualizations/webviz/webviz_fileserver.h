@@ -16,6 +16,13 @@ namespace argos {
   }  // namespace Webviz
 }  // namespace argos
 
+#include <sys/stat.h>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <regex>
+#include <vector>
+
 #include "App.h"  // uWebSockets
 
 namespace argos {
@@ -23,12 +30,51 @@ namespace argos {
     class CFileServer {
      private:
       /**
+       * @brief MIME map for files
+       *
+       */
+      std::map<std::string, std::string> m_map_MIMETYPES;
+
+      /**
        * @brief to hold all the folders to host from
        *
        */
       std::vector<std::pair<std::string, std::string>> base_dirs_;
 
+      /**
+       * @brief is the path a valid string path type
+       *
+       * @param path
+       * @return true
+       * @return false
+       */
+      bool IsValidPath(const std::string &path);
+
+      /**
+       * @brief
+       *
+       * @param path Check if the path is a valid file on system
+       * @return true
+       * @return false
+       */
+      bool IsFile(const std::string &path);
+
+      /**
+       * @brief Check if the path is a valid folder on system
+       *
+       * @param path
+       * @return true
+       * @return false
+       */
+      bool IsDir(const std::string &path);
+
      public:
+      /**
+       * @brief Construct a new CFileServer object
+       *
+       */
+      CFileServer();
+
       /**
        * @brief Handles new file request, and streams the file
        * if exists
@@ -40,11 +86,22 @@ namespace argos {
        * @return false if file was not found
        */
       template <bool SSL>
-      bool handle_file_request_(uWS::HttpResponse<SSL> &, uWS::HttpRequest &);
+      bool HandleFileRequest_(uWS::HttpResponse<SSL> *, uWS::HttpRequest *);
 
       /* Temp fillers to access template from outside */
-      bool handle_file_request(uWS::HttpResponse<false> &, uWS::HttpRequest &);
-      bool handle_file_request(uWS::HttpResponse<true> &, uWS::HttpRequest &);
+      bool HandleFileRequest(uWS::HttpResponse<false> &, uWS::HttpRequest &);
+      bool HandleFileRequest(uWS::HttpResponse<true> &, uWS::HttpRequest &);
+
+      /**
+       * @brief Add a new folder/file as mount point
+       *
+       * @param url URI path for the mount
+       * @param path folder path to the mount
+       *
+       * @return true if the folder/file was added
+       * @return false if the folder/file was invalid
+       */
+      bool AddMountPoint(std::string, std::string);
     };
   }  // namespace Webviz
 }  // namespace argos
