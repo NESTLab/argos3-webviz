@@ -55,10 +55,19 @@ namespace argos {
       t_tree, "ssl_cert_passphrase", strCertPassphrase, std::string(""));
 
     /* check parameters  */
-    if (unBroadcastFrequency < 1 || 10 < unBroadcastFrequency) {
+    if (unPort < 1 || 65535 < unPort) {
+      throw CARGoSException(
+        "\"Port number\" set in configuration is out of range [1,65535]");
+    }
+
+    if (unBroadcastFrequency < 1 || 1000 < unBroadcastFrequency) {
       throw CARGoSException(
         "Broadcast frequency set in configuration is out of range [1,1000]");
-      return;  // just for readability
+    }
+
+    if (m_unDrawFrameEvery < 1 || 1000 < m_unDrawFrameEvery) {
+      throw CARGoSException(
+        "Broadcast frequency set in configuration is invalid ( < 1 )");
     }
 
     /* Initialize Webserver */
@@ -473,7 +482,7 @@ namespace argos {
     "\ttraffic on (Websockets and HTTP both share the same port)\n"
     "    Default: 10\n"
     "    Range: [1,65535]\n"
-    "        Note: For ports < 1024 root privileges are required.\n\n"
+    "        Note: For ports < 1024 need root privileges.\n\n"
 
     "broadcast_frequency(unsigned short): Frequency (in Hertz) at which\n"
     "\tto broadcast the updates(through websockets)\n"
@@ -500,7 +509,8 @@ namespace argos {
     "\t* ssl_dh_params_file\n"
     "\t* ssl_cert_passphrase\n"
     "Of which all the file parameters shown above can be passed with \n"
-    "\trealtive path to the file. NOTE:(It needs read access to the files\n"
+    "\trelative path to the file. NOTE:(It needs read access\n"
+    "\t to the files)\n"
     "\n",
-    "Usable");
+    "Under development");
 }  // namespace argos
