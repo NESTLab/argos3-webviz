@@ -86,14 +86,11 @@ namespace argos {
       /* Register handlers */
       /* lambda is mutable to update "bIsSending" counter */
       res->onAborted([bIsSending]() mutable {
-        std::cout << "! aborted" << std::endl;
+        // std::cout << "! aborted" << std::endl;
         bIsSending = false;
-        // uWS::Loop::get()->defer([]() {
-
-        // });
       });
 
-      std::cout << "File ::" << strFilePath << std::endl;
+      // std::cout << "File ::" << strFilePath << std::endl;
 
       if (!strFilePath.empty()) {
         /* Default mime type */
@@ -116,10 +113,10 @@ namespace argos {
           }
         }
 
-        std::cout << "MIME type:" << strFileMIMEType << std::endl;
+        // std::cout << "MIME type:" << strFileMIMEType << std::endl;
 
         /* Callback for when the "res" is ready to receive data  */
-        res->onData([res, strFilePath, strFileMIMEType](
+        res->onData([res, strFilePath, strFileMIMEType, bIsSending](
                       std::string_view ck_, bool isEnd) {
           if (isEnd) {
             /*
@@ -162,7 +159,8 @@ namespace argos {
             res->writeHeader("Content-Type", strFileMIMEType);
 
             /* the loop of chunking */
-            for (size_t chunk = 0; chunk < total_chunks; ++chunk) {
+            for (size_t chunk = 0; chunk < total_chunks && bIsSending;
+                 ++chunk) {
               bool bIsLast = chunk == total_chunks - 1;
 
               size_t this_chunk_size =
