@@ -55,10 +55,19 @@ namespace argos {
       t_tree, "ssl_cert_passphrase", strCertPassphrase, std::string(""));
 
     /* check parameters  */
-    if (unBroadcastFrequency < 1 || 10 < unBroadcastFrequency) {
+    if (unPort < 1 || 65535 < unPort) {
+      throw CARGoSException(
+        "\"Port number\" set in configuration is out of range [1,65535]");
+    }
+
+    if (unBroadcastFrequency < 1 || 1000 < unBroadcastFrequency) {
       throw CARGoSException(
         "Broadcast frequency set in configuration is out of range [1,1000]");
-      return;  // just for readability
+    }
+
+    if (m_unDrawFrameEvery < 1 || 1000 < m_unDrawFrameEvery) {
+      throw CARGoSException(
+        "Broadcast frequency set in configuration is invalid ( < 1 )");
     }
 
     /* Initialize Webserver */

@@ -101,6 +101,13 @@ namespace argos {
       /* Initialize File server */
       CFileServer m_cFileServer;
 
+      /* Add Assets folder */
+      m_cFileServer.AddMountPoint(
+        "/",
+        std::string(ARGOS_INSTALL_PREFIX) +
+          "/include/argos3/plugins/simulator/"
+          "visualizations/webviz/assets/");
+
       try {
         /* Loop through all threads */
         std::transform(
@@ -120,10 +127,10 @@ namespace argos {
               cMyApp.template ws<m_sPerSocketData>(
                 "/*",
                 {/* Settings */
-                 .compression = uWS::SHARED_COMPRESSOR,
-                 .maxPayloadLength = 256 * 1024 * 1024,
+                 .compression = uWS::DEDICATED_COMPRESSOR_8KB,
+                 .maxPayloadLength = 16 * 1024,
                  .idleTimeout = 10,
-                 .maxBackpressure = 256 * 1024 * 1204,
+                 .maxBackpressure = 16 * 1024,
                  /* Handlers */
                  .open =
                    [&](
@@ -265,9 +272,8 @@ namespace argos {
               /****************************************/
 
               cMyApp.get("/*", [&](auto *pc_res, auto *pc_req) {
-                pc_res->cork([&]() {
-                  m_cFileServer.handle_file_request(*pc_res, *pc_req);
-                });
+                pc_res->cork(
+                  [&]() { m_cFileServer.HandleFileRequest(*pc_res, *pc_req); });
               });
 
               /****************************************/
