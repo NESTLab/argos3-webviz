@@ -57,8 +57,7 @@ INCLUDE_DIRECTORIES(
 # argos3/plugins/simulator/visualizations/webviz
 SET(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ
   webviz.h
-  webviz_webserver.h
-  webviz_fileserver.h)
+  webviz_webserver.h)
 
 #
 # Source files
@@ -68,7 +67,6 @@ SET(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ
   ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ}
   webviz.cpp
   webviz_webserver.cpp
-  webviz_fileserver.cpp
   ${ENTITIES_SOURCE_FILES})
 
 
@@ -94,7 +92,7 @@ TARGET_LINK_LIBRARIES(${TARGET_NAME}
 SET_TARGET_PROPERTIES( 
   ${TARGET_NAME}  
 PROPERTIES 
-  VERSION 0.4.22
+  VERSION 0.4.29
   PUBLIC_HEADER "${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ}"
   ARCHIVE_OUTPUT_DIRECTORY "lib/argos3"
   LIBRARY_OUTPUT_DIRECTORY "lib/argos3"
@@ -108,11 +106,6 @@ INSTALL(TARGETS ${TARGET_NAME}
   ARCHIVE DESTINATION lib/argos3
   # Use if we want to publish header files
   PUBLIC_HEADER DESTINATION include/argos3/plugins/simulator/visualizations/webviz
-)
-
-# Install assets
-INSTALL(DIRECTORY assets
-  DESTINATION include/argos3/plugins/simulator/visualizations/webviz
 )
 
 # Stop compiling on first error
