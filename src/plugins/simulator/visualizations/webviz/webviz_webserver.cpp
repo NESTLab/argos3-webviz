@@ -97,17 +97,6 @@ namespace argos {
       /** Mutex to protect access to vecWebSocketClients */
       std::mutex mutex4VecWebClients;
 
-      /* File Server to host all HTTP requests */
-      /* Initialize File server */
-      CFileServer m_cFileServer;
-
-      /* Add Assets folder */
-      m_cFileServer.AddMountPoint(
-        "/",
-        std::string(ARGOS_INSTALL_PREFIX) +
-          "/include/argos3/plugins/simulator/"
-          "visualizations/webviz/assets/");
-
       try {
         /* Loop through all threads */
         std::transform(
@@ -267,13 +256,6 @@ namespace argos {
 
                   this->SendJSONError(pc_res, cMyJson);
                 }
-              });
-
-              /****************************************/
-
-              cMyApp.get("/*", [&](auto *pc_res, auto *pc_req) {
-                pc_res->cork(
-                  [&]() { m_cFileServer.HandleFileRequest(*pc_res, *pc_req); });
               });
 
               /****************************************/

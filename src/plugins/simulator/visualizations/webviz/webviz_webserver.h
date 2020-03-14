@@ -15,7 +15,6 @@ namespace argos {
 
   namespace Webviz {
     class CWebServer;
-    class CFileServer;
     class CTimer;
     enum class EExperimentState;
   }  // namespace Webviz
@@ -29,7 +28,6 @@ namespace argos {
 #include "utility/CTimer.h"
 #include "utility/EExperimentState.h"
 #include "webviz.h"
-#include "webviz_fileserver.h"
 
 namespace argos {
   namespace Webviz {
