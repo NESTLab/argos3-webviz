@@ -39,9 +39,6 @@ namespace argos {
       /** HTTP Port to Listen to */
       unsigned short m_unPort;
 
-      /** Threads serving web requests */
-      std::vector<std::thread*> m_vecWebThreads;
-
       /** broadcast cycle timer */
       CTimer m_cBroadcastTimer;
 
@@ -79,13 +76,17 @@ namespace argos {
       /** Data attached to each socket, ws->getUserData returns one of these */
       struct m_sPerSocketData {};
 
-      /** Function to intialize server depending on SSL */
+      /**
+       * @brief Function to run server depending on SSL
+       *
+       * @tparam SSL bool: to start with SSL
+       * @param b_IsServerRunning bool: used to stop the threads gracefully
+       * @param s_ssl_options struct: SSL options
+       */
       template <bool SSL>
-      void InitServer(struct us_socket_context_options_t);
-
-      /** Function to setup the webapp with all routes and webhooks */
-      template <bool SSL>
-      void SetupWebApp(uWS::TemplatedApp<SSL>&);
+      void RunServer(
+        std::atomic<bool>& b_IsServerRunning,
+        struct us_socket_context_options_t s_ssl_options);
 
       /** Function to send JSON over HttpResponse */
       template <bool SSL>
@@ -111,10 +112,21 @@ namespace argos {
 
       ~CWebServer();
 
-      void Start();
+      /**
+       * @brief Start the Webserver threads (one for server, one for
+       * broadcasting)
+       *
+       * @param b_IsServerRunning used to stop the threads gracefully
+       */
+      void Start(std::atomic<bool>& b_IsServerRunning);
 
-      /** Broadcasts on event channel to all the connected clients */
-      void EmitEvent(std::string_view, EExperimentState);
+      /**
+       * @brief Broadcasts on event channel to all the connected clients
+       *
+       * @param str_event_name string: event name
+       * @param e_state EExperimentState: state of the experiment
+       */
+      void EmitEvent(std::string str_event_name, EExperimentState e_state);
 
       /** Broadcasts on log channels to all the connected clients */
       void EmitLog(std::string, std::string);
