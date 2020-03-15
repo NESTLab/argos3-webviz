@@ -296,17 +296,13 @@ namespace argos {
 
           /* Decouple the strings so a new broadcast message can be accepted
            * while old are sending */
-          /*
-           * Mutex block for m_mutex4BroadcastString
-           */
+          /* Mutex block for m_mutex4BroadcastString */
           {
             std::lock_guard<std::mutex> guard(m_mutex4BroadcastString);
             strBroadcastString = m_strBroadcastString;
           }  // End of mutex block: m_mutex4BroadcastString
 
-          /*
-           * Mutex block for m_mutex4EventQueue
-           */
+          /* Mutex block for m_mutex4EventQueue */
           {
             std::lock_guard<std::mutex> guard(m_mutex4EventQueue);
 
@@ -321,19 +317,17 @@ namespace argos {
           /* Initialize Log string */
           strLogString = "";
 
-          /*
-           * Mutex block for m_mutex4LogQueue
-           */
+          /* Mutex block for m_mutex4LogQueue */
           {
             std::lock_guard<std::mutex> guard(m_mutex4LogQueue);
 
             /* Get all log messages in one string with \n */
-            /* TODO: change string to stringstream, better concatinations */
+            std::stringstream str_stream;
             while (!m_cLogQueue.empty()) {
-              strLogString += m_cLogQueue.front() + "\n";
+              str_stream << m_cLogQueue.front() << "\n";
               m_cLogQueue.pop();
             }
-
+            strLogString = str_stream.str();
           }  // End of mutex block: m_mutex4LogQueue
 
           std::lock_guard<std::mutex> guard(mutex4VecWebClients);
@@ -392,6 +386,7 @@ namespace argos {
 
     /****************************************/
     /****************************************/
+
     template <bool SSL>
     void CWebServer::SendJSONError(
       uWS::HttpResponse<SSL> *pc_res,
