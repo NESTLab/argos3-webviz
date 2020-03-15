@@ -27,9 +27,6 @@ namespace argos {
         : m_pcMyWebviz(pc_my_webviz),
           /* Port to host the application on */
           m_unPort(un_port),
-          /* Initialize Threads to handle web traffic */
-          /* std::thread::hardware_concurrency() */
-          m_vecWebThreads(std::thread::hardware_concurrency()),
           /* Initialize broadcast Timer */
           m_cBroadcastTimer(argos::Webviz::CTimer()),
           m_sSSLOptions({}) {
@@ -69,20 +66,18 @@ namespace argos {
     /****************************************/
     /****************************************/
 
-    void CWebServer::Start() {
-      LOG << "Starting " << m_vecWebThreads.size() << " threads for WebServer "
-          << std::endl;
-
+    void CWebServer::Start(std::atomic<bool> &b_IsServerRunning) {
       struct us_socket_context_options_t sEmptySSLOptions = {};
 
+      /* Check if SSL options are empty */
       const bool bIsSSLCopied =
         memcmp(&m_sSSLOptions, &sEmptySSLOptions, sizeof(sEmptySSLOptions));
 
       /* As templates are handled at compile time */
       if (bIsSSLCopied) {
-        this->InitServer<true>(sEmptySSLOptions);
+        this->RunServer<true>(b_IsServerRunning, sEmptySSLOptions);
       } else {
-        this->InitServer<false>(sEmptySSLOptions);
+        this->RunServer<false>(b_IsServerRunning, sEmptySSLOptions);
       }
     }
 
@@ -90,195 +85,184 @@ namespace argos {
     /****************************************/
 
     template <bool SSL>
-    void CWebServer::InitServer(us_socket_context_options_t s_ssl_options) {
+    void CWebServer::RunServer(
+      std::atomic<bool> &b_IsServerRunning,
+      us_socket_context_options_t s_ssl_options) {
       /* Create a vector for list of all connected clients */
       std::vector<SWebSocketClient<SSL>> vecWebSocketClients;
 
-      /** Mutex to protect access to vecWebSocketClients */
+      /* Mutex to protect access to vecWebSocketClients */
       std::mutex mutex4VecWebClients;
 
-      try {
-        /* Loop through all threads */
-        std::transform(
-          m_vecWebThreads.begin(),
-          m_vecWebThreads.end(),
-          m_vecWebThreads.begin(),
-          [&](std::thread *t) {
-            return new std::thread([&]() {
-              /* Set up thread-safe buffers for this new thread */
-              LOG.AddThreadSafeBuffer();
-              LOGERR.AddThreadSafeBuffer();
+      std::thread *tWebServerThread = new std::thread([&]() {
+        try {
+          /* Set up thread-safe buffers for this new thread */
+          LOG.AddThreadSafeBuffer();
+          LOGERR.AddThreadSafeBuffer();
 
-              auto cMyApp = uWS::TemplatedApp<SSL>(s_ssl_options);
+          auto cMyApp = uWS::TemplatedApp<SSL>(s_ssl_options);
 
-              /* Set all routes of the web-server on this thread */
-              /* Setup WebSockets from the templated app */
-              cMyApp.template ws<m_sPerSocketData>(
-                "/*",
-                {/* Settings */
-                 .compression = uWS::DEDICATED_COMPRESSOR_8KB,
-                 .maxPayloadLength = 16 * 1024,
-                 .idleTimeout = 10,
-                 .maxBackpressure = 16 * 1024,
-                 /* Handlers */
-                 .open =
-                   [&](
-                     uWS::WebSocket<SSL, true> *pc_ws,
-                     uWS::HttpRequest *pc_req) {
-                     /* Selectivly subscribe to different channels */
-                     if (pc_req->getQuery().size() > 0) {
-                       std::stringstream str_stream(
-                         std::string(pc_req->getQuery()));
-                       std::string str_token;
-                       while (std::getline(str_stream, str_token, ',')) {
-                         pc_ws->subscribe(str_token);
-                       }
-                     } else {
-                       /*
-                        * making every connection subscribe to the
-                        * "broadcast", "events" and "logs" topics
-                        */
-                       pc_ws->subscribe("broadcast");
-                       pc_ws->subscribe("events");
-                       pc_ws->subscribe("logs");
-                     }
+          /* Setup WebSockets from the templated app */
+          cMyApp.template ws<m_sPerSocketData>(
+            "/*",
+            {/* Settings */
+             .compression = uWS::DEDICATED_COMPRESSOR_8KB,
+             .maxPayloadLength = 16 * 1024,
+             .idleTimeout = 10,
+             .maxBackpressure = 16 * 1024,
+             /* Handlers */
+             .open =
+               [&](uWS::WebSocket<SSL, true> *pc_ws, uWS::HttpRequest *pc_req) {
+                 /* Selectivly subscribe to different channels */
+                 if (pc_req->getQuery().size() > 0) {
+                   std::stringstream str_stream(
+                     std::string(pc_req->getQuery()));
+                   std::string str_token;
+                   while (std::getline(str_stream, str_token, ',')) {
+                     pc_ws->subscribe(str_token);
+                   }
+                 } else {
+                   /* making every connection subscribe to the "broadcast",
+                    * "events" and "logs" topics */
+                   pc_ws->subscribe("broadcast");
+                   pc_ws->subscribe("events");
+                   pc_ws->subscribe("logs");
+                 }
 
-                     // Guard the mutex which locks vecWebSocketClients
-                     std::lock_guard<std::mutex> guard(mutex4VecWebClients);
+                 /* Guard the mutex which locks vecWebSocketClients */
+                 std::lock_guard<std::mutex> guard(mutex4VecWebClients);
 
-                     /*
-                      * Add to list of clients connected
-                      */
-                     vecWebSocketClients.push_back({pc_ws, uWS::Loop::get()});
+                 /* Add to list of clients connected */
+                 vecWebSocketClients.push_back({pc_ws, uWS::Loop::get()});
 
-                     LOG << "1 client connected (Total: "
-                         << vecWebSocketClients.size() << ")";
-                   },
-                 .message =
-                   [](
-                     uWS::WebSocket<SSL, true> *pc_ws,
-                     std::string_view strv_message,
-                     uWS::OpCode e_opCode) {
-                     /* broadcast every single message it got */
-                     /* pc_ws->publish("broadcast", strv_message, e_opCode); */
-                   },
-                 .drain =
-                   [](uWS::WebSocket<SSL, true> *ws) {
-                     std::cout << "Drainage: " << ws->getBufferedAmount()
-                               << std::endl;
-                   },
-                 .ping =
-                   [](uWS::WebSocket<SSL, true> *ws) {
-                     std::cout << "Ping" << std::endl;
-                   },
-                 .pong =
-                   [](uWS::WebSocket<SSL, true> *ws) {
-                     std::cout << "Pong" << std::endl;
-                   },
-                 .close =
-                   [&](
-                     uWS::WebSocket<SSL, true> *pc_ws,
-                     int n_code,
-                     std::string_view strv_message) {
-                     /* it automatically unsubscribe from any topic here */
+                 LOG << "1 client connected (Total: "
+                     << vecWebSocketClients.size() << ")" << std::endl;
+               },
+             .message =
+               [](
+                 uWS::WebSocket<SSL, true> *pc_ws,
+                 std::string_view strv_message,
+                 uWS::OpCode e_opCode) {
+                 /* broadcast every single message it got */
+                 /* pc_ws->publish("broadcast", strv_message, e_opCode); */
+               },
+             .drain =
+               [](uWS::WebSocket<SSL, true> *ws) {
+                 LOG << "Drainage: " << ws->getBufferedAmount() << std::endl;
+               },
+             .ping =
+               [](uWS::WebSocket<SSL, true> *ws) {
+                 LOG << "Ping" << std::endl;
+               },
+             .pong =
+               [](uWS::WebSocket<SSL, true> *ws) {
+                 LOG << "Pong" << std::endl;
+               },
+             .close =
+               [&](
+                 uWS::WebSocket<SSL, true> *pc_ws,
+                 int n_code,
+                 std::string_view strv_message) {
+                 /* client automatically unsubscribe from any topic here */
 
-                     // Guard the mutex which locks vecWebSocketClients
-                     std::lock_guard<std::mutex> guard(mutex4VecWebClients);
+                 /* Guard the mutex which locks vecWebSocketClients */
+                 std::lock_guard<std::mutex> guard(mutex4VecWebClients);
 
-                     /*
-                      * Remove from the list of all clients connected
-                      */
-                     for (size_t i = 0; i < vecWebSocketClients.size(); i++) {
-                       if (vecWebSocketClients[i].m_cWS == pc_ws) {
-                         vecWebSocketClients.erase(
-                           vecWebSocketClients.begin() + i);
-                       }
-                     }
-                     LOG << "1 client disconnected (Total: "
-                         << vecWebSocketClients.size() << ")";
-                   }});
+                 /* Remove from the list of all clients connected */
+                 for (size_t i = 0; i < vecWebSocketClients.size(); i++) {
+                   if (vecWebSocketClients[i].m_cWS == pc_ws) {
+                     vecWebSocketClients.erase(vecWebSocketClients.begin() + i);
+                   }
+                 }
+                 LOG << "1 client disconnected (Total: "
+                     << vecWebSocketClients.size() << ")" << std::endl;
+               }});
 
-              /****************************************/
+          /****************************************/
 
-              /* Setup routes */
-              cMyApp.get("/start", [&](auto *pc_res, auto *pc_req) {
-                m_pcMyWebviz->PlayExperiment();
-                nlohmann::json cMyJson;
-                cMyJson["status"] = "Started Playing";
-                this->SendJSON(pc_res, cMyJson);
-              });
-
-              /****************************************/
-
-              cMyApp.get("/pause", [&](auto *pc_res, auto *pc_req) {
-                nlohmann::json cMyJson;
-                try {
-                  m_pcMyWebviz->PauseExperiment();
-                  cMyJson["status"] = "Experiment Paused";
-                  this->SendJSON(pc_res, cMyJson);
-                } catch (const std::exception &e) {
-                  cMyJson["status"] = "Error";
-                  cMyJson["message"] = e.what();
-
-                  this->SendJSONError(pc_res, cMyJson);
-                }
-              });
-
-              /****************************************/
-
-              cMyApp.get("/step", [&](auto *pc_res, auto *pc_req) {
-                nlohmann::json cMyJson;
-                m_pcMyWebviz->StepExperiment();
-                cMyJson["status"] = "Experiment step done";
-                this->SendJSON(pc_res, cMyJson);
-              });
-
-              /****************************************/
-
-              cMyApp.get("/fastforward", [&](auto *pc_res, auto *pc_req) {
-                nlohmann::json cMyJson;
-                m_pcMyWebviz->FastForwardExperiment();
-                cMyJson["status"] = "Experiment fast-forwarding";
-                this->SendJSON(pc_res, cMyJson);
-              });
-
-              /****************************************/
-
-              cMyApp.get("/reset", [&](auto *pc_res, auto *pc_req) {
-                nlohmann::json cMyJson;
-                try {
-                  m_pcMyWebviz->ResetExperiment();
-                  cMyJson["status"] = "Experiment Reset";
-                  this->SendJSON(pc_res, cMyJson);
-                } catch (const std::exception &e) {
-                  cMyJson["status"] = "Error";
-                  cMyJson["message"] = e.what();
-
-                  this->SendJSONError(pc_res, cMyJson);
-                }
-              });
-
-              /****************************************/
-
-              /* Start listening to Port */
-              cMyApp
-                .listen(
-                  m_unPort,
-                  [&](auto *pc_token) {
-                    if (pc_token) {
-                      LOG << "Thread listening on port " << m_unPort;
-                    } else {
-                      throw CARGoSException(
-                        "[Error] CWebServer::Start() failed to listen on "
-                        "port " +
-                        std::to_string(m_unPort));
-                      return;
-                    }
-                  })
-                .run();
-            });
+          /* Setup routes */
+          cMyApp.get("/start", [&](auto *pc_res, auto *pc_req) {
+            m_pcMyWebviz->PlayExperiment();
+            nlohmann::json cMyJson;
+            cMyJson["status"] = "Started Playing";
+            this->SendJSON(pc_res, cMyJson);
           });
 
+          /****************************************/
+
+          cMyApp.get("/pause", [&](auto *pc_res, auto *pc_req) {
+            nlohmann::json cMyJson;
+            try {
+              m_pcMyWebviz->PauseExperiment();
+              cMyJson["status"] = "Experiment Paused";
+              this->SendJSON(pc_res, cMyJson);
+            } catch (const std::exception &e) {
+              cMyJson["status"] = "Error";
+              cMyJson["message"] = e.what();
+
+              this->SendJSONError(pc_res, cMyJson);
+            }
+          });
+
+          /****************************************/
+
+          cMyApp.get("/step", [&](auto *pc_res, auto *pc_req) {
+            nlohmann::json cMyJson;
+            m_pcMyWebviz->StepExperiment();
+            cMyJson["status"] = "Experiment step done";
+            this->SendJSON(pc_res, cMyJson);
+          });
+
+          /****************************************/
+
+          cMyApp.get("/fastforward", [&](auto *pc_res, auto *pc_req) {
+            nlohmann::json cMyJson;
+            m_pcMyWebviz->FastForwardExperiment();
+            cMyJson["status"] = "Experiment fast-forwarding";
+            this->SendJSON(pc_res, cMyJson);
+          });
+
+          /****************************************/
+
+          cMyApp.get("/reset", [&](auto *pc_res, auto *pc_req) {
+            nlohmann::json cMyJson;
+            try {
+              m_pcMyWebviz->ResetExperiment();
+              cMyJson["status"] = "Experiment Reset";
+              this->SendJSON(pc_res, cMyJson);
+            } catch (const std::exception &e) {
+              cMyJson["status"] = "Error";
+              cMyJson["message"] = e.what();
+
+              this->SendJSONError(pc_res, cMyJson);
+            }
+          });
+
+          /****************************************/
+
+          /* Start listening to Port */
+          cMyApp
+            .listen(
+              m_unPort,
+              [&](auto *pc_token) {
+                if (pc_token) {
+                  LOG << "[INFO] Thread listening on port " << m_unPort
+                      << std::endl;
+                } else {
+                  throw CARGoSException(
+                    "[Error] CWebServer::Start() failed to listen on "
+                    "port " +
+                    std::to_string(m_unPort));
+                  return;
+                }
+              })
+            .run();  // Blocking the thread
+        } catch (CARGoSException &ex) {
+          THROW_ARGOSEXCEPTION_NESTED("[ERROR] Error in the webserver:", ex);
+        }
+      });
+
+      std::thread *tBroadcasterThread = new std::thread([&]() {
         /* Start broadcast timer */
         m_cBroadcastTimer.Start();
 
@@ -288,8 +272,7 @@ namespace argos {
         static std::string strEventString;
         static std::string strLogString;
 
-        // TODO : use thread notifying
-        while (true) {
+        while (b_IsServerRunning) {
           /* stop the timer now to get total time spent */
           m_cBroadcastTimer.Stop();
 
@@ -387,15 +370,11 @@ namespace argos {
               });
             });
         }
+      });
 
-        std::for_each(
-          m_vecWebThreads.begin(), m_vecWebThreads.end(), [](std::thread *t) {
-            t->join();
-          });
-      } catch (CARGoSException &ex) {
-        THROW_ARGOSEXCEPTION_NESTED(
-          "Error while executing the experiment.", ex);
-      }
+      /* Join all the threads */
+      tWebServerThread->join();
+      tBroadcasterThread->join();
     }
 
     /****************************************/
@@ -430,10 +409,9 @@ namespace argos {
     /****************************************/
 
     void CWebServer::EmitEvent(
-      std::string_view strv_event_name,
-      argos::Webviz::EExperimentState e_state) {
+      std::string str_event_name, argos::Webviz::EExperimentState e_state) {
       nlohmann::json cMyJson;
-      cMyJson["event"] = strv_event_name;
+      cMyJson["event"] = str_event_name;
       cMyJson["state"] = argos::Webviz::EExperimentStateToStr(e_state);
 
       // Guard the mutex which locks m_mutex4EventQueue

@@ -7,10 +7,13 @@ SET(ENTITIES_SOURCE_FILES
   entity/webviz_floor.cpp
   entity/webviz_cylinder.cpp
   entity/webviz_footbot.cpp
-  entity/webviz_kheperaiv.cpp
 )
 
-
+## External entities (added as plugins)
+FindARGoSPlugin(KheperaIV kheperaiv_entity)
+IF(ARGOS_KheperaIV_FOUND)
+  LIST(APPEND ENTITIES_SOURCE_FILES entity/webviz_kheperaiv.cpp)
+ENDIF(ARGOS_KheperaIV_FOUND)
 
 ############################## PROJECT SETUP ##############################
 #
@@ -23,9 +26,16 @@ download_project(PROJ     uWebSockets
 )
 
 # Build uSockets(inside uWebSockets directory)
+
+## Optionally enable Open SSL for SSL support
+if(OpenSSL_FOUND)
+  message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
+  set(OPENSSL_DEP WITH_OPENSSL=1)
+endif(OpenSSL_FOUND)
+
 EXECUTE_PROCESS(
   WORKING_DIRECTORY ${uWebSockets_SOURCE_DIR}/uSockets
-  COMMAND make default WITH_OPENSSL=1)
+  COMMAND make default ${OPENSSL_DEP})
 
 #
 # Download nlohmann/json library from github
@@ -79,20 +89,17 @@ SET(TARGET_NAME
 #
 ADD_LIBRARY(${TARGET_NAME} SHARED ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ})
 
-find_package(OpenSSL REQUIRED)
-
 TARGET_LINK_LIBRARIES(${TARGET_NAME} 
   argos3plugin_${ARGOS_BUILD_FOR}_entities
   ${ARGOS_WEBVIZ_LIBRARIES}
   ${uWebSockets_SOURCE_DIR}/uSockets/uSockets.a
   nlohmann_json::nlohmann_json
-  OpenSSL::SSL
 )
 
 SET_TARGET_PROPERTIES( 
   ${TARGET_NAME}  
 PROPERTIES 
-  VERSION 0.4.29
+  VERSION ${VERSION_STRING}
   PUBLIC_HEADER "${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ}"
   ARCHIVE_OUTPUT_DIRECTORY "lib/argos3"
   LIBRARY_OUTPUT_DIRECTORY "lib/argos3"

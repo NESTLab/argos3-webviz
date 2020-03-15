@@ -17,8 +17,6 @@ namespace argos {
   CWebviz::CWebviz()
       : m_eExperimentState(Webviz::EExperimentState::EXPERIMENT_INITIALIZED),
         m_cTimer(),
-        m_cSimulationThread(
-          std::thread(&CWebviz::SimulationThreadFunction, this)),
         m_cSpace(m_cSimulator.GetSpace()),
         m_bFastForwarding(false) {}
 
@@ -81,6 +79,8 @@ namespace argos {
       strCAFilePath,
       strCertPassphrase);
 
+    LOG << "Starting web server on port " << unPort << std::endl;
+
     /* Write all the pending stuff */
     LOG.Flush();
     LOGERR.Flush();
@@ -89,7 +89,7 @@ namespace argos {
     LOG.DisableColoredOutput();
     LOGERR.DisableColoredOutput();
 
-    // /* Initialize the LOG streams from Execute thread */
+    /* Initialize the LOG streams from Execute thread */
     m_pcLogStream =
       new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData) {
         m_cWebServer->EmitLog("LOG", str_logData);
@@ -112,24 +112,26 @@ namespace argos {
   /****************************************/
 
   void CWebviz::Execute() {
-    std::thread t2([&]() {
-      /* Set up thread-safe buffers for this new thread */
-      LOG.AddThreadSafeBuffer();
-      LOGERR.AddThreadSafeBuffer();
+    /* To manage all threads to exit gracefully */
+    std::atomic<bool> bIsServerRunning{true};
 
-      m_cWebServer->Start();
-    });
+    /* Start this->Simulation Thread */
+    std::thread tSimulationTread(
+      [&]() { this->SimulationThreadFunction(std::ref(bIsServerRunning)); });
 
-    t2.join();
-    m_cSimulationThread.join();
+    /* Start WebServer */
+    m_cWebServer->Start(std::ref(bIsServerRunning));  // blocking the thread
 
+    /* Join the simulation thread */
+    tSimulationTread.join();
+
+    /* Cleanup */
     LOG.Flush();
     LOGERR.Flush();
-    // TODO Finish all..
   }
 
-  /* main simulation thread */
-  void CWebviz::SimulationThreadFunction() {
+  /* main simulation thread fuction */
+  void CWebviz::SimulationThreadFunction(std::atomic<bool>& b_IsServerRunning) {
     /* Set up thread-safe buffers for this new thread */
     LOG.AddThreadSafeBuffer();
     LOGERR.AddThreadSafeBuffer();
@@ -137,7 +139,7 @@ namespace argos {
     /* Fast forward steps counter used inside */
     int unFFStepCounter = 1;
 
-    while (true) {
+    while (b_IsServerRunning) {
       if (
         m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_PLAYING ||
         m_eExperimentState ==
@@ -155,11 +157,15 @@ namespace argos {
           }
 
           /* Loop for steps (multiple for fast-forward) */
-          while (unFFStepCounter > 0 && !m_cSimulator.IsExperimentFinished() &&
-                 (m_eExperimentState ==
-                    Webviz::EExperimentState::EXPERIMENT_PLAYING ||
-                  m_eExperimentState ==
-                    Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING)) {
+          while (
+            unFFStepCounter > 0 &&  // FF counter
+            !m_cSimulator
+               .IsExperimentFinished() &&  // experiment was already finished
+            b_IsServerRunning &&           // to stop if whole server is stopped
+            (m_eExperimentState ==         // Check if we are in right state
+               Webviz::EExperimentState::EXPERIMENT_PLAYING ||
+             m_eExperimentState ==
+               Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING)) {
             /* Run one step */
             m_cSimulator.UpdateSpace();
 
@@ -223,6 +229,7 @@ namespace argos {
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
       }
     }
+    /* do any cleanups */
   }
 
   /****************************************/
@@ -401,6 +408,7 @@ namespace argos {
       }
     }
 
+    /* Get Arena details */
     const CVector3& cArenaSize = m_cSpace.GetArenaSize();
     cStateJson["arena"]["size"]["x"] = cArenaSize.GetX();
     cStateJson["arena"]["size"]["y"] = cArenaSize.GetY();
@@ -497,8 +505,8 @@ namespace argos {
     "    Default: false\n\n"
     "--\n\n"
     "SSL CONFIGURATION\n"
-    "NOTE: You need OpenSSL installed while building this plugin from\n"
-    "\t source to have SSL support\n"
+    "SSL can be used to host the server over \"https\".\n"
+    "NOTE: You need Webviz to be compiled with OpenSSL support to use SSL.\n"
     "\n"
     "You might have to use any combination of the following to enable\n"
     "\t SSL, depending upon your implementation.\n"
@@ -508,7 +516,7 @@ namespace argos {
     "\t* ssl_ca_file\n"
     "\t* ssl_dh_params_file\n"
     "\t* ssl_cert_passphrase\n"
-    "Of which all the file parameters shown above can be passed with \n"
+    "Where file parameters supports relative and absolute paths.\n"
     "\trelative path to the file. NOTE:(It needs read access\n"
     "\t to the files)\n"
     "\n",

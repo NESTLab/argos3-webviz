@@ -108,9 +108,6 @@ namespace argos {
     /** Timer used for the loop */
     Webviz::CTimer m_cTimer;
 
-    /** Thread to run simulation steps */
-    std::thread m_cSimulationThread;
-
     /** Reference to the space state */
     CSpace& m_cSpace;
 
@@ -133,8 +130,9 @@ namespace argos {
     /**
      * @brief Function which run in Simulation thread
      *
+     * @param b_IsServerRunning used to stop the thread gracefully
      */
-    void SimulationThreadFunction();
+    void SimulationThreadFunction(std::atomic<bool>& b_IsServerRunning);
 
     /**
      * @brief Function which broadcast experiment state
