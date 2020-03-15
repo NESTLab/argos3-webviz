@@ -1,18 +1,19 @@
+/* These files are taken from https://github.com/ilpincy/argos3-examples (MIT
+ * LICENSE) */
+
 /* Include the controller definition */
-#include "diffusion.h"
+#include "footbot_diffusion.h"
 /* Function definitions for XML parsing */
 #include <argos3/core/utility/configuration/argos_configuration.h>
 /* 2D vector definition */
-#include <argos3/core/utility/logging/argos_log.h>
 #include <argos3/core/utility/math/vector2.h>
 
 /****************************************/
 /****************************************/
 
-CDiffusion::CDiffusion()
+CFootBotDiffusion::CFootBotDiffusion()
     : m_pcWheels(NULL),
       m_pcProximity(NULL),
-      m_pcLEDs(NULL),
       m_cAlpha(10.0f),
       m_fDelta(0.5f),
       m_fWheelVelocity(2.5f),
@@ -21,7 +22,7 @@ CDiffusion::CDiffusion()
 /****************************************/
 /****************************************/
 
-void CDiffusion::Init(TConfigurationNode& t_node) {
+void CFootBotDiffusion::Init(TConfigurationNode& t_node) {
   /*
    * Get sensor/actuator handles
    *
@@ -39,18 +40,14 @@ void CDiffusion::Init(TConfigurationNode& t_node) {
    *
    * NOTE: ARGoS creates and initializes actuators and sensors
    * internally, on the basis of the lists provided the configuration
-   * file at the <controllers><diffusion><actuators> and
-   * <controllers><diffusion><sensors> sections. If you forgot to
+   * file at the <controllers><footbot_diffusion><actuators> and
+   * <controllers><footbot_diffusion><sensors> sections. If you forgot to
    * list a device in the XML and then you request it here, an error
    * occurs.
    */
   m_pcWheels =
     GetActuator<CCI_DifferentialSteeringActuator>("differential_steering");
-  m_pcProximity =
-    GetSensor<CCI_KheperaIVProximitySensor>("kheperaiv_proximity");
-
-  m_pcLEDs = GetActuator<CCI_LEDsActuator>("leds");
-
+  m_pcProximity = GetSensor<CCI_FootBotProximitySensor>("footbot_proximity");
   /*
    * Parse the configuration file
    *
@@ -68,11 +65,10 @@ void CDiffusion::Init(TConfigurationNode& t_node) {
 /****************************************/
 /****************************************/
 
-void CDiffusion::ControlStep() {
+void CFootBotDiffusion::ControlStep() {
   /* Get readings from proximity sensor */
-  const CCI_KheperaIVProximitySensor::TReadings& tProxReads =
+  const CCI_FootBotProximitySensor::TReadings& tProxReads =
     m_pcProximity->GetReadings();
-
   /* Sum them together */
   CVector2 cAccumulator;
   for (size_t i = 0; i < tProxReads.size(); ++i) {
@@ -88,23 +84,14 @@ void CDiffusion::ControlStep() {
     cAccumulator.Length() < m_fDelta) {
     /* Go straight */
     m_pcWheels->SetLinearVelocity(m_fWheelVelocity, m_fWheelVelocity);
-    m_pcLEDs->SetSingleColor(0, CColor(255, 255, 255));
-    m_pcLEDs->SetSingleColor(2, CColor(255, 255, 255));
   } else {
     /* Turn, depending on the sign of the angle */
     if (cAngle.GetValue() > 0.0f) {
       m_pcWheels->SetLinearVelocity(m_fWheelVelocity, 0.0f);
-      m_pcLEDs->SetSingleColor(0, CColor(0, 0, 0));
-      m_pcLEDs->SetSingleColor(2, CColor(0, 255, 0));
     } else {
       m_pcWheels->SetLinearVelocity(0.0f, m_fWheelVelocity);
-      m_pcLEDs->SetSingleColor(0, CColor(0, 255, 0));
-      m_pcLEDs->SetSingleColor(2, CColor(0, 0, 0));
     }
   }
-
-  argos::LOG << "cAccumulator :" << cAccumulator << std::endl;
-  argos::LOGERR << "ANGLE :" << cAngle << std::endl;
 }
 
 /****************************************/
@@ -120,4 +107,4 @@ void CDiffusion::ControlStep() {
  * controller class to instantiate.
  * See also the configuration files for an example of how this is used.
  */
-REGISTER_CONTROLLER(CDiffusion, "diffusion_controller")
+REGISTER_CONTROLLER(CFootBotDiffusion, "footbot_diffusion_controller")
