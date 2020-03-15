@@ -20,6 +20,7 @@ namespace argos {
   }  // namespace Webviz
 }  // namespace argos
 
+#include <future>
 #include <mutex>
 #include <nlohmann/json.hpp>
 #include <queue>

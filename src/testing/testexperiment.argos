@@ -7,7 +7,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="0"
+    <experiment length="1000"
                 ticks_per_second="10"
                 random_seed="124" />
   </framework>
@@ -110,6 +110,7 @@
   <!-- ****************** -->
   <visualization>
     <webviz ff_draw_frames_every="10" />
+    <!-- <qt-opengl /> -->
   </visualization>
 
 </argos-configuration>

@@ -13,7 +13,6 @@
     <script src="./js/dat.gui.min.js"></script>
     <script src="./js/stats.min.js"></script>
     <script src="./js/rivets.bundled.min.js"></script>
-    <script src="./js/jquery-3.4.1.min.js"></script>
 
     <script src="./entities/DefaultEntity.js"></script>
     <script src="./entities/Box.js"></script>
@@ -62,14 +61,13 @@
         </div>
     </div>
     <script>
+        /* Server IP and port */
         var server = window.location.hostname + ":3000";
-        // var server = "localhost:3000";
-        // var server = "prajankya.dyn.wpi.edu:3000"
 
         var web_api = "http://" + server + "";
-        var sockets_api = "ws://" + server + "?broadcast";
+        var sockets_api = "ws://" + server + "?broadcasts";
 
-        const wsp = new window.WebSocketAsPromised(sockets_api, {
+        window.wsp = new window.WebSocketAsPromised(sockets_api, {
             packMessage: data => JSON.stringify(data),
             unpackMessage: data => JSON.parse(data),
             createWebSocket: url => {
@@ -106,7 +104,6 @@
                     case 'EXPERIMENT_PLAYING':
                         return "Pause";
                         break;
-
                     default:
                         break;
                 }
@@ -311,42 +308,44 @@
         }
 
         function render() {
-            /* Experiment initialized */
+            /* Experiment is initialized */
             if (window.experiment &&
                 window.experiment.entities &&
                 window.isLoadingModels == false) {
 
-                /* Entities count changed, clean render again */
+                /* Entities count changed, clean and render again */
                 if (window.experiment.entities.length != Object.keys(sceneEntities).length) {
                     cleanUpdateScene();
-                    return; // Go to load models
+                    return; // Go to load models, do not update
                 }
 
-                /* Update entity pose */
+                /* Call update of each entity */
                 window.experiment.entities.map((entity) => {
                     sceneEntities[entity.id].update(entity, scale);
                 });
             }
+
             renderer.render(scene, camera);
         }
     </script>
     <script>
         var playBtnListener = function() {
             if (menu.experiment_state != "EXPERIMENT_PLAYING" && menu.experiment_state != "EXPERIMENT_FAST_FORWARDING") {
-                $.get(web_api + "/start")
+                window.wsp.send('play')
             } else {
-                $.get(web_api + "/pause")
+                window.wsp.send('pause')
             }
         }
+
         var resetBtnListener = function() {
-            $.get(web_api + "/reset")
+            window.wsp.send('reset')
         }
 
         var stepBtnListener = function() {
-            $.get(web_api + "/step")
+            window.wsp.send('step')
         }
         var ffBtnListener = function() {
-            $.get(web_api + "/fastforward")
+            window.wsp.send('fastforward')
         }
 
         window.menu = {

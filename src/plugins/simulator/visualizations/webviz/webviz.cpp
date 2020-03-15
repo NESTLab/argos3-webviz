@@ -79,26 +79,27 @@ namespace argos {
       strCAFilePath,
       strCertPassphrase);
 
-    LOG << "Starting web server on port " << unPort << std::endl;
+    LOG << "Starting web server on port " << unPort << '\n';
 
     /* Write all the pending stuff */
     LOG.Flush();
     LOGERR.Flush();
 
     /* Disable Colors in LOG, as its going to be shown in web and not in CLI */
-    LOG.DisableColoredOutput();
-    LOGERR.DisableColoredOutput();
+    // LOG.DisableColoredOutput();
+    // LOGERR.DisableColoredOutput();
 
-    /* Initialize the LOG streams from Execute thread */
-    m_pcLogStream =
-      new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData) {
-        m_cWebServer->EmitLog("LOG", str_logData);
-      });
+    // /* Initialize the LOG streams from Execute thread */
+    // m_pcLogStream =
+    //   new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData)
+    //   {
+    //     m_cWebServer->EmitLog("LOG", str_logData);
+    //   });
 
-    m_pcLogErrStream = new Webviz::CLogStream(
-      LOGERR.GetStream(), [this](std::string str_logData) {
-        m_cWebServer->EmitLog("LOGERR", str_logData);
-      });
+    // m_pcLogErrStream = new Webviz::CLogStream(
+    //   LOGERR.GetStream(), [this](std::string str_logData) {
+    //     m_cWebServer->EmitLog("LOGERR", str_logData);
+    //   });
 
     /* Should we play instantly? */
     bool bAutoPlay = false;
@@ -188,7 +189,7 @@ namespace argos {
 
             /* Change state and emit signals */
             m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
-            LOG << "[INFO] Experiment done\n";
+            LOG << "[INFO] Experiment done" << '\n';
             return; /* Go back once done */
           }
 
@@ -204,7 +205,7 @@ namespace argos {
             LOG << "[WARNING] Clock tick took " << m_cTimer
                 << " milli-secs, more than the expected "
                 << m_cSimulatorTickMillis.count() << " milli-secs. "
-                << "Recovering in next cycle." << std::endl;
+                << "Recovering in next cycle." << '\n';
           }
 
           /* Restart Timer */
@@ -217,7 +218,7 @@ namespace argos {
 
           /* Change state and emit signals */
           m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
-          LOG << "[INFO] Experiment done\n";
+          LOG << "[INFO] Experiment done" << '\n';
         }
       } else {
         /*
@@ -241,7 +242,7 @@ namespace argos {
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_INITIALIZED &&
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PAUSED) {
       LOG << "[WARNING] CWebviz::PlayExperiment() called in wrong state: "
-          << Webviz::EExperimentStateToStr(m_eExperimentState) << std::endl;
+          << Webviz::EExperimentStateToStr(m_eExperimentState) << '\n';
 
       // silently return;
       return;
@@ -256,7 +257,7 @@ namespace argos {
     m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_PLAYING;
     m_cWebServer->EmitEvent("Experiment playing", m_eExperimentState);
 
-    LOG << "[INFO] Experiment playing";
+    LOG << "[INFO] Experiment playing" << '\n';
 
     m_cTimer.Start();
   }
@@ -271,7 +272,7 @@ namespace argos {
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PAUSED) {
       LOG << "[WARNING] CWebviz::FastForwardExperiment() called in wrong state:"
           << Webviz::EExperimentStateToStr(m_eExperimentState)
-          << "\nRunning the experiment in FastForward mode" << std::endl;
+          << "\nRunning the experiment in FastForward mode" << '\n';
     }
     m_bFastForwarding = true;
 
@@ -282,7 +283,7 @@ namespace argos {
     m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING;
     m_cWebServer->EmitEvent("Experiment fast-forwarding", m_eExperimentState);
 
-    LOG << "[INFO] Experiment fast-forwarding";
+    LOG << "[INFO] Experiment fast-forwarding" << '\n';
 
     m_cTimer.Start();
   }
@@ -297,7 +298,7 @@ namespace argos {
       m_eExperimentState !=
         Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
       LOG << "[WARNING] CWebviz::PauseExperiment() called in wrong state: "
-          << Webviz::EExperimentStateToStr(m_eExperimentState);
+          << Webviz::EExperimentStateToStr(m_eExperimentState) << '\n';
       throw std::runtime_error(
         "Cannot pause the experiment, current state : " +
         Webviz::EExperimentStateToStr(m_eExperimentState));
@@ -310,7 +311,7 @@ namespace argos {
     m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_PAUSED;
     m_cWebServer->EmitEvent("Experiment paused", m_eExperimentState);
 
-    LOG << "[INFO] Experiment paused";
+    LOG << "[INFO] Experiment paused" << '\n';
   }
 
   /****************************************/
@@ -324,7 +325,7 @@ namespace argos {
         Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
       LOG << "[WARNING] CWebviz::StepExperiment() called in wrong state: "
           << Webviz::EExperimentStateToStr(m_eExperimentState)
-          << " pausing the experiment to run a step";
+          << " pausing the experiment to run a step" << '\n';
 
       /* Make experiment pause */
       m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_PAUSED;
@@ -357,7 +358,7 @@ namespace argos {
 
       /* Change state and emit signals */
       m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
-      LOG << "[INFO] Experiment done\n";
+      LOG << "[INFO] Experiment done" << '\n';
     }
 
     /* Broadcast current experiment state */
@@ -382,7 +383,7 @@ namespace argos {
     /* Broadcast current experiment state */
     BroadcastExperimentState();
 
-    LOG << "[INFO] Experiment reset";
+    LOG << "[INFO] Experiment reset" << '\n';
   }
 
   /****************************************/
@@ -432,6 +433,9 @@ namespace argos {
 
     /* Number of step from the simulator */
     cStateJson["steps"] = m_cSpace.GetSimulationClock();
+
+    /* Type of message */
+    cStateJson["type"] = "broadcast";
 
     /* Send to webserver to broadcast */
     m_cWebServer->Broadcast(cStateJson);
