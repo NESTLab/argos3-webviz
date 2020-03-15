@@ -1,25 +1,41 @@
 # argos3-WebViz
 A visualizer plugin for [ARGoS](https://www.argos-sim.info/) for controlling it over the web.
 
-## Installation
-Run the following in a folder of your choice
+## Requirements
+You should already have argos3 installed. The build system is same with that of argos3, i.e.
 
-```bash
-# Download
-git clone https://github.com/NESTLab/argos3-webviz
-cd argos3-webviz
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Debug ../src
-make
-sudo make install
+- A UNIX system (Linux or MacOSX; Microsoft Windows is not supported)
+- g++ >= 5.4 (on Linux)
+- clang >= 3.1 (on MacOSX)
+- cmake >= 3.5.1
+
+**Optional dependency**
+- OpenSSL >= 1.1
+
+## Downloading
+```console
+$ git clone https://github.com/NESTLab/argos3-webviz
 ```
 
-## Usage
-A test project can be run from `root folder` of this project,
+## Compiling
+The compilation configured through CMake.
 
-```bash
-argos3 -c src/testing/testexperiment.argos
+```console
+$ cd argos3-webviz
+$ mkdir build
+$ cd build
+$ cmake ../src
+$ make
+$ sudo make install
+```
+
+You can use `-DCMAKE_BUILD_TYPE=Debug` with cmake command above to enable debugging while developing.
+
+## Usage
+A test project can be run from the root directory of this project,
+
+```console
+$ argos3 -c src/testing/testexperiment.argos
 ```
 This starts argos experiment with the webviz server.
 
@@ -30,8 +46,8 @@ The easiest way is to use python's inbuilt server, as python is already installe
 
 Run these commands in the terminal
 ```bash
-cd client
-python3 -m http.server 8000
+$ cd client
+$ python3 -m http.server 8000
 ```
 To host the files in folder client over http port 8000.
 

@@ -5,6 +5,15 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
 PROJECT(webviz)
 
 #
+# Project version
+#
+set(MAJOR_VERSION 0)
+set(MINOR_VERSION 4)
+set(PATCH_VERSION 36)
+
+set(VERSION_STRING ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION})
+
+#
 # Set C++ Version 17
 #
 SET(CMAKE_CXX_STANDARD 17)
@@ -53,6 +62,8 @@ INCLUDE(${CMAKE_SOURCE_DIR}/cmake/ARGoSBuildFlags.cmake)
 INCLUDE(${CMAKE_SOURCE_DIR}/cmake/ARGoSBuildChecks.cmake)
 # Set up CPack
 INCLUDE(${CMAKE_SOURCE_DIR}/cmake/ARGoSPackaging.cmake)
+# Set FindArgosPlugin
+INCLUDE(${CMAKE_SOURCE_DIR}/cmake/FindARGoSPlugin.cmake)
 
 #
 # Compile stuff
