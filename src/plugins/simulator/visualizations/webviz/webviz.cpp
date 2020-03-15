@@ -145,86 +145,78 @@ namespace argos {
         m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_PLAYING ||
         m_eExperimentState ==
           Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
-        if (!m_cSimulator.IsExperimentFinished()) {
-          /* Run user's pre step function */
-          m_cSimulator.GetLoopFunctions().PreStep();
+        /* Run user's pre step function */
+        m_cSimulator.GetLoopFunctions().PreStep();
 
-          if (m_bFastForwarding) {
-            /* Number of frames to drop in fast-forward */
-            unFFStepCounter = m_unDrawFrameEvery;
-          } else {
-            /* For non-fastforwarding mode, steps is 1 */
-            unFFStepCounter = 1;
-          }
-
-          /* Loop for steps (multiple for fast-forward) */
-          while (
-            unFFStepCounter > 0 &&  // FF counter
-            !m_cSimulator
-               .IsExperimentFinished() &&  // experiment was already finished
-            b_IsServerRunning &&           // to stop if whole server is stopped
-            (m_eExperimentState ==         // Check if we are in right state
-               Webviz::EExperimentState::EXPERIMENT_PLAYING ||
-             m_eExperimentState ==
-               Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING)) {
-            /* Run one step */
-            m_cSimulator.UpdateSpace();
-
-            /* Steps counter in this while loop */
-            --unFFStepCounter;
-          }
-
-          /* Broadcast current experiment state */
-          BroadcastExperimentState();
-
-          /* Run user's post step function */
-          m_cSimulator.GetLoopFunctions().PostStep();
-
-          /* Experiment done while in while loop */
-          if (m_cSimulator.IsExperimentFinished()) {
-            /* The experiment is done */
-            m_cSimulator.GetLoopFunctions().PostExperiment();
-
-            ResetExperiment();
-
-            /* Change state and emit signals */
-            m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
-            LOG << "[INFO] Experiment done" << '\n';
-            return; /* Go back once done */
-          }
-
-          /* Take the time now */
-          m_cTimer.Stop();
-
-          /* If the elapsed time is lower than the tick length, wait */
-          if (m_cTimer.Elapsed() < m_cSimulatorTickMillis) {
-            /* Sleep for the difference duration */
-            std::this_thread::sleep_for(
-              m_cSimulatorTickMillis - m_cTimer.Elapsed());
-          } else {
-            LOG << "[WARNING] Clock tick took " << m_cTimer
-                << " milli-secs, more than the expected "
-                << m_cSimulatorTickMillis.count() << " milli-secs. "
-                << "Recovering in next cycle." << '\n';
-          }
-
-          /* Restart Timer */
-          m_cTimer.Start();
+        if (m_bFastForwarding) {
+          /* Number of frames to drop in fast-forward */
+          unFFStepCounter = m_unDrawFrameEvery;
         } else {
-          /* The experiment is already done */
+          /* For non-fastforwarding mode, steps is 1 */
+          unFFStepCounter = 1;
+        }
+
+        /* Loop for steps (multiple for fast-forward) */
+        while (unFFStepCounter > 0 &&  // FF counter
+               !m_cSimulator
+                  .IsExperimentFinished() &&  // experiment was already finished
+               b_IsServerRunning &&    // to stop if whole server is stopped
+               (m_eExperimentState ==  // Check if we are in right state
+                  Webviz::EExperimentState::EXPERIMENT_PLAYING ||
+                m_eExperimentState ==
+                  Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING)) {
+          /* Run one step */
+          m_cSimulator.UpdateSpace();
+
+          /* Steps counter in this while loop */
+          --unFFStepCounter;
+        }
+
+        /* Broadcast current experiment state */
+        BroadcastExperimentState();
+
+        /* Run user's post step function */
+        m_cSimulator.GetLoopFunctions().PostStep();
+
+        /* Experiment done while in while loop */
+        if (m_cSimulator.IsExperimentFinished()) {
+          LOG << "[INFO] Experiment done" << '\n';
+
+          /* The experiment is done */
           m_cSimulator.GetLoopFunctions().PostExperiment();
 
-          ResetExperiment();
+          /* Disable fast-forward */
+          m_bFastForwarding = false;
+
+          /* Set Experiment state to Done */
+          m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_DONE;
 
           /* Change state and emit signals */
           m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
-          LOG << "[INFO] Experiment done" << '\n';
         }
+
+        /* Take the time now */
+        m_cTimer.Stop();
+
+        /* If the elapsed time is lower than the tick length, wait */
+        if (m_cTimer.Elapsed() < m_cSimulatorTickMillis) {
+          /* Sleep for the difference duration */
+          std::this_thread::sleep_for(
+            m_cSimulatorTickMillis - m_cTimer.Elapsed());
+        } else {
+          LOG << "[WARNING] Clock tick took " << m_cTimer
+              << " milli-secs, more than the expected "
+              << m_cSimulatorTickMillis.count() << " milli-secs. "
+              << "Recovering in next cycle." << '\n';
+        }
+
+        /* Restart Timer */
+        m_cTimer.Start();
       } else {
         /*
          * Update the experiment state variable and sleep for some time,
          * we sleep to reduce the number of updates done in
-         * "PAUSED"/"INITIALIZED" state
+         * "PAUSED"/"INITIALIZED"/"DONE" state
          */
         BroadcastExperimentState();
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
@@ -270,9 +262,15 @@ namespace argos {
     if (
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_INITIALIZED &&
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PAUSED) {
-      LOG << "[WARNING] CWebviz::FastForwardExperiment() called in wrong state:"
-          << Webviz::EExperimentStateToStr(m_eExperimentState)
-          << "\nRunning the experiment in FastForward mode" << '\n';
+      LOG
+        << "[WARNING] CWebviz::FastForwardExperiment() called in wrong state: "
+        << Webviz::EExperimentStateToStr(m_eExperimentState)
+        << "\nRunning the experiment in FastForward mode" << '\n';
+
+      /* Do not fast forward if experiment is done */
+      if (m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_DONE) {
+        return;
+      }
     }
     m_bFastForwarding = true;
 
@@ -299,9 +297,7 @@ namespace argos {
         Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
       LOG << "[WARNING] CWebviz::PauseExperiment() called in wrong state: "
           << Webviz::EExperimentStateToStr(m_eExperimentState) << '\n';
-      throw std::runtime_error(
-        "Cannot pause the experiment, current state : " +
-        Webviz::EExperimentStateToStr(m_eExperimentState));
+
       return;
     }
     /* Disable fast-forward */
@@ -351,14 +347,16 @@ namespace argos {
       /* Change state and emit signals */
       m_cWebServer->EmitEvent("Experiment step done", m_eExperimentState);
     } else {
+      LOG << "[INFO] Experiment done" << '\n';
+
       /* The experiment is done */
       m_cSimulator.GetLoopFunctions().PostExperiment();
 
-      ResetExperiment();
+      /* Set Experiment state to Done */
+      m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_DONE;
 
       /* Change state and emit signals */
       m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
-      LOG << "[INFO] Experiment done" << '\n';
     }
 
     /* Broadcast current experiment state */
@@ -374,6 +372,12 @@ namespace argos {
 
     /* Disable fast-forward */
     m_bFastForwarding = false;
+
+    /* Reset the simulator if Reset was called after experiment was done */
+    if (m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_DONE) {
+      /* Reset simulator */
+      m_cSimulator.Reset();
+    }
 
     m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_INITIALIZED;
 
