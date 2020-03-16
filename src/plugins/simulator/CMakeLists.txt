@@ -1,2 +1,2 @@
-ADD_SUBDIRECTORY(visualizations)
+add_subdirectory(visualizations)
 

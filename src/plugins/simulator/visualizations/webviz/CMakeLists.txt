@@ -1,7 +1,7 @@
 #
 # List of all the entities files to compile
 #
-SET(ENTITIES_SOURCE_FILES
+set(ENTITIES_SOURCE_FILES
   entity/webviz_box.cpp
   entity/webviz_light.cpp
   entity/webviz_floor.cpp
@@ -11,9 +11,9 @@ SET(ENTITIES_SOURCE_FILES
 
 ## External entities (added as plugins)
 FindARGoSPlugin(KheperaIV kheperaiv_entity)
-IF(ARGOS_KheperaIV_FOUND)
-  LIST(APPEND ENTITIES_SOURCE_FILES entity/webviz_kheperaiv.cpp)
-ENDIF(ARGOS_KheperaIV_FOUND)
+if(ARGOS_KheperaIV_FOUND)
+  list(APPEND ENTITIES_SOURCE_FILES entity/webviz_kheperaiv.cpp)
+endif(ARGOS_KheperaIV_FOUND)
 
 ############################## PROJECT SETUP ##############################
 #
@@ -33,7 +33,7 @@ if(OpenSSL_FOUND)
 endif(OpenSSL_FOUND)
 
 # Build uSockets(inside uWebSockets directory)
-EXECUTE_PROCESS(
+execute_process(
   WORKING_DIRECTORY ${uWebSockets_SOURCE_DIR}/uSockets
   COMMAND make ${OPENSSL_DEP})
 
@@ -46,14 +46,14 @@ download_project(PROJ     nlohmann_json
   UPDATE_DISCONNECTED 1
 )
 ## To disable tests inside JSON
-SET(JSON_BuildTests OFF CACHE INTERNAL "")
-SET(JSON_Install OFF CACHE INTERNAL "")
-ADD_SUBDIRECTORY(${nlohmann_json_SOURCE_DIR} ${CMAKE_BINARY_DIR}/nlohmann-build)
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+set(JSON_Install OFF CACHE INTERNAL "")
+add_subdirectory(${nlohmann_json_SOURCE_DIR} ${CMAKE_BINARY_DIR}/nlohmann-build)
 
 #
 # Setup Include paths
 #
-INCLUDE_DIRECTORIES(
+include_directories(
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}
   ${uWebSockets_SOURCE_DIR}/src/
@@ -65,7 +65,7 @@ INCLUDE_DIRECTORIES(
 # Headers
 #
 # argos3/plugins/simulator/visualizations/webviz
-SET(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ
+set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ
   webviz.h
   webviz_webserver.h)
 
@@ -73,23 +73,23 @@ SET(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ
 # Source files
 #
 # Common for all builds
-SET(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ
+set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ
   ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ}
   webviz.cpp
   webviz_webserver.cpp
   ${ENTITIES_SOURCE_FILES})
 
 
-SET(TARGET_NAME
+set(TARGET_NAME
   argos3plugin_${ARGOS_BUILD_FOR}_webviz
 )
 
 #
 # Build WebViz Plugin
 #
-ADD_LIBRARY(${TARGET_NAME} SHARED ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ})
+add_library(${TARGET_NAME} SHARED ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ})
 
-TARGET_LINK_LIBRARIES(${TARGET_NAME} 
+target_link_libraries(${TARGET_NAME} 
   argos3plugin_${ARGOS_BUILD_FOR}_entities
   ${ARGOS_WEBVIZ_LIBRARIES}
   ${uWebSockets_SOURCE_DIR}/uSockets/uSockets.a
@@ -97,7 +97,7 @@ TARGET_LINK_LIBRARIES(${TARGET_NAME}
   ${OPENSSL_LIBRARIES}
 )
 
-SET_TARGET_PROPERTIES( 
+set_target_properties( 
   ${TARGET_NAME}  
 PROPERTIES 
   VERSION ${VERSION_STRING}
@@ -108,7 +108,7 @@ PROPERTIES
 )
 
 # Install main project libs and headers
-INSTALL(TARGETS ${TARGET_NAME}
+install(TARGETS ${TARGET_NAME}
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib/argos3
   ARCHIVE DESTINATION lib/argos3
@@ -117,4 +117,4 @@ INSTALL(TARGETS ${TARGET_NAME}
 )
 
 # Stop compiling on first error
-TARGET_COMPILE_OPTIONS(${TARGET_NAME} PRIVATE -Wfatal-errors)
+target_compile_options(${TARGET_NAME} PRIVATE -Wfatal-errors)
