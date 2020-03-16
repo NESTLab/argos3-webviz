@@ -26,6 +26,7 @@ namespace argos {
 #include <queue>
 #include <string_view>
 #include "App.h"  // uWebSockets
+#include "config.h"
 #include "utility/CTimer.h"
 #include "utility/EExperimentState.h"
 #include "webviz.h"

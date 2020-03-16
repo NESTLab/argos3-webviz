@@ -56,8 +56,17 @@ namespace argos {
     /****************************************/
 
     void CWebServer::Start(std::atomic<bool> &b_IsServerRunning) {
-      /* Start with SSL support as true  */
-      this->RunServer<true>(b_IsServerRunning);
+      /* Check if ssl paramters are empty */
+      if (
+        m_strKeyFile.empty() && m_strCertFile.empty() &&
+        m_strDHparamsFile.empty() && m_strCAFile.empty() &&
+        m_strPassphrase.empty()) {
+        /* Start with out SSL */
+        this->RunServer<false>(b_IsServerRunning);
+      } else {
+        /* Start with SSL */
+        this->RunServer<true>(b_IsServerRunning);
+      }
     }
 
     /****************************************/
@@ -200,8 +209,24 @@ namespace argos {
                  }})
             /* HTML banner */
             .get(
-              "/",
-              [](auto *res, auto *req) { res->end("Reached ARGoS-Webviz"); })
+              "/", /* Start with SSL */
+              [](auto *res, auto *req) {
+                res->cork([res]() {
+                  std::stringstream strs_stream;
+                  strs_stream << "Reached ARGoS-Webviz server\n\n";
+                  strs_stream << "Webviz version: ";
+                  strs_stream << ARGOS_WEBVIZ_VERSION;
+                  strs_stream << '\n';
+                  strs_stream << "ARGoS3 version: ";
+                  strs_stream << ARGOS_VERSION;
+                  strs_stream << '\n';
+                  strs_stream << "ARGoS3 release: ";
+                  strs_stream << ARGOS_RELEASE;
+                  strs_stream << '\n';
+
+                  res->end(strs_stream.str());
+                });
+              })
             /* Start listening to Port */
             .listen(
               m_unPort,

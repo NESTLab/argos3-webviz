@@ -79,9 +79,34 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ
   webviz_webserver.cpp
   ${ENTITIES_SOURCE_FILES})
 
-
 set(TARGET_NAME
   argos3plugin_${ARGOS_BUILD_FOR}_webviz
+)
+
+#
+# Setup config file
+#
+set(PLUGIN_FOLDER plugins/simulator/visualizations/webviz)
+#
+# Create config file with settings that must be accessed from C++
+#
+configure_file(
+  config.h.in
+  config.h
+  @ONLY)
+#
+# make generated config.h file's folder visible to compiler
+#
+include_directories(${CMAKE_BINARY_DIR}/${PLUGIN_FOLDER})
+
+#
+# Install config file in output location
+#
+install(
+FILES 
+  ${CMAKE_BINARY_DIR}/${PLUGIN_FOLDER}/config.h 
+DESTINATION 
+  include/argos3/${PLUGIN_FOLDER}
 )
 
 #
@@ -113,7 +138,7 @@ install(TARGETS ${TARGET_NAME}
   LIBRARY DESTINATION lib/argos3
   ARCHIVE DESTINATION lib/argos3
   # Use if we want to publish header files
-  PUBLIC_HEADER DESTINATION include/argos3/plugins/simulator/visualizations/webviz
+  PUBLIC_HEADER DESTINATION include/argos3/${PLUGIN_FOLDER}
 )
 
 # Stop compiling on first error
