@@ -71,8 +71,12 @@ namespace argos {
       /** Mutex to protect access to m_cLogQueue */
       std::mutex m_mutex4LogQueue;
 
-      /** SSL settings */
-      struct us_socket_context_options_t m_sSSLOptions;
+      /** SSL options */
+      std::string m_strKeyFile;
+      std::string m_strCertFile;
+      std::string m_strDHparamsFile;
+      std::string m_strCAFile;
+      std::string m_strPassphrase;
 
       /** Data attached to each socket, ws->getUserData returns one of these */
       struct m_sPerSocketData {};
@@ -82,12 +86,9 @@ namespace argos {
        *
        * @tparam SSL bool: to start with SSL
        * @param b_IsServerRunning bool: used to stop the threads gracefully
-       * @param s_ssl_options struct: SSL options
        */
       template <bool SSL>
-      void RunServer(
-        std::atomic<bool>& b_IsServerRunning,
-        struct us_socket_context_options_t s_ssl_options);
+      void RunServer(std::atomic<bool>& b_IsServerRunning);
 
       /** Function to send JSON over HttpResponse */
       template <bool SSL>

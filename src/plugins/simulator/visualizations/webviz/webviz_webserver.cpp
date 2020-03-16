@@ -28,8 +28,7 @@ namespace argos {
           /* Port to host the application on */
           m_unPort(un_port),
           /* Initialize broadcast Timer */
-          m_cBroadcastTimer(argos::Webviz::CTimer()),
-          m_sSSLOptions({}) {
+          m_cBroadcastTimer(argos::Webviz::CTimer()) {
       /* We dont want to divide by zero or negative frequency */
       if (un_freq <= 0) {
         un_freq = 10;  // Defaults to 10 Hz
@@ -40,22 +39,12 @@ namespace argos {
 
       m_strBroadcastString = "";
 
-      /* Build the SSL options object from parameters */
-      if (!str_key_file.empty()) {
-        m_sSSLOptions.key_file_name = str_cert_file.c_str();
-      }
-      if (!str_cert_file.empty()) {
-        m_sSSLOptions.cert_file_name = str_cert_file.c_str();
-      }
-      if (!str_dh_params_file.empty()) {
-        m_sSSLOptions.dh_params_file_name = str_dh_params_file.c_str();
-      }
-      if (!str_ca_file.empty()) {
-        m_sSSLOptions.ca_file_name = str_ca_file.c_str();
-      }
-      if (!str_cert_passphrase.empty()) {
-        m_sSSLOptions.passphrase = str_cert_passphrase.c_str();
-      }
+      /* SSL parameters */
+      m_strKeyFile = str_key_file;
+      m_strCertFile = str_cert_file;
+      m_strDHparamsFile = str_dh_params_file;
+      m_strCAFile = str_ca_file;
+      m_strPassphrase = str_cert_passphrase;
     }
 
     /****************************************/
@@ -67,27 +56,15 @@ namespace argos {
     /****************************************/
 
     void CWebServer::Start(std::atomic<bool> &b_IsServerRunning) {
-      struct us_socket_context_options_t sEmptySSLOptions = {};
-
-      /* Check if SSL options are empty */
-      const bool bIsSSLCopied =
-        memcmp(&m_sSSLOptions, &sEmptySSLOptions, sizeof(sEmptySSLOptions));
-
-      /* As templates are handled at compile time */
-      if (bIsSSLCopied) {
-        this->RunServer<true>(b_IsServerRunning, sEmptySSLOptions);
-      } else {
-        this->RunServer<false>(b_IsServerRunning, sEmptySSLOptions);
-      }
+      /* Start with SSL support as true  */
+      this->RunServer<true>(b_IsServerRunning);
     }
 
     /****************************************/
     /****************************************/
 
     template <bool SSL>
-    void CWebServer::RunServer(
-      std::atomic<bool> &b_IsServerRunning,
-      us_socket_context_options_t s_ssl_options) {
+    void CWebServer::RunServer(std::atomic<bool> &b_IsServerRunning) {
       /* Create a vector for list of all connected clients */
       std::vector<SWebSocketClient<SSL>> vecWebSocketClients;
 
@@ -100,7 +77,41 @@ namespace argos {
           LOG.AddThreadSafeBuffer();
           LOGERR.AddThreadSafeBuffer();
 
-          auto cMyApp = uWS::TemplatedApp<SSL>(s_ssl_options);
+          struct us_socket_context_options_t sSSLOptions;
+
+          /* Build the SSL options object from parameters */
+          if (!m_strKeyFile.empty()) {
+            /* NOTE: string.c_str lifecycle is till end of this scope */
+            sSSLOptions.key_file_name = m_strKeyFile.c_str();
+          } else {
+            sSSLOptions.key_file_name = nullptr;
+          }
+
+          if (!m_strCertFile.empty()) {
+            sSSLOptions.cert_file_name = m_strCertFile.c_str();
+          } else {
+            sSSLOptions.cert_file_name = nullptr;
+          }
+
+          if (!m_strDHparamsFile.empty()) {
+            sSSLOptions.dh_params_file_name = m_strDHparamsFile.c_str();
+          } else {
+            sSSLOptions.dh_params_file_name = nullptr;
+          }
+
+          if (!m_strCAFile.empty()) {
+            sSSLOptions.ca_file_name = m_strCAFile.c_str();
+          } else {
+            sSSLOptions.ca_file_name = nullptr;
+          }
+
+          if (!m_strPassphrase.empty()) {
+            sSSLOptions.passphrase = m_strPassphrase.c_str();
+          } else {
+            sSSLOptions.passphrase = nullptr;
+          }
+
+          auto cMyApp = uWS::TemplatedApp<SSL>(sSSLOptions);
 
           /* Setup WebSockets from the templated app */
           cMyApp
@@ -187,6 +198,10 @@ namespace argos {
                    LOG << "1 client disconnected (Total: "
                        << vecWebSocketClients.size() << ")" << '\n';
                  }})
+            /* HTML banner */
+            .get(
+              "/",
+              [](auto *res, auto *req) { res->end("Reached ARGoS-Webviz"); })
             /* Start listening to Port */
             .listen(
               m_unPort,

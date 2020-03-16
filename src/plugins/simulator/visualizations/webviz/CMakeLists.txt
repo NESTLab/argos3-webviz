@@ -25,17 +25,17 @@ download_project(PROJ     uWebSockets
   UPDATE_DISCONNECTED 1
 )
 
-# Build uSockets(inside uWebSockets directory)
-
 ## Optionally enable Open SSL for SSL support
+find_package(OpenSSL)
 if(OpenSSL_FOUND)
   message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
   set(OPENSSL_DEP WITH_OPENSSL=1)
 endif(OpenSSL_FOUND)
 
+# Build uSockets(inside uWebSockets directory)
 EXECUTE_PROCESS(
   WORKING_DIRECTORY ${uWebSockets_SOURCE_DIR}/uSockets
-  COMMAND make default ${OPENSSL_DEP})
+  COMMAND make ${OPENSSL_DEP})
 
 #
 # Download nlohmann/json library from github
@@ -94,6 +94,7 @@ TARGET_LINK_LIBRARIES(${TARGET_NAME}
   ${ARGOS_WEBVIZ_LIBRARIES}
   ${uWebSockets_SOURCE_DIR}/uSockets/uSockets.a
   nlohmann_json::nlohmann_json
+  ${OPENSSL_LIBRARIES}
 )
 
 SET_TARGET_PROPERTIES( 

@@ -79,27 +79,26 @@ namespace argos {
       strCAFilePath,
       strCertPassphrase);
 
-    LOG << "Starting web server on port " << unPort << '\n';
+    LOG << "[INFO] Starting WebSockets Server on port " << unPort << '\n';
 
     /* Write all the pending stuff */
     LOG.Flush();
     LOGERR.Flush();
 
     /* Disable Colors in LOG, as its going to be shown in web and not in CLI */
-    // LOG.DisableColoredOutput();
-    // LOGERR.DisableColoredOutput();
+    LOG.DisableColoredOutput();
+    LOGERR.DisableColoredOutput();
 
-    // /* Initialize the LOG streams from Execute thread */
-    // m_pcLogStream =
-    //   new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData)
-    //   {
-    //     m_cWebServer->EmitLog("LOG", str_logData);
-    //   });
+    /* Initialize the LOG streams from Execute thread */
+    m_pcLogStream =
+      new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData) {
+        m_cWebServer->EmitLog("LOG", str_logData);
+      });
 
-    // m_pcLogErrStream = new Webviz::CLogStream(
-    //   LOGERR.GetStream(), [this](std::string str_logData) {
-    //     m_cWebServer->EmitLog("LOGERR", str_logData);
-    //   });
+    m_pcLogErrStream = new Webviz::CLogStream(
+      LOGERR.GetStream(), [this](std::string str_logData) {
+        m_cWebServer->EmitLog("LOGERR", str_logData);
+      });
 
     /* Should we play instantly? */
     bool bAutoPlay = false;
