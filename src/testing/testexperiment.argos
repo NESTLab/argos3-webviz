@@ -111,8 +111,9 @@
   <visualization>
     <webviz 
       ff_draw_frames_every="10" 
+      ssl_key_file="client/server.pem"
+      ssl_cert_file="client/server.pem"
     />
-
     <!-- <qt-opengl /> -->
   </visualization>
 

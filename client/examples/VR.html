@@ -3,75 +3,42 @@
 
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Client</title>
-    <script src="./js/websocket-as-promised.js"></script>
-    <script src="./js/robust-websocket.js"></script>
-    <script src="./js/three.min.js"></script>
-    <script src="./js/OrbitControls.js"></script>
-    <script src="./js/GLTFLoader.js"></script>
-    <script src="./js/dat.gui.min.js"></script>
-    <script src="./js/stats.min.js"></script>
-    <script src="./js/rivets.bundled.min.js"></script>
+    <title>VR</title>
+    <script src="/js/websocket-as-promised.js"></script>
+    <script src="/js/robust-websocket.js"></script>
 
-    <script src="./entities/DefaultEntity.js"></script>
-    <script src="./entities/Box.js"></script>
-    <script src="./entities/Cylinder.js"></script>
-    <script src="./entities/Light.js"></script>
-    <script src="./entities/KheperaIV.js"></script>
-    <script src="./entities/Footbot.js"></script>
+    <script src="/js/three.min.js"></script>
+    <script src="/js/OrbitControls.js"></script>
+    <script src="/js/GLTFLoader.js"></script>
+    <script src="/examples/js/VRButton.js"></script>
 
-    <link rel="stylesheet" href="./css/main.css">
+    <script src="/entities/DefaultEntity.js"></script>
+    <script src="/entities/Box.js"></script>
+    <script src="/entities/Cylinder.js"></script>
+    <script src="/entities/Light.js"></script>
+    <script src="/entities/KheperaIV.js"></script>
+    <script src="/entities/Footbot.js"></script>
+
+    <style type="text/css">
+        body {
+            margin: 0;
+            background-color: #000;
+        }
+        
+        canvas {
+            display: block;
+        }
+    </style>
 </head>
 
 <body id="body">
-    <div class="disconnected" rv-hide="menu.isConnected">
-        <div>Disconnected</div>
-        <button class="retryBtn" onclick="javascript:window.location.reload()">RETRY</button>
-    </div>
-    <div id="display_bar">
-        <div></div>
-        <div class="counter">
-            <span>
-                { menu.counter } <small>steps</small>
-            </span>
-        </div>
-        <div class="status">
-            { menu.status }
-            <br>
-            <div class="experiment_state">
-                { menu.experiment_state }
-            </div>
-        </div>
-    </div>
-    <div id="menu">
-        <div class="buttons">
-            <button onclick="javascript:playBtnListener()">
-                {menu.play_button_text}
-            </button>
-            <button onclick="javascript:resetBtnListener()">
-                Reset
-            </button>
-            <button onclick="javascript:stepBtnListener()">
-                Step
-            </button>
-            <button onclick="javascript:ffBtnListener()">
-                Fast-Forward
-            </button>
-        </div>
-    </div>
     <script>
         /* Server IP and port */
         var server = window.location.hostname + ":3000";
 
-        var sockets_api = server + "?broadcasts";
-
-        /* use wss:// for SSL supported */
-        if (window.isSecureContext === false) {
-            sockets_api = "ws://" + sockets_api
-        } else {
-            sockets_api = "wss://" + sockets_api
-        }
+        var sockets_api = "wss://" + server + "?broadcasts";
 
         window.wsp = new window.WebSocketAsPromised(sockets_api, {
             packMessage: data => JSON.stringify(data),
@@ -97,25 +64,14 @@
             }
         });
 
+        var hasPlayedOnStart = false;
         wsp.onUnpackedMessage.addListener(data => {
             /* Update Menu names */
             window.menu.experiment_state = data.state
-            var getText = function(state) {
-                switch (state) {
-                    case 'EXPERIMENT_INITIALIZED':
-                    case 'EXPERIMENT_DONE':
-                    case 'EXPERIMENT_PAUSED':
-                        return "Play";
-                        break;
-                    case 'EXPERIMENT_FAST_FORWARDING':
-                    case 'EXPERIMENT_PLAYING':
-                        return "Pause";
-                        break;
-                    default:
-                        break;
-                }
+            if (data.state != "EXPERIMENT_PLAYING" && !hasPlayedOnStart) {
+                hasPlayedOnStart = true;
+                window.wsp.send('play');
             }
-            window.menu.play_button_text = getText(data.state)
 
             window.menu.counter = data.steps;
 
@@ -132,9 +88,11 @@
                 initSceneWithScale(scale__);
 
                 /* Start Animation */
-                animate();
+                // animate();
+                renderer.setAnimationLoop(render);
             }
         });
+        window.menu = {}
         wsp.onOpen.addListener(() => {
             console.log('Connection opened')
             window.menu.status = "Connected";
@@ -164,7 +122,7 @@
                     return new Footbot(entity, scale, callback)
                     break;
                 case 'light':
-                    callback(new Light(entity, scale, callback))
+                    callback(new Light(entity, scale))
                     break;
                 default:
                     callback(new DefaultEntity(entity, scale))
@@ -184,6 +142,7 @@
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x007f7f);
 
+
         /* WebGLRenderer */
         renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -192,10 +151,16 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
 
+        // Turn on VR support
+        renderer.xr.enabled = true;
+
         renderer.outputEncoding = THREE.sRGBEncoding;
 
         /* Add canvas to page */
         document.body.appendChild(renderer.domElement);
+
+        // Add a button to enter/exit vr to the page
+        document.body.appendChild(VRButton.createButton(renderer));
 
         /* Lights */
         var light = new THREE.DirectionalLight(0xffffff, 1);
@@ -212,36 +177,79 @@
 
         window.addEventListener('resize', onWindowResize, false);
 
-        /* Add stats in top left corner */
-        stats = new Stats();
-        stats.showPanel(0);
-        document.body.appendChild(stats.dom);
 
+
+
+
+
+
+
+
+
+
+
+        const teleportAndLook = (function() {
+            const cameraDirection = new THREE.Vector3();
+            const teleportToLook = new THREE.Vector3();
+            const cameraOffset = new THREE.Vector3();
+            return function(teleportPos, lookPos, rig, camera) {
+                cameraDirection.set(0, 0, Math.PI);
+                cameraDirection.applyQuaternion(camera.quaternion);
+                // cameraDirection.y = 0;
+                cameraDirection.normalize();
+
+                teleportToLook.subVectors(lookPos, teleportPos)
+                teleportToLook.normalize();
+
+                rig.quaternion.setFromUnitVectors(cameraDirection, teleportToLook);
+
+                cameraOffset.copy(camera.position);
+                cameraOffset.applyQuaternion(rig.quaternion);
+                // cameraOffset.y = 0;
+                rig.position.subVectors(teleportPos, cameraOffset);
+            }
+        })();
 
         /* ----------------------- */
         var sceneEntities = [];
 
-
         function initSceneWithScale(_scale) {
             scale = _scale;
 
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, scale * 2500);
+            // camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, scale * 2500);
 
-            camera.position.set(-scale * 3, 0, scale * 5);
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
+
+            // camera.layers.enable(1);
+            // camera.position.set(-scale * 3, 100, 100);
+            camera.position.set(0, 0, 10);
+
+
+
+
+
+
+
+
+            camera.position.y = 1;
+            const rig = new THREE.Object3D();
+            rig.add(camera);
+            scene.add(rig);
+
+
+
+
 
             // Controls
             // Possible types: OrbitControls, MapControls
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            // controls = new THREE.MapControls(camera, renderer.domElement);
 
-            controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
-            controls.dampingFactor = 0.05;
+            // controls.screenSpacePanning = false;
 
-            controls.screenSpacePanning = false;
+            // controls.minDistance = scale;
+            // controls.maxDistance = scale * 10;
 
-            controls.minDistance = scale / 3;
-            controls.maxDistance = scale * 10;
-
-            controls.maxPolarAngle = Math.PI / 2;
+            // controls.maxPolarAngle = Math.PI / 2;
 
             // Grid
             var grid = new THREE.GridHelper(scale * 5, scale / 4, 0x111111, 0x111111);
@@ -257,6 +265,17 @@
             plane.position.z = -0.2
 
             scene.add(plane)
+
+            function randomTeleport() {
+                const teleportPos = new THREE.Vector3();
+                teleportPos.x = 0;
+                teleportPos.y = 0;
+                teleportPos.z = 1;
+                teleportAndLook(teleportPos, plane.position, rig, camera);
+            }
+            randomTeleport()
+
+
         }
 
         function cleanUpdateScene() {
@@ -307,18 +326,14 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
-            render();
-            stats.update();
-        }
-
         function render() {
+            // controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+
             /* Experiment is initialized */
             if (window.experiment &&
                 window.experiment.entities &&
-                window.isLoadingModels == false) {
+                window.isLoadingModels == false &&
+                sceneEntities) {
 
                 /* Entities count changed, clean and render again */
                 if (window.experiment.entities.length != Object.keys(sceneEntities).length) {
@@ -334,36 +349,6 @@
 
             renderer.render(scene, camera);
         }
-    </script>
-    <script>
-        var playBtnListener = function() {
-            if (menu.experiment_state != "EXPERIMENT_PLAYING" && menu.experiment_state != "EXPERIMENT_FAST_FORWARDING") {
-                window.wsp.send('play')
-            } else {
-                window.wsp.send('pause')
-            }
-        }
-
-        var resetBtnListener = function() {
-            window.wsp.send('reset')
-        }
-
-        var stepBtnListener = function() {
-            window.wsp.send('step')
-        }
-        var ffBtnListener = function() {
-            window.wsp.send('fastforward')
-        }
-
-        window.menu = {
-            status: "Not Connected",
-            play_button_text: "Play",
-            experiment_state: "EXPERIMENT_INITIALIZED"
-        }
-
-        var o = rivets.bind(document.getElementById('body'), {
-            menu: menu
-        })
     </script>
 </body>
 

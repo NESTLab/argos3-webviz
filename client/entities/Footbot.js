@@ -5,86 +5,80 @@ class Footbot {
 
         /* Scale to convert from mm to scale used here */
         var UNIT_SCALE = 0.001 * scale
-
-        var loader = new THREE.GLTFLoader();
         var that = this;
+        var geometry = new THREE.CylinderBufferGeometry(
+            70.40 * UNIT_SCALE,
+            70.40 * UNIT_SCALE,
+            53 * UNIT_SCALE,
+            32
+        );
 
-        loader.load('./models/KheperaIV.gltf', function(gltf) {
+        geometry.rotateX(-1.572);
 
-            var geometry = new THREE.CylinderBufferGeometry(
-                70.40 * UNIT_SCALE,
-                70.40 * UNIT_SCALE,
-                53 * UNIT_SCALE,
-                32
+        /* Bring to on top of zero*/
+        geometry.translate(0, 0, 53 * UNIT_SCALE * 0.5 + 4.7 * UNIT_SCALE);
+
+        var material = new THREE.MeshPhongMaterial({
+            color: 0x2f22ff
+        });
+
+        var khiv = new THREE.Mesh(geometry, material);
+
+        var meshParent = new THREE.Mesh();
+        /* Add all parts to a parent mesh */
+        meshParent.add(khiv);
+
+        /* LEDs */
+        for (let i = 0; i < 12; ++i) {
+            var ledGeom = new THREE.SphereBufferGeometry(
+                0.1,
+                4,
+                4
             );
 
-            geometry.rotateX(-1.572);
-
-            /* Bring to on top of zero*/
-            geometry.translate(0, 0, 53 * UNIT_SCALE * 0.5 + 4.7 * UNIT_SCALE);
-
-            var material = new THREE.MeshPhongMaterial({
-                color: 0x2f22ff
-            });
-
-            var khiv = new THREE.Mesh(geometry, material);
-
-            var meshParent = new THREE.Mesh();
-            /* Add all parts to a parent mesh */
-            meshParent.add(khiv);
-
-            /* LEDs */
-            for (let i = 0; i < 12; ++i) {
-                var ledGeom = new THREE.SphereBufferGeometry(
-                    0.1,
-                    4,
-                    4
-                );
-
-                ledGeom.translate(85 * UNIT_SCALE /* Radius */ , 0, 50 * UNIT_SCALE /* Height */ )
-                ledGeom.rotateZ(i * (2 * 3.142 / 12));
-                var led = new THREE.Mesh(ledGeom, new THREE.MeshLambertMaterial({
-                    emissive: 0x000000,
-                    color: 0x000000
-                }));
-                meshParent.add(led);
-            }
-
-            /* Add Intersection Points */
-            var pointsGeom = new THREE.BufferGeometry();
-            pointsGeom.setAttribute('position', new THREE.BufferAttribute(
-                new Float32Array(24 * 3), // 24 points * 3 axis per point
-                3
-            ));
-
-            var points = new THREE.Points(pointsGeom, new THREE.PointsMaterial({
+            ledGeom.translate(85 * UNIT_SCALE /* Radius */ , 0, 50 * UNIT_SCALE /* Height */ )
+            ledGeom.rotateZ(i * (2 * 3.142 / 12));
+            var led = new THREE.Mesh(ledGeom, new THREE.MeshLambertMaterial({
+                emissive: 0x000000,
                 color: 0x000000
             }));
-            meshParent.add(points);
+            meshParent.add(led);
+        }
 
-            /* Add lines for rays */
-            for (let i = 0; i < 24; i++) {
-                var lineGeom = new THREE.BufferGeometry();
+        /* Add Intersection Points */
+        var pointsGeom = new THREE.BufferGeometry();
+        pointsGeom.setAttribute('position', new THREE.BufferAttribute(
+            new Float32Array(24 * 3), // 24 points * 3 axis per point
+            3
+        ));
 
-                // attributes
-                var linesPos = new Float32Array(2 * 3); //2 points per line * 3 axis per point
-                lineGeom.setAttribute('position', new THREE.BufferAttribute(linesPos, 3));
+        var points = new THREE.Points(pointsGeom, new THREE.PointsMaterial({
+            color: 0x000000
+        }));
+        meshParent.add(points);
 
-                var line = new THREE.Line(lineGeom);
+        /* Add lines for rays */
+        for (let i = 0; i < 24; i++) {
+            var lineGeom = new THREE.BufferGeometry();
 
-                meshParent.add(line);
-                that.lines.push(line);
-            }
+            // attributes
+            var linesPos = new Float32Array(2 * 3); //2 points per line * 3 axis per point
+            lineGeom.setAttribute('position', new THREE.BufferAttribute(linesPos, 3));
 
-            /* Update mesh parent */
-            meshParent.position.x = entity.position.x * scale;
-            meshParent.position.y = entity.position.y * scale;
-            meshParent.position.z = entity.position.z * scale;
+            var line = new THREE.Line(lineGeom);
 
-            that.mesh = meshParent;
+            meshParent.add(line);
+            that.lines.push(line);
+        }
 
-            callback(that)
-        });
+        /* Update mesh parent */
+        meshParent.position.x = entity.position.x * scale;
+        meshParent.position.y = entity.position.y * scale;
+        meshParent.position.z = entity.position.z * scale;
+
+        that.mesh = meshParent;
+
+        callback(that)
     }
 
     update(entity, scale) {
