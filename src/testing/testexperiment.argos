@@ -90,7 +90,6 @@
         <cylinder id="c" height="0.5" radius="0.15" movable="false" />
       </entity>
     </distribute>
-
   </arena>
 
   <!-- ******************* -->
@@ -114,5 +113,4 @@
     />
     <!-- <qt-opengl /> -->
   </visualization>
-
 </argos-configuration>
