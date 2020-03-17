@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examples</title>
+</head>
+
+<body>
+
+    <h1>SSL Examples</h1>
+    You need to run the following command in "client" folder to generate a self-signed SSL certificate.(You do not need to enter any information in the wizard for the command below, just enter through)
+    <pre>
+    $ openssl req -new -x509 -keyout server.pem -out server.pem -days 365 -nodes
+    </pre> Then run the server.py file in "client" folder to run static file server with SSL certificate
+    <pre>
+        python3 server.py
+    </pre> You also need to run the argos with webviz with ssl, edit your .argos file like,
+
+    <pre>
+      <webviz 
+        ff_draw_frames_every="10" 
+        ssl_key_file="client/server.pem"
+        ssl_cert_file="client/server.pem"
+      />
+    </pre> Then you can access the server IP in browser <a href="https://localhost:8000/examples">https://localhost:8000/examples</a> Chrome might ask you to "go back to safety" as the certificate is "self-signed", just proceed anyways.
+    <ul>
+        <li><a href="VR.html">VR</a></li>
+    </ul>
+</body>
+
+</html>

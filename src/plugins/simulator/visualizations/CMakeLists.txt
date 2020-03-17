@@ -1,1 +1,1 @@
-ADD_SUBDIRECTORY(webviz)
+add_subdirectory(webviz)

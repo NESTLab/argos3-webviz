@@ -1,2 +1,2 @@
-ADD_SUBDIRECTORY(simulator)
+add_subdirectory(simulator)
 

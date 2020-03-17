@@ -17,7 +17,8 @@ namespace argos {
       EXPERIMENT_INITIALIZED = 0,
       EXPERIMENT_PLAYING,
       EXPERIMENT_PAUSED,
-      EXPERIMENT_FAST_FORWARDING
+      EXPERIMENT_FAST_FORWARDING,
+      EXPERIMENT_DONE
     };
 
     inline static std::string EExperimentStateToStr(
@@ -31,6 +32,8 @@ namespace argos {
           return "EXPERIMENT_PAUSED";
         case EExperimentState::EXPERIMENT_FAST_FORWARDING:
           return "EXPERIMENT_FAST_FORWARDING";
+        case EExperimentState::EXPERIMENT_DONE:
+          return "EXPERIMENT_DONE";
         default:
           return "unknown";
       }
@@ -48,6 +51,8 @@ namespace argos {
           os << "EXPERIMENT_PAUSED";
         case EExperimentState::EXPERIMENT_FAST_FORWARDING:
           os << "EXPERIMENT_FAST_FORWARDING";
+        case EExperimentState::EXPERIMENT_DONE:
+          os << "EXPERIMENT_DONE";
         default:
           os << "unknown";
       }

@@ -1,1 +1,1 @@
-ADD_SUBDIRECTORY(controllers)
+add_subdirectory(controllers)

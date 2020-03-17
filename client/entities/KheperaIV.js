@@ -9,7 +9,7 @@ class KheperaIV {
         var loader = new THREE.GLTFLoader();
         var that = this;
 
-        loader.load('./models/KheperaIV.gltf', function(gltf) {
+        loader.load('/models/KheperaIV.gltf', function(gltf) {
             var kheperaiv_bot = gltf.scene.children[0];
             var boundingBox = new THREE.Box3().setFromObject(kheperaiv_bot);
 

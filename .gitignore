@@ -36,3 +36,8 @@ build
 
 # VS code specific settings
 .vscode
+
+# any kind of certificate files
+*.pem
+*.crt
+*.key
