@@ -306,13 +306,24 @@ namespace argos {
           {
             std::lock_guard<std::mutex> guard(m_mutex4LogQueue);
 
-            /* Get all log messages in one string with \n */
-            std::stringstream str_stream;
-            while (!m_cLogQueue.empty()) {
-              str_stream << m_cLogQueue.front() << "\n";
-              m_cLogQueue.pop();
+            /* If logs are not empty */
+            if (!m_cLogQueue.empty()) {
+              /* Create a temp json aggregate object */
+              nlohmann::json jsonLogObject;
+              jsonLogObject["type"] = "log";
+              /* Added Unix Epoch in milliseconds */
+              jsonLogObject["timestamp"] =
+                std::chrono::duration_cast<std::chrono::milliseconds>(
+                  std::chrono::system_clock::now().time_since_epoch())
+                  .count();
+
+              /* Get all log messages in one string with \n */
+              while (!m_cLogQueue.empty()) {
+                jsonLogObject["messages"].push_back(m_cLogQueue.front());
+                m_cLogQueue.pop();
+              }
+              strLogString = jsonLogObject.dump();
             }
-            strLogString = str_stream.str();
           }  // End of mutex block: m_mutex4LogQueue
 
           std::lock_guard<std::mutex> guard(mutex4VecWebClients);
@@ -376,16 +387,23 @@ namespace argos {
     /****************************************/
 
     void CWebServer::EmitLog(
-      std::string str_log_name, std::string str_log_data) {
-      nlohmann::json cMyJson;
-      cMyJson["log_name"] = str_log_name;
-      cMyJson["log_data"] = str_log_data;
+      std::string str_log_name,
+      std::string str_step,
+      std::string str_log_data) {
+      /* if message is not empty */
+      if (!str_log_data.empty()) {
+        /* Build json object */
+        nlohmann::json cMyJson;
+        cMyJson["log_type"] = str_log_name;
+        cMyJson["log_message"] = str_log_data;
+        cMyJson["step"] = str_step;
 
-      // Guard the mutex which locks m_mutex4LogQueue
-      std::lock_guard<std::mutex> guard(m_mutex4LogQueue);
+        // Guard the mutex which locks m_mutex4LogQueue
+        std::lock_guard<std::mutex> guard(m_mutex4LogQueue);
 
-      /* Add to the Log queue */
-      m_cLogQueue.push(cMyJson.dump());
+        /* Add to the Log queue */
+        m_cLogQueue.push(cMyJson);
+      }
     }
 
     /****************************************/

@@ -90,7 +90,6 @@
         <cylinder id="c" height="0.5" radius="0.15" movable="false" />
       </entity>
     </distribute>
-
   </arena>
 
   <!-- ******************* -->
@@ -111,10 +110,7 @@
   <visualization>
     <webviz 
       ff_draw_frames_every="10" 
-      ssl_key_file="client/server.pem"
-      ssl_cert_file="client/server.pem"
     />
     <!-- <qt-opengl /> -->
   </visualization>
-
 </argos-configuration>

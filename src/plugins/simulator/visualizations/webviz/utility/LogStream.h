@@ -23,9 +23,7 @@ namespace argos {
       CLogStream(
         std::ostream& c_stream,
         std::function<void(std::string)> f_callback_function)
-          : m_cStream(c_stream),
-            m_cSpace(CSimulator::GetInstance().GetSpace()),
-            m_fCallback(f_callback_function) {
+          : m_cStream(c_stream), m_fCallback(f_callback_function) {
         /* Copy the original stream buffer */
         m_pcOldStream = m_cStream.rdbuf();
         /* Replace the streambuffer */
@@ -49,8 +47,6 @@ namespace argos {
           std::string strTmp(m_strBuffer);
           Replace(strTmp, "<", "&lt;");
           Replace(strTmp, ">", "&gt;");
-          strTmp = "<b>[t=" + ToString(m_cSpace.GetSimulationClock()) +
-                   "]</b> " + strTmp;
 
           /* Call the callback function to send log data */
           m_fCallback(strTmp.c_str());
@@ -81,8 +77,6 @@ namespace argos {
             /* Format the text to display */
             Replace(strTmp, "<", "&lt;");
             Replace(strTmp, ">", "&gt;");
-            strTmp = "<b>[t=" + ToString(m_cSpace.GetSimulationClock()) +
-                     "]</b> " + strTmp;
 
             /* Call the callback function to send log data */
             m_fCallback(strTmp.c_str());
@@ -100,7 +94,6 @@ namespace argos {
       std::ostream& m_cStream;
       std::streambuf* m_pcOldStream;
       std::string m_strBuffer;
-      CSpace& m_cSpace;
       std::function<void(std::string)> m_fCallback;
     };
   }  // namespace Webviz

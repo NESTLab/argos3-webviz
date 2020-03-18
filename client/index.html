@@ -4,367 +4,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Client</title>
-    <script src="./js/websocket-as-promised.js"></script>
-    <script src="./js/robust-websocket.js"></script>
-    <script src="./js/three.min.js"></script>
-    <script src="./js/OrbitControls.js"></script>
-    <script src="./js/GLTFLoader.js"></script>
-    <script src="./js/dat.gui.min.js"></script>
-    <script src="./js/stats.min.js"></script>
-    <script src="./js/rivets.bundled.min.js"></script>
+    <title>ARGoS-Webviz client</title>
+    <meta name="description" content="A webclient for ARGoS-Webviz">
+    <meta name="author" content="Prajankya sonar">
+    <style>
+        #preloader {
+            position: fixed;
+            z-index: 999999;
+            width: 100vw;
+            height: 100vh;
+            background-color: #fff;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0px 1px 1px #4d4d4d;
+            color: #222;
+        }
 
-    <script src="./entities/DefaultEntity.js"></script>
-    <script src="./entities/Box.js"></script>
-    <script src="./entities/Cylinder.js"></script>
-    <script src="./entities/Light.js"></script>
-    <script src="./entities/KheperaIV.js"></script>
-    <script src="./entities/Footbot.js"></script>
+        #preloader>* {
+            padding: 20px;
+        }
 
-    <link rel="stylesheet" href="./css/main.css">
+        #preloader h1 {
+            font-size: 1.7em;
+        }
+
+        .loader {
+            border: 16px solid #f3f3f3;
+            /* Light grey */
+            border-top: 16px solid #3498db;
+            /* Blue */
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 
-<body id="body">
-    <div class="disconnected" rv-hide="menu.isConnected">
-        <div>Disconnected</div>
-        <button class="retryBtn" onclick="javascript:window.location.reload()">RETRY</button>
+<body id="experiment">
+    <div id="preloader">
+        <h1>ARGoS-Webviz Client</h1>
+        <h4>Loading..</h4>
+        <div class="loader"></div>
     </div>
-    <div id="display_bar">
-        <div></div>
-        <div class="counter">
-            <span>
-                { menu.counter } <small>steps</small>
-            </span>
-        </div>
-        <div class="status">
-            { menu.status }
+
+    <div id="layout">
+    </div>
+
+    <!-- Modal when disconnected -->
+    <div id="disconnectedModal" hidden>
+        <div class="w2ui-centered">
+            Plese verify the server is running at
             <br>
-            <div class="experiment_state">
-                { menu.experiment_state }
-            </div>
+            {experiment.sockets_api}
+            <br><br>
+            And then refresh this page
         </div>
     </div>
-    <div id="menu">
-        <div class="buttons">
-            <button onclick="javascript:playBtnListener()">
-                {menu.play_button_text}
-            </button>
-            <button onclick="javascript:resetBtnListener()">
-                Reset
-            </button>
-            <button onclick="javascript:stepBtnListener()">
-                Step
-            </button>
-            <button onclick="javascript:ffBtnListener()">
-                Fast-Forward
-            </button>
-        </div>
-    </div>
+    <!-- Variables declaration -->
     <script>
         /* Server IP and port */
         var server = window.location.hostname + ":3000";
-
-        var sockets_api = server + "?broadcasts";
-
-        /* use wss:// for SSL supported */
-        if (window.isSecureContext === false) {
-            sockets_api = "ws://" + sockets_api
-        } else {
-            sockets_api = "wss://" + sockets_api
-        }
-
-        window.wsp = new window.WebSocketAsPromised(sockets_api, {
-            packMessage: data => JSON.stringify(data),
-            unpackMessage: data => JSON.parse(data),
-            createWebSocket: url => {
-                return new RobustWebSocket(url, null, {
-                    // The number of milliseconds to wait before a connection is considered to have timed out. Defaults to 4 seconds.
-                    timeout: 2000,
-                    // A function that given a CloseEvent or an online event (https://developer.mozilla.org/en-US/docs/Online_and_offline_events) and the `RobustWebSocket`,
-                    // will return the number of milliseconds to wait to reconnect, or a non-Number to not reconnect.
-                    // see below for more examples; below is the default functionality.
-                    shouldReconnect: function(event, ws) {
-                        if (event.code === 1008 || event.code === 1011) return
-                        return [0, 3000, 10000][ws.attempts]
-                    },
-                    // A boolean indicating whether or not to open the connection automatically. Defaults to true, matching native [WebSocket] behavior.
-                    // You can open the websocket by calling `open()` when you are ready. You can close and re-open the RobustWebSocket instance as much as you wish.
-                    automaticOpen: true,
-                    // A boolean indicating whether to disable subscribing to the connectivity events provided by the browser.
-                    // By default RobustWebSocket instances use connectivity events to avoid triggering reconnection when the browser is offline. This flag is provided in the unlikely event of cases where this may not be desired.
-                    ignoreConnectivityEvents: true
-                })
-            }
-        });
-
-        wsp.onUnpackedMessage.addListener(data => {
-            /* Update Menu names */
-            window.menu.experiment_state = data.state
-            var getText = function(state) {
-                switch (state) {
-                    case 'EXPERIMENT_INITIALIZED':
-                    case 'EXPERIMENT_DONE':
-                    case 'EXPERIMENT_PAUSED':
-                        return "Play";
-                        break;
-                    case 'EXPERIMENT_FAST_FORWARDING':
-                    case 'EXPERIMENT_PLAYING':
-                        return "Pause";
-                        break;
-                    default:
-                        break;
-                }
-            }
-            window.menu.play_button_text = getText(data.state)
-
-            window.menu.counter = data.steps;
-
-            /* Update data for processing */
-            window.experiment = data;
-
-            if (!window.isInitialized) {
-                window.isInitialized = true;
-
-                /* TODO: calculate best scale */
-                var scale__ = data.arena.size.x * 4;
-                // Currently we need 50
-
-                initSceneWithScale(scale__);
-
-                /* Start Animation */
-                animate();
-            }
-        });
-        wsp.onOpen.addListener(() => {
-            console.log('Connection opened')
-            window.menu.status = "Connected";
-            window.menu.isConnected = true;
-        });
-
-        wsp.onClose.addListener(() => {
-            console.log('Connection closed')
-            window.menu.status = "Not Connected";
-            window.menu.isConnected = false;
-        });
-        wsp.open().catch(e => console.error(e));
+        /* Currently it takes the same server from where these files are hosted */
     </script>
-    <script>
-        function GetEntity(entity, scale, callback) {
-            switch (entity.type) {
-                case 'box':
-                    callback(new Box(entity, scale))
-                    break;
-                case 'cylinder':
-                    callback(new Cylinder(entity, scale))
-                    break;
-                case 'kheperaiv':
-                    return new KheperaIV(entity, scale, callback)
-                    break;
-                case 'foot-bot':
-                    return new Footbot(entity, scale, callback)
-                    break;
-                case 'light':
-                    callback(new Light(entity, scale, callback))
-                    break;
-                default:
-                    callback(new DefaultEntity(entity, scale))
-                    break;
-            }
-        }
-    </script>
-    <script>
-        var camera, controls, scene, renderer, stats;
-        var scale;
-
-        window.isInitialized = false;
-        window.isLoadingModels = false;
-
-        /* Initialize Three.js scene */
-        THREE.Object3D.DefaultUp.set(0, 0, 1);
-        scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x007f7f);
-
-        /* WebGLRenderer */
-        renderer = new THREE.WebGLRenderer({
-            antialias: true,
-            // precision: "mediump"
-        });
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(window.innerWidth, window.innerHeight);
-
-        renderer.outputEncoding = THREE.sRGBEncoding;
-
-        /* Add canvas to page */
-        document.body.appendChild(renderer.domElement);
-
-        /* Lights */
-        var light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(1, -1, 1);
-        scene.add(light);
-
-        var light = new THREE.DirectionalLight(0x222222);
-        light.position.set(-1, 1, -1);
-        scene.add(light);
-
-        var light = new THREE.AmbientLight(0x333333);
-        light.position.set(0, 0, 1);
-        scene.add(light);
-
-        window.addEventListener('resize', onWindowResize, false);
-
-        /* Add stats in top left corner */
-        stats = new Stats();
-        stats.showPanel(0);
-        document.body.appendChild(stats.dom);
 
 
-        /* ----------------------- */
-        var sceneEntities = [];
+    <!-- Stylesheet dependencies -->
+    <link rel="stylesheet" href="/css/w2ui-1.5.rc1.min.css">
+    <link rel="stylesheet" href="/css/reset.css">
+    <link rel="stylesheet" href="/css/main.css">
 
-
-        function initSceneWithScale(_scale) {
-            scale = _scale;
-
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, scale * 2500);
-
-            camera.position.set(-scale * 3, 0, scale * 5);
-
-            // Controls
-            // Possible types: OrbitControls, MapControls
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-            controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
-            controls.dampingFactor = 0.05;
-
-            controls.screenSpacePanning = false;
-
-            controls.minDistance = scale / 3;
-            controls.maxDistance = scale * 10;
-
-            controls.maxPolarAngle = Math.PI / 2;
-
-            // Grid
-            var grid = new THREE.GridHelper(scale * 5, scale / 4, 0x111111, 0x111111);
-            grid.geometry.rotateX(Math.PI / 2);
-            scene.add(grid);
-
-            /* Ground plane */
-            var plane = new THREE.Mesh(new THREE.PlaneGeometry(
-                scale * 5, scale * 5
-            ), new THREE.MeshBasicMaterial({
-                color: 0xaaaaaa
-            }));
-            plane.position.z = -0.2
-
-            scene.add(plane)
-        }
-
-        function cleanUpdateScene() {
-            window.isLoadingModels = true;
-            /* Remove all meshes */
-            Object.keys(sceneEntities).map((i) => {
-                const object = scene.getObjectByProperty('uuid', i.mesh);
-                if (object) {
-                    object.geometry.dispose();
-                    object.material.dispose();
-                    scene.remove(object);
-                }
-            });
-
-            var len = count = window.experiment.entities.length
-            window.experiment.entities.map((entity) => {
-
-                if (entity) { //Neglect Null Entities
-                    GetEntity(entity, scale, function(entityObject) {
-                        if (entityObject) {
-                            sceneEntities[entity.id] = entityObject;
-                            scene.add(entityObject.mesh);
-                        }
-
-                        /*
-                          Comment this to not give a "Point light"
-                          for a light-entity
-                        */
-                        if (entity.type == "light") {
-                            scene.add(entityObject.light);
-                        }
-
-                        count--;
-
-                        if (count == 0) { // Finished loading all models
-                            window.isLoadingModels = false;
-                        }
-                    });
-                } else {
-                    console.error("Entity is null");
-                }
-            })
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
-            render();
-            stats.update();
-        }
-
-        function render() {
-            /* Experiment is initialized */
-            if (window.experiment &&
-                window.experiment.entities &&
-                window.isLoadingModels == false) {
-
-                /* Entities count changed, clean and render again */
-                if (window.experiment.entities.length != Object.keys(sceneEntities).length) {
-                    cleanUpdateScene();
-                    return; // Go to load models, do not update
-                }
-
-                /* Call update of each entity */
-                window.experiment.entities.map((entity) => {
-                    sceneEntities[entity.id].update(entity, scale);
-                });
-            }
-
-            renderer.render(scene, camera);
-        }
-    </script>
-    <script>
-        var playBtnListener = function() {
-            if (menu.experiment_state != "EXPERIMENT_PLAYING" && menu.experiment_state != "EXPERIMENT_FAST_FORWARDING") {
-                window.wsp.send('play')
-            } else {
-                window.wsp.send('pause')
-            }
-        }
-
-        var resetBtnListener = function() {
-            window.wsp.send('reset')
-        }
-
-        var stepBtnListener = function() {
-            window.wsp.send('step')
-        }
-        var ffBtnListener = function() {
-            window.wsp.send('fastforward')
-        }
-
-        window.menu = {
-            status: "Not Connected",
-            play_button_text: "Play",
-            experiment_state: "EXPERIMENT_INITIALIZED"
-        }
-
-        var o = rivets.bind(document.getElementById('body'), {
-            menu: menu
-        })
-    </script>
+    <!-- Javascript dependencies -->
+    <script src="/js/libs/loadJS.js"></script>
+    <script src="/js/entities/loadEntities.js"></script>
+    <script src="/js/main.js"></script>
 </body>
 
 </html>

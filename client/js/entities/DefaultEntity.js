@@ -1,8 +1,5 @@
 class DefaultEntity {
     constructor(entity, scale) {
-
-
-
         try {
             var dot = new THREE.Mesh(new THREE.BoxBufferGeometry(
                 1,
@@ -27,8 +24,6 @@ class DefaultEntity {
         } catch (ignored) {
             this.mesh = null; // dont create anything
         }
-
-
     }
 
     update(entity, scale) {
@@ -41,8 +36,6 @@ class DefaultEntity {
                 entity.orientation.y,
                 entity.orientation.z,
                 entity.orientation.w));
-        } catch (ignored) {
-
-        }
+        } catch (ignored) {}
     }
 }
