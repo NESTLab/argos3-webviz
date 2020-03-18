@@ -1,7 +1,7 @@
 /*  */
 (function (w) {
   var ConnectWebSockets = function () {
-    var sockets_api = server + "?broadcasts";
+    var sockets_api = server + "?broadcasts,logs";
 
     /* use wss:// for SSL supported */
     if (window.location.protocol == 'https:') {
@@ -35,40 +35,60 @@
     });
     window.experiment = {}
     wsp.onUnpackedMessage.addListener(data => {
-      /* Update experiment */
-      window.experiment.data = data;
+      /* Only if the message is a broadcast message */
+      if (data.type == "broadcast") {
+        /* Update experiment */
+        window.experiment.data = data;
 
-      var getText = function (state) {
-        switch (state) {
-          case 'EXPERIMENT_INITIALIZED':
-          case 'EXPERIMENT_DONE':
-          case 'EXPERIMENT_PAUSED':
-            return "Play";
-            break;
-          case 'EXPERIMENT_FAST_FORWARDING':
-          case 'EXPERIMENT_PLAYING':
-            return "Pause";
-            break;
-          default:
-            break;
+        var getText = function (state) {
+          switch (state) {
+            case 'EXPERIMENT_INITIALIZED':
+            case 'EXPERIMENT_DONE':
+            case 'EXPERIMENT_PAUSED':
+              return "Play";
+              break;
+            case 'EXPERIMENT_FAST_FORWARDING':
+            case 'EXPERIMENT_PLAYING':
+              return "Pause";
+              break;
+            default:
+              break;
+          }
         }
-      }
-      window.experiment.play_button_text = getText(data.state)
+        window.experiment.play_button_text = getText(data.state)
 
-      window.experiment.counter = data.steps;
+        window.experiment.counter = data.steps;
 
 
-      if (!window.isInitialized) {
-        window.isInitialized = true;
+        if (!window.isInitialized) {
+          window.isInitialized = true;
 
-        /* TODO: calculate best scale */
-        var scale__ = data.arena.size.x * 4;
-        // Currently we need 50
+          /* TODO: calculate best scale */
+          var scale__ = data.arena.size.x * 4;
+          // Currently we need 50
 
-        initSceneWithScale(scale__);
+          initSceneWithScale(scale__);
 
-        /* Start Animation */
-        animate();
+          /* Start Animation */
+          animate();
+        }
+      } else if (data.type == "log") {
+        if (data.messages) {
+          var log_ = [], logerr_ = [];
+          for (let i = 0; i < data.messages.length; i++) {
+            if (data.messages[i].log_type == 'LOG') {
+              log_.unshift("<div><pre><span class='b'>[t=" +
+                data.messages[i].step + "]</span>" +
+                data.messages[i].log_message + "</pre></div>");
+            } else {
+              logerr_.unshift("<div><pre><span class='b'>[t=" +
+                data.messages[i].step + "]</span>" +
+                data.messages[i].log_message + "</pre></div>");
+            }
+          }
+          window.log_clusterize.prepend(log_)
+          window.logerr_clusterize.prepend(logerr_)
+        }
       }
     });
     wsp.onOpen.addListener(() => {

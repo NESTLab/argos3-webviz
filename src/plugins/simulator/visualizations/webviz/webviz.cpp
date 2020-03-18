@@ -92,12 +92,14 @@ namespace argos {
     /* Initialize the LOG streams from Execute thread */
     m_pcLogStream =
       new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData) {
-        m_cWebServer->EmitLog("LOG", str_logData);
+        m_cWebServer->EmitLog(
+          "LOG", ToString(m_cSpace.GetSimulationClock()), str_logData);
       });
 
     m_pcLogErrStream = new Webviz::CLogStream(
       LOGERR.GetStream(), [this](std::string str_logData) {
-        m_cWebServer->EmitLog("LOGERR", str_logData);
+        m_cWebServer->EmitLog(
+          "LOGERR", ToString(m_cSpace.GetSimulationClock()), str_logData);
       });
 
     /* Should we play instantly? */

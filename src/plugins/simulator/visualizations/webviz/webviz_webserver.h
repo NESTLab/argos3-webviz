@@ -54,7 +54,7 @@ namespace argos {
       std::queue<std::string> m_cEventQueue;
 
       /** A Queue to push logs to client */
-      std::queue<std::string> m_cLogQueue;
+      std::queue<nlohmann::json> m_cLogQueue;
 
       /** Struct to hold websocket with its loop thread */
       template <bool SSL>
@@ -131,8 +131,15 @@ namespace argos {
        */
       void EmitEvent(std::string str_event_name, EExperimentState e_state);
 
-      /** Broadcasts on log channels to all the connected clients */
-      void EmitLog(std::string, std::string);
+      /**
+       * @brief Broadcasts on log channels to all the connected clients
+       *
+       * @param log_type either LOG or LOGERR
+       * @param timestep simulation clock/timestep
+       * @param message log message
+       */
+      void EmitLog(
+        std::string log_type, std::string timestep, std::string message);
 
       /** Broadcasts JSON to all the connected clients */
       void Broadcast(nlohmann::json);

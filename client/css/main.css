@@ -9,8 +9,33 @@
     border: 1px solid #dfdfdf;
 }
 
-#layout_app_layout_panel_main .w2ui-panel-content{
+#layout_app_layout_panel_main .w2ui-panel-content {
     overflow: hidden!important;
     border: 0px;
 }
 
+.b {
+    font-weight: bold;
+}
+
+.clusterize-scroll {
+    overflow: auto
+}
+
+.clusterize-extra-row {
+    margin-top: 0!important;
+    margin-bottom: 0!important
+}
+
+.clusterize-extra-row.clusterize-keep-parity {
+    display: none
+}
+
+.clusterize-content {
+    outline: 0;
+    counter-reset: clusterize-counter
+}
+
+.clusterize-no-data td {
+    text-align: center
+}
