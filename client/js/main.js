@@ -10,10 +10,10 @@ var onAllFilesLoaded = function () {
       name: 'app_layout',
       padding: 4,
       panels: [
-        { type: 'top', size: 50, resizable: false, content: 'top' },
+        { type: 'top', size: 50, resizable: false },
         { type: 'left', size: "10%", resizable: true, content: 'left', hidden: true },
         { type: 'main', resizable: true, },
-        { type: 'right', size: "30%", style: "background-color:#fff;border:0px", resizable: true, content: 'right' }
+        { type: 'right', size: "30%", style: "background-color: #f2f2f2;border:0px", resizable: true, content: 'right' }
       ]
     });
     /* Log layout */
@@ -39,6 +39,25 @@ var onAllFilesLoaded = function () {
 
     /* Make them nested */
     w2ui['app_layout'].content('right', w2ui['log_layout']);
+
+
+    /* On Threejs panel Resize */
+    w2ui['app_layout'].on('resize', function (event) {
+      // console.log('Event: ' + event.type + ' Target: ' + event.target);
+      // console.log(event);
+
+      /* When resizing is complete */
+      event.onComplete = function () {
+        if (window.camera) {
+          var threejs_panel = $("#layout_app_layout_panel_main .w2ui-panel-content")
+
+          window.threejs_aspect_ratio = threejs_panel.width() / threejs_panel.height()
+          camera.aspect = window.threejs_aspect_ratio
+          camera.updateProjectionMatrix();
+          renderer.setSize(threejs_panel.width(), threejs_panel.height());
+        }
+      }
+    });
 
     /* Load main logic code sub-files - sequentially */
 
@@ -87,26 +106,45 @@ var onAllFilesLoaded = function () {
         contentId: 'contentAreaLogErr'
       });
 
+
+      /* Add button on top panel */
+      $("#layout_app_layout_panel_top>div.w2ui-panel-content")
+        .addClass('toolbar-flex-container')
+        .append($("<div/>")
+          .addClass('button')
+          .addClass('step-button')
+          .click(function () {
+            window.wsp.send('step')
+          })
+        )
+        .append($("<div/>")
+          .addClass('button')
+          .addClass('play-button')
+        )
+        .append($("<div/>")
+          .addClass('button')
+          .addClass('stop-button')
+          .click(function () {
+            // window.wsp.send('step')
+          })
+        )
+        .append($("<div/>")
+          .addClass('button')
+          .addClass('reset-button')
+          .click(function () {
+            window.wsp.send('reset')
+          })
+        )
+        .append($("<div/>")
+          .addClass('button')
+          .addClass('ff-button')
+          .click(function () {
+            window.wsp.send('fastforward')
+          })
+        )
+
       ConnectWebSockets()
     }, true);
-
-    /* On Threejs panel Resize */
-    w2ui['app_layout'].on('resize', function (event) {
-      // console.log('Event: ' + event.type + ' Target: ' + event.target);
-      // console.log(event);
-
-      /* When resizing is complete */
-      event.onComplete = function () {
-        if (window.camera) {
-          var threejs_panel = $("#layout_app_layout_panel_main .w2ui-panel-content")
-
-          window.threejs_aspect_ratio = threejs_panel.width() / threejs_panel.height()
-          camera.aspect = window.threejs_aspect_ratio
-          camera.updateProjectionMatrix();
-          renderer.setSize(threejs_panel.width(), threejs_panel.height());
-        }
-      }
-    });
   });
 }
 

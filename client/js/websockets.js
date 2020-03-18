@@ -77,12 +77,12 @@
           var log_ = [], logerr_ = [];
           for (let i = 0; i < data.messages.length; i++) {
             if (data.messages[i].log_type == 'LOG') {
-              log_.unshift("<div><pre><span class='b'>[t=" +
-                data.messages[i].step + "]</span>" +
+              log_.unshift("<div class='log'><pre><span class='b'>[t=" +
+                data.messages[i].step + "]</span> " +
                 data.messages[i].log_message + "</pre></div>");
             } else {
-              logerr_.unshift("<div><pre><span class='b'>[t=" +
-                data.messages[i].step + "]</span>" +
+              logerr_.unshift("<div class='log'><pre><span class='b'>[t=" +
+                data.messages[i].step + "]</span> " +
                 data.messages[i].log_message + "</pre></div>");
             }
           }

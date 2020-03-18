@@ -1,8 +1,26 @@
+@font-face {
+    font-family: 'fontello';
+    src: url('/font/fontello.eot?9850759');
+    src: url('/font/fontello.eot?9850759#iefix') format('embedded-opentype'), url('/font/fontello.woff2?9850759') format('woff2'), url('/font/fontello.woff?9850759') format('woff'), url('/font/fontello.ttf?9850759') format('truetype'), url('/font/fontello.svg?9850759#fontello') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.log {
+    font-size: 14px;
+    line-height: 1.2em;
+}
+
 #layout {
     margin-top: 4px;
     margin-left: 4px;
     width: calc(100vw - 8px);
     height: calc(100vh - 10px);
+    background-color: #f2f2f2;
+}
+
+head, body {
+    background-color: #f2f2f2;
 }
 
 .w2ui-panel-content {
@@ -38,4 +56,155 @@
 
 .clusterize-no-data td {
     text-align: center
+}
+
+.toolbar-flex-container {
+    display: -ms-flexbox!important;
+    display: -webkit-flex!important;
+    display: flex!important;
+    -webkit-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
+    -webkit-flex-wrap: nowrap;
+    -ms-flex-wrap: nowrap;
+    flex-wrap: nowrap;
+    -webkit-justify-content: flex-start;
+    -ms-flex-pack: start;
+    justify-content: flex-start;
+    -webkit-align-content: stretch;
+    -ms-flex-line-pack: stretch;
+    align-content: stretch;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+}
+
+.toolbar-flex-container>* {
+    -webkit-order: 0;
+    -ms-flex-order: 0;
+    order: 0;
+    -webkit-flex: 0 1 auto;
+    -ms-flex: 0 1 auto;
+    flex: 0 1 auto;
+    -webkit-align-self: auto;
+    -ms-flex-item-align: auto;
+    align-self: auto;
+}
+
+.toolbar-flex-container>div.toolbar-spacer {
+    -webkit-order: 0;
+    -ms-flex-order: 0;
+    order: 0;
+    -webkit-flex: 1 1 auto;
+    -ms-flex: 1 1 auto;
+    flex: 1 1 auto;
+    -webkit-align-self: auto;
+    -ms-flex-item-align: auto;
+    align-self: auto;
+}
+
+.button {
+    /* background: white; */
+    padding: 4px;
+    /* border-radius: 4px; */
+    cursor: pointer;
+    /* margin: 8px; */
+    font-size: 34px;
+    font-family: "fontello";
+    font-style: normal;
+    font-weight: normal;
+    /* display: inline-block; */
+    text-decoration: inherit;
+    width: 1em;
+    margin-right: .2em;
+    text-align: center;
+    /* opacity: .8; */
+    /* For safety - reset parent styles, that can break glyph codes*/
+    font-variant: normal;
+    text-transform: none;
+    /* fix buttons height, for twitter bootstrap */
+    line-height: 1em;
+    /* Animation center compensation - margins should be symmetric */
+    /* remove if not needed */
+    margin-left: .2em;
+    /* you can be more comfortable with increased icons size */
+    /* font-size: 120%; */
+    /* Font smoothing. That was taken from TWBS */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: #444;
+}
+
+.button:disabled, .button.disabled, .button.disabled:hover, .button.disabled:focus {
+    cursor: not-allowed;
+    color: #777;
+    text-shadow: none;
+}
+
+.button:hover, .button:focus {
+    text-shadow: 1px 1px 5px rgba(127, 127, 127, 0.5);
+    color: #000;
+}
+
+/* Play button */
+
+.play-button:active:before, .play-button.active:before {
+    content: '\e800';
+}
+
+.play-button:before, .play-button:disabled:active:before, .play-button.active:disabled:before, .play-button.disabled:active:before, .play-button.active.disabled:before {
+    content: '\e805';
+}
+
+/* Stop button */
+
+.stop-button:active:before, .stop-button.active:before {
+    content: '\e802';
+}
+
+.stop-button:before, .stop-button:disabled:active:before, .stop-button.active:disabled:before, .stop-button.disabled:active:before, .stop-button.active.disabled:before {
+    content: '\e801';
+}
+
+/* Reset button */
+
+.reset-button:active:before, .reset-button.active:before {
+    content: '\e807';
+    font-size: 28px;
+}
+
+.reset-button:before, .reset-button:disabled:active:before, .reset-button.active:disabled:before, .reset-button.disabled:active:before, .reset-button.active.disabled:before {
+    content: '\e80a';
+}
+
+/* FF button */
+
+.ff-button:active:before, .ff-button.active:before {
+    content: '\e809';
+}
+
+.ff-button:before, .ff-button:disabled:active:before, .ff-button.active:disabled:before, .ff-button.disabled:active:before, .ff-button.active.disabled:before {
+    content: '\e808';
+}
+
+/* Step button */
+
+.step-button:active:before, .step-button.active:before {
+    content: '\e80d';
+    display: inline-block;
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+
+.step-button:before, .step-button:disabled:active:before, .step-button.active:disabled:before, .step-button.disabled:active:before, .step-button.active.disabled:before {
+    content: '\e80c';
+    display: inline-block;
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    transform: rotate(90deg);
 }
