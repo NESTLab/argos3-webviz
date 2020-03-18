@@ -1,8 +1,4 @@
 
-/* Server IP and port */
-var server = window.location.hostname + ":3000";
-// You need to change this port if 
-
 
 /* Define function to run after all files are loaded */
 var onAllFilesLoaded = function () {
@@ -15,55 +11,94 @@ var onAllFilesLoaded = function () {
       padding: 4,
       panels: [
         { type: 'top', size: 50, resizable: false, content: 'top' },
-        { type: 'left', size: 200, resizable: true, content: 'left', hidden: true },
-        { type: 'main', content: '<div id="main_panel"></div>' },
-        { type: 'right', size: "20%", resizable: true, content: 'right' }
+        { type: 'left', size: "10%", resizable: true, content: 'left', hidden: true },
+        { type: 'main', resizable: true, },
+        { type: 'right', size: "30%", style: "background-color:#fff;border:0px", resizable: true, content: 'right' }
       ]
     });
     /* Log layout */
     $().w2layout({
       name: 'log_layout',
+      padding: 5,
       panels: [{
         type: 'top',
         size: "50%",
         resizable: true,
-        style: "padding:4px 8px;background-color:#ffffff",
-        content: 'top'
+        style: "padding:4px 8px",
+        content: 'LOG'
       }, {
         type: 'main',
         size: "50%",
         resizable: true,
-        style: "padding:0px;background-color:#ffffff",
-        content: 'main'
+        style: "padding:4px 8px",
+        content: 'LOGERR'
       }]
     });
 
     /* Make them nested */
     w2ui['app_layout'].content('right', w2ui['log_layout']);
 
-    /* Start next code */
-    ConnectWebSockets();
+    /* Load main logic code sub-files - sequentially */
+
+    /* Load all entities */
+    loadJS("/js/entities/loadEntities.js", true);
+
+    /* load threejs scene */
+    loadJS("/js/three_scene.js", function () {
+      /* Setup scene */
+      var renderer = IntializeThreejs()
+
+      /* Get the panel from layout */
+      var threejs_panel = $("#layout_app_layout_panel_main .w2ui-panel-content")
+
+      renderer.setSize(threejs_panel.width(), threejs_panel.height());
+
+      /* Define aspect ratio to be used later */
+      window.threejs_aspect_ratio = threejs_panel.width() / threejs_panel.height()
+
+      /* Add canvas to page */
+      threejs_panel.append(renderer.domElement);
+    }, true);
+
+    /* Load websockets and connect to server */
+    loadJS("/js/websockets.js", function () {
+      ConnectWebSockets()
+    }, true);
+
+    /* On Threejs panel Resize */
+    w2ui['app_layout'].on('resize', function (event) {
+      // console.log('Event: ' + event.type + ' Target: ' + event.target);
+      // console.log(event);
+
+      /* When resizing is complete */
+      event.onComplete = function () {
+        if (window.camera) {
+          var threejs_panel = $("#layout_app_layout_panel_main .w2ui-panel-content")
+
+          window.threejs_aspect_ratio = threejs_panel.width() / threejs_panel.height()
+          camera.aspect = window.threejs_aspect_ratio
+          camera.updateProjectionMatrix();
+          renderer.setSize(threejs_panel.width(), threejs_panel.height());
+        }
+      }
+    });
   });
 }
 
-var ConnectWebSockets = function () {
-
-}
-
 /* Load Jquery - sequentially */
-loadJS("/js/jquery.min.js", true)
-loadJS("/js/w2ui-1.5.rc1.min.js", true)
+loadJS("/js/libs/jquery.min.js", true)
+loadJS("/js/libs/w2ui-1.5.rc1.min.js", true)
 
 /* Load Websockets code */
-loadJS("/js/websocket-as-promised.js", true);
-loadJS("/js/robust-websocket.js", true);
+loadJS("/js/libs/websocket-as-promised.js", true);
+loadJS("/js/libs/robust-websocket.js", true);
 
 /* Load Three.js code */
-loadJS("/js/three.min.js", true);
-loadJS("/js/OrbitControls.js", true);
-loadJS("/js/GLTFLoader.js", true);
-loadJS("/js/stats.min.js", true);
-loadJS("/js/GLTFLoader.js", true);
+loadJS("/js/libs/three.min.js", true);
+loadJS("/js/libs/OrbitControls.js", true);
+loadJS("/js/libs/GLTFLoader.js", true);
+loadJS("/js/libs/stats.min.js", true);
+loadJS("/js/libs/GLTFLoader.js", true);
 
 /* Start running javascript after all files are loaded */
-loadJS("/js/rivets.bundled.min.js", onAllFilesLoaded, true);
+loadJS("/js/libs/rivets.bundled.min.js", onAllFilesLoaded, true);
