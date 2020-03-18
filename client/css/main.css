@@ -103,6 +103,32 @@ head, body {
     align-self: auto;
 }
 
+.toolbar_counter {
+    font-family: monospace;
+    margin-left: 12px;
+    margin-right: 4px;
+    padding: 8px 2px;
+    border: 1px solid #777;
+    font-size: 16px;
+    min-width: 50px;
+    text-align: end;
+    font-weight: lighter;
+}
+
+.toolbar_divider {
+    margin-left: 4px;
+    margin-right: 4px;
+    border-left: 1px double #999;
+    height: 30px;
+    font-size: 16px;
+}
+
+.toolbar_status {
+    font-family: monospace;
+    margin-left: 4px;
+    margin-right: 8px;
+}
+
 .button {
     /* background: white; */
     padding: 4px;
@@ -154,6 +180,16 @@ head, body {
 
 .play-button:before, .play-button:disabled:active:before, .play-button.active:disabled:before, .play-button.disabled:active:before, .play-button.active.disabled:before {
     content: '\e805';
+}
+
+/* pause button */
+
+.pause-button:active:before, .pause-button.active:before {
+    content: '\e804';
+}
+
+.pause-button:before, .pause-button:disabled:active:before, .pause-button.active:disabled:before, .pause-button.disabled:active:before, .pause-button.active.disabled:before {
+    content: '\e803';
 }
 
 /* Stop button */

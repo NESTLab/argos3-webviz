@@ -33,29 +33,74 @@
         })
       }
     });
-    window.experiment = {}
+
+
     wsp.onUnpackedMessage.addListener(data => {
       /* Only if the message is a broadcast message */
       if (data.type == "broadcast") {
         /* Update experiment */
         window.experiment.data = data;
+        window.experiment.state = data.state
 
-        var getText = function (state) {
-          switch (state) {
-            case 'EXPERIMENT_INITIALIZED':
-            case 'EXPERIMENT_DONE':
-            case 'EXPERIMENT_PAUSED':
-              return "Play";
-              break;
-            case 'EXPERIMENT_FAST_FORWARDING':
-            case 'EXPERIMENT_PLAYING':
-              return "Pause";
-              break;
-            default:
-              break;
-          }
+        /* Reset settings */
+        $("#ff_button").removeClass('active')
+
+        switch (data.state) {
+          case 'EXPERIMENT_INITIALIZED':
+            window.experiment.status = "Initialized";
+            break;
+          case 'EXPERIMENT_DONE':
+            /* disable all buttons */
+            $("#layout_app_layout_panel_top .button").addClass("disabled")
+            /* Only enable reset button */
+            $("#layout_app_layout_panel_top .button.reset-button")
+              .removeClass("disabled")
+
+            window.experiment.status = "Done";
+            break;
+          case 'EXPERIMENT_PAUSED':
+            window.experiment.status = "Paused";
+            break;
+          case 'EXPERIMENT_FAST_FORWARDING':
+            window.experiment.status = "Fast Forwarding";
+            break;
+          case 'EXPERIMENT_PLAYING':
+            window.experiment.status = "Playing";
+            break;
+          default:
+            window.experiment.status = "Unknown";
+            break;
         }
-        window.experiment.play_button_text = getText(data.state)
+        switch (data.state) {
+          case 'EXPERIMENT_INITIALIZED':
+          case 'EXPERIMENT_DONE':
+          case 'EXPERIMENT_PAUSED':
+
+            $("#play_button").removeClass('pause-button')
+              .addClass('play-button')
+              .removeClass('active')
+              .attr("title", "Play experiment")
+              .prop("title", "Play experiment")//for IE
+
+            break;
+          case 'EXPERIMENT_FAST_FORWARDING':
+            $("#play_button").removeClass('play-button')
+              .addClass('pause-button')
+              .removeClass('active')
+              .attr("title", "Pause experiment")
+              .prop("title", "Pause experiment")//for IE
+
+            $("#ff_button").addClass('active')
+            break;
+          case 'EXPERIMENT_PLAYING':
+            $("#play_button").removeClass('play-button')
+              .addClass('pause-button')
+              .addClass('active')
+              .attr("title", "Pause experiment")
+              .prop("title", "Pause experiment")//for IE
+          default:
+            break;
+        }
 
         window.experiment.counter = data.steps;
 
@@ -90,16 +135,35 @@
           window.logerr_clusterize.prepend(logerr_)
         }
       }
+
+      /* Updating old state, to detect change in state */
+      if (window.experiment.old_state != window.experiment.state) {
+        console.log("Change");
+
+        /* Maybe the experiment was reset */
+        if (window.experiment.state == "EXPERIMENT_INITIALIZED") {
+          /* If previously was done, reset button states */
+          if (window.experiment.old_state == "EXPERIMENT_DONE") {
+            $("#layout_app_layout_panel_top .button").removeClass("disabled")
+          }
+          setTimeout(() => { // due to some racing issues
+            window.log_clusterize.clear()
+            window.logerr_clusterize.clear()
+          }, 10);
+        }
+
+        window.experiment.old_state = window.experiment.state
+      }
     });
     wsp.onOpen.addListener(() => {
       console.log('Connection opened')
-      window.experiment.status = "Connected";
+      window.experiment.connection = "Connected";
       window.experiment.isConnected = true;
     });
 
     wsp.onClose.addListener(() => {
       console.log('Connection closed')
-      window.experiment.status = "Not Connected";
+      window.experiment.connection = "Not Connected";
       window.experiment.isConnected = false;
     });
 

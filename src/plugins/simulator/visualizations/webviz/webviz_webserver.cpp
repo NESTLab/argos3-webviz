@@ -306,21 +306,24 @@ namespace argos {
           {
             std::lock_guard<std::mutex> guard(m_mutex4LogQueue);
 
-            /* Create a temp json aggregate object */
-            nlohmann::json jsonLogObject;
-            jsonLogObject["type"] = "log";
-            /* Added Unix Epoch in milliseconds */
-            jsonLogObject["timestamp"] =
-              std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch())
-                .count();
+            /* If logs are not empty */
+            if (!m_cLogQueue.empty()) {
+              /* Create a temp json aggregate object */
+              nlohmann::json jsonLogObject;
+              jsonLogObject["type"] = "log";
+              /* Added Unix Epoch in milliseconds */
+              jsonLogObject["timestamp"] =
+                std::chrono::duration_cast<std::chrono::milliseconds>(
+                  std::chrono::system_clock::now().time_since_epoch())
+                  .count();
 
-            /* Get all log messages in one string with \n */
-            while (!m_cLogQueue.empty()) {
-              jsonLogObject["messages"].push_back(m_cLogQueue.front());
-              m_cLogQueue.pop();
+              /* Get all log messages in one string with \n */
+              while (!m_cLogQueue.empty()) {
+                jsonLogObject["messages"].push_back(m_cLogQueue.front());
+                m_cLogQueue.pop();
+              }
+              strLogString = jsonLogObject.dump();
             }
-            strLogString = jsonLogObject.dump();
           }  // End of mutex block: m_mutex4LogQueue
 
           std::lock_guard<std::mutex> guard(mutex4VecWebClients);

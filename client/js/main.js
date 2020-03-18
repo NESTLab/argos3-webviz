@@ -2,7 +2,7 @@
 
 /* Define function to run after all files are loaded */
 var onAllFilesLoaded = function () {
-  console.log('All JS files loaded');
+
   /* On Jquery load */
   $(function () {
     /* main panel-layout of the page */
@@ -111,8 +111,20 @@ var onAllFilesLoaded = function () {
       $("#layout_app_layout_panel_top>div.w2ui-panel-content")
         .addClass('toolbar-flex-container')
         .append($("<div/>")
+          .addClass('toolbar_counter')
+          .attr("title", "Step counter")
+          .prop("title", "Step counter")//for IE
+          .html("{experiment.counter}")
+        )
+        /* Divider */
+        .append($("<div/>")
+          .addClass('toolbar_divider')
+        )
+        .append($("<div/>")
           .addClass('button')
           .addClass('step-button')
+          .attr("title", "Step experiment")
+          .prop("title", "Step experiment")//for IE
           .click(function () {
             window.wsp.send('step')
           })
@@ -120,29 +132,65 @@ var onAllFilesLoaded = function () {
         .append($("<div/>")
           .addClass('button')
           .addClass('play-button')
-        )
-        .append($("<div/>")
-          .addClass('button')
-          .addClass('stop-button')
+          .attr('id', 'play_button')
+          .attr("title", "Play experiment")
+          .prop("title", "Play experiment")//for IE
           .click(function () {
-            // window.wsp.send('step')
-          })
-        )
-        .append($("<div/>")
-          .addClass('button')
-          .addClass('reset-button')
-          .click(function () {
-            window.wsp.send('reset')
+            window.wsp.send('step')
+            if (window.experiment.state != "EXPERIMENT_PLAYING" &&
+              window.experiment.state != "EXPERIMENT_FAST_FORWARDING") {
+              window.wsp.send('play')
+            } else {
+              window.wsp.send('pause')
+            }
           })
         )
         .append($("<div/>")
           .addClass('button')
           .addClass('ff-button')
+          .attr('id', 'ff_button')
+          .attr("title", "Fast forward experiment")
+          .prop("title", "Fast forward experiment")//for IE
           .click(function () {
             window.wsp.send('fastforward')
           })
         )
+        /* Divider */
+        .append($("<div/>")
+          .addClass('toolbar_divider')
+        )
+        // .append($("<div/>")
+        //   .addClass('button')
+        //   .addClass('stop-button')
+        //   .attr("title", "Terminate experiment")
+        //   .prop("title", "Terminate experiment")//for IE
+        //   .click(function () {
+        //     // window.wsp.send('step')
+        //   })
+        // )
+        .append($("<div/>")
+          .addClass('button')
+          .addClass('reset-button')
+          .attr("title", "Reset experiment")
+          .prop("title", "Reset experiment")//for IE
+          .click(function () {
+            window.wsp.send('reset')
+          })
+        )
 
+        /* Spacer */
+        .append($("<div/>").addClass('toolbar-spacer'))
+
+        /* Right side of toolbar */
+        .append($("<div/>")
+          .addClass("toolbar_status")
+          .html("{experiment.status}")
+        )
+
+      window.experiment = {}
+
+      /* Bind data using rivets */
+      rivets.bind($('#experiment'), { experiment: window.experiment })
       ConnectWebSockets()
     }, true);
   });
