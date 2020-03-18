@@ -10,6 +10,17 @@
       sockets_api = "ws://" + sockets_api
     }
 
+    window.experiment.sockets_api = sockets_api
+
+    var loadingPopup = w2popup.open({
+      title: 'Connecting to server at..',
+      buttons: sockets_api,
+      modal: true,
+      showClose: false,
+      width: 300,     // width in px
+      height: 80,
+    });
+
     window.wsp = new window.WebSocketAsPromised(sockets_api, {
       packMessage: data => JSON.stringify(data),
       unpackMessage: data => JSON.parse(data),
@@ -138,8 +149,6 @@
 
       /* Updating old state, to detect change in state */
       if (window.experiment.old_state != window.experiment.state) {
-        console.log("Change");
-
         /* Maybe the experiment was reset */
         if (window.experiment.state == "EXPERIMENT_INITIALIZED") {
           /* If previously was done, reset button states */
@@ -157,12 +166,31 @@
     });
     wsp.onOpen.addListener(() => {
       console.log('Connection opened')
+
+      /* Close connecting dialog */
+      setTimeout(() => {
+        loadingPopup.close()
+        w2popup.close()
+      }, 500);
       window.experiment.connection = "Connected";
       window.experiment.isConnected = true;
     });
 
     wsp.onClose.addListener(() => {
       console.log('Connection closed')
+      setTimeout(() => {
+        loadingPopup.close()
+        setTimeout(() => {
+          $("#disconnectedModal").w2popup({
+            title: 'Cannot connect to server',
+            modal: true,
+            showClose: false,
+            // width: 1000,     // width in px
+            height: 100,
+          });
+        }, 500);
+      }, 500);
+
       window.experiment.connection = "Not Connected";
       window.experiment.isConnected = false;
     });

@@ -7,18 +7,73 @@
     <title>ARGoS-Webviz client</title>
     <meta name="description" content="A webclient for ARGoS-Webviz">
     <meta name="author" content="Prajankya sonar">
+    <style>
+        #preloader {
+            position: fixed;
+            z-index: 999999;
+            width: 100vw;
+            height: 100vh;
+            background-color: #fff;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0px 1px 1px #4d4d4d;
+            color: #222;
+        }
 
-    <!-- Stylesheet dependencies -->
-    <link rel="stylesheet" href="/css/w2ui-1.5.rc1.min.css">
-    <link rel="stylesheet" href="/css/reset.css">
-    <link rel="stylesheet" href="/css/main.css">
+        #preloader>* {
+            padding: 20px;
+        }
+
+        #preloader h1 {
+            font-size: 1.7em;
+        }
+
+        .loader {
+            border: 16px solid #f3f3f3;
+            /* Light grey */
+            border-top: 16px solid #3498db;
+            /* Blue */
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 
 <body id="experiment">
+    <div id="preloader">
+        <h1>ARGoS-Webviz Client</h1>
+        <h4>Loading..</h4>
+        <div class="loader"></div>
+    </div>
 
     <div id="layout">
     </div>
 
+    <!-- Modal when disconnected -->
+    <div id="disconnectedModal" hidden>
+        <div class="w2ui-centered">
+            Plese verify the server is running at
+            <br>
+            {experiment.sockets_api}
+            <br><br>
+            And then refresh this page
+        </div>
+    </div>
     <!-- Variables declaration -->
     <script>
         /* Server IP and port */
@@ -26,8 +81,15 @@
         /* Currently it takes the same server from where these files are hosted */
     </script>
 
+
+    <!-- Stylesheet dependencies -->
+    <link rel="stylesheet" href="/css/w2ui-1.5.rc1.min.css">
+    <link rel="stylesheet" href="/css/reset.css">
+    <link rel="stylesheet" href="/css/main.css">
+
     <!-- Javascript dependencies -->
     <script src="/js/libs/loadJS.js"></script>
+    <script src="/js/entities/loadEntities.js"></script>
     <script src="/js/main.js"></script>
 </body>
 

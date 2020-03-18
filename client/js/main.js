@@ -43,9 +43,6 @@ var onAllFilesLoaded = function () {
 
     /* On Threejs panel Resize */
     w2ui['app_layout'].on('resize', function (event) {
-      // console.log('Event: ' + event.type + ' Target: ' + event.target);
-      // console.log(event);
-
       /* When resizing is complete */
       event.onComplete = function () {
         if (window.camera) {
@@ -60,10 +57,6 @@ var onAllFilesLoaded = function () {
     });
 
     /* Load main logic code sub-files - sequentially */
-
-    /* Load all entities */
-    loadJS("/js/entities/loadEntities.js", true);
-
     /* load threejs scene */
     loadJS("/js/three_scene.js", function () {
       /* Setup scene */
@@ -191,6 +184,8 @@ var onAllFilesLoaded = function () {
 
       /* Bind data using rivets */
       rivets.bind($('#experiment'), { experiment: window.experiment })
+
+      $("#preloader").fadeOut()
       ConnectWebSockets()
     }, true);
   });
