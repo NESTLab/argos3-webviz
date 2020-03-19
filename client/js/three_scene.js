@@ -55,7 +55,7 @@ function initSceneWithScale(_scale) {
   controls.dampingFactor = 0.05;
   controls.screenSpacePanning = false;
   controls.minDistance = scale / 3;
-  controls.maxDistance = scale * 10;
+  controls.maxDistance = scale * 2 * Math.max(window.experiment.data.arena.size.y, window.experiment.data.arena.size.x);
   controls.maxPolarAngle = Math.PI / 2;
 
   var floor_found = false;
@@ -80,7 +80,7 @@ function initSceneWithScale(_scale) {
     new THREE.TextureLoader().load("/images/ground.png", function (texture) {
       texture.minFilter = THREE.LinearFilter;
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(5, 5);
+      texture.repeat.set(scale / 2.5, scale / 2.5);
 
       var material = new THREE.MeshPhongMaterial({
         specular: 0x111111,
