@@ -2,13 +2,14 @@ class Floor {
     constructor(entity, scale, callback) {
         this.scale = scale;
 
-        console.log(window.experiment.data.arena.size.x * scale);
-
         var geometry = new THREE.BoxBufferGeometry(
             window.experiment.data.arena.size.x * scale,
             window.experiment.data.arena.size.y * scale,
             0.01
         );
+
+        /* Bring to on top of zero*/
+        geometry.translate(0, 0, -0.005 * scale);
 
         var that = this
         if (entity.floor_image) {

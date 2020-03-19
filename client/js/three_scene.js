@@ -58,26 +58,40 @@ function initSceneWithScale(_scale) {
   controls.maxDistance = scale * 10;
   controls.maxPolarAngle = Math.PI / 2;
 
-  /* Ground plane */
-  var plane_geometry = new THREE.BoxBufferGeometry(
-    window.experiment.data.arena.size.x * scale,
-    window.experiment.data.arena.size.y * scale,
-    0.01
-  );
-  new THREE.TextureLoader().load("/images/ground.png", function (texture) {
-    texture.minFilter = THREE.LinearFilter;
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(5, 5);
+  var floor_found = false;
+  window.experiment.data.entities.map(function (entity) {
+    if (entity.type == "floor") {
+      floor_found = true
+    }
+  })
 
-    var material = new THREE.MeshPhongMaterial({
-      specular: 0x111111,
-      shininess: 10,
-      map: texture
-    })
-    var plane = new THREE.Mesh(plane_geometry, material);
+  /* If no floor entity in experiment */
+  if (!floor_found) {
+    /* Ground plane */
+    var plane_geometry = new THREE.BoxBufferGeometry(
+      window.experiment.data.arena.size.x * scale,
+      window.experiment.data.arena.size.y * scale,
+      0.01
+    );
 
-    scene.add(plane)
-  });
+    /* Bring to on top of zero*/
+    plane_geometry.translate(0, 0, -0.005 * scale);
+
+    new THREE.TextureLoader().load("/images/ground.png", function (texture) {
+      texture.minFilter = THREE.LinearFilter;
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(5, 5);
+
+      var material = new THREE.MeshPhongMaterial({
+        specular: 0x111111,
+        shininess: 10,
+        map: texture
+      })
+      var plane = new THREE.Mesh(plane_geometry, material);
+
+      scene.add(plane)
+    });
+  }
 }
 
 function cleanUpdateScene() {
