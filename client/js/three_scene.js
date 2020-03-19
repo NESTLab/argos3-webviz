@@ -1,13 +1,17 @@
 
-var camera, controls, scene, renderer, stats;
+var camera, controls, renderer, stats;
 var scale;
+
+var scene = new THREE.Scene();
+
+var selectedEntities = {}
+
 
 window.isInitialized = false;
 window.isLoadingModels = false;
 
 /* Initialize Three.js scene */
 THREE.Object3D.DefaultUp.set(0, 0, 1);
-scene = new THREE.Scene();
 scene.background = new THREE.Color(0x007f7f);
 
 
@@ -26,14 +30,20 @@ function IntializeThreejs(params) {
   /* Lights */
   var light = new THREE.DirectionalLight(0xffffff, 1);
   light.position.set(1, -1, 1);
+  light.layers.enable(0);// enabled by default
+  light.layers.enable(1);// All selectable objects
   scene.add(light);
 
   var light = new THREE.DirectionalLight(0x222222);
   light.position.set(-1, 1, -1);
+  light.layers.enable(0);// enabled by default
+  light.layers.enable(1);// All selectable objects
   scene.add(light);
 
   var light = new THREE.AmbientLight(0x333333);
   light.position.set(0, 0, 1);
+  light.layers.enable(0);// enabled by default
+  light.layers.enable(1);// All selectable objects
   scene.add(light);
 
   return renderer;
@@ -46,6 +56,9 @@ function initSceneWithScale(_scale) {
 
   camera.position.set(-scale * 3, 0, scale * 5);
 
+  camera.layers.enable(0); // enabled by default
+  camera.layers.enable(1); // All selectable objects
+
   // Controls
   // Possible types: OrbitControls, MapControls
   controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -53,10 +66,12 @@ function initSceneWithScale(_scale) {
   controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
 
   controls.dampingFactor = 0.05;
-  controls.screenSpacePanning = false;
-  controls.minDistance = scale / 3;
-  controls.maxDistance = scale * 2 * Math.max(window.experiment.data.arena.size.y, window.experiment.data.arena.size.x);
   controls.maxPolarAngle = Math.PI / 2;
+  controls.screenSpacePanning = false;
+
+  controls.minDistance = scale / 3;
+  controls.maxDistance = scale * 2 * Math.max(window.experiment.data.arena.size.y,
+    window.experiment.data.arena.size.x);
 
   var floor_found = false;
   window.experiment.data.entities.map(function (entity) {
@@ -113,6 +128,23 @@ function cleanUpdateScene() {
       GetEntity(entity, scale, function (entityObject) {
         if (entityObject) {
           sceneEntities[entity.id] = entityObject;
+
+          /* Its not an object with "is_movable", so considering it movable(robots) */
+          if (typeof entity.is_movable === 'undefined' || entity.is_movable === null) {
+            /* Add to selectable layer */
+            entityObject.mesh.layers.set(1);
+            entityObject.mesh.traverse(function (child) { child.layers.set(1) })
+          } else {
+            /* If "is_movable" is true */
+            if (entity.is_movable && entity.is_movable === true) {
+              /* Add to selectable layer */
+              entityObject.mesh.layers.set(1);
+            } else {
+              /* Non movable */
+              entityObject.mesh.layers.set(0);
+            }
+          }
+
           scene.add(entityObject.mesh);
         }
 
@@ -136,6 +168,74 @@ function cleanUpdateScene() {
   })
 }
 
+
+function onThreejsPanelMouseClick(event) {
+  var mouse = new THREE.Vector2();
+  var raycaster = new THREE.Raycaster();
+  raycaster.layers.set(1);// Allow to select only in layer 1
+
+
+  // Convert to -1 to +1
+  mouse.x = (event.offsetX / window.threejs_panel.width()) * 2 - 1;
+  mouse.y = - (event.offsetY / window.threejs_panel.height()) * 2 + 1;
+
+
+  // update the picking ray with the camera and mouse position
+  raycaster.setFromCamera(mouse, camera);
+
+  // calculate objects intersecting the picking ray // true for recursive(nested)
+  var intersects = raycaster.intersectObjects(scene.children, true);
+
+  if (intersects.length > 0) {
+    /* Get only the top object */
+    var object = intersects[0].object
+    /* Get top parent mesh */
+    while (object.parent.type === "Mesh") {
+      object = object.parent
+    }
+
+    /* Already selected */
+    if (selectedEntities[object.uuid]) {
+      //TODO
+      // if ctrl go to move
+      if (event.shiftKey) {
+        /* remove from selection */
+        var boundingBox = selectedEntities[object.uuid]
+
+        boundingBox.geometry.dispose();
+        boundingBox.material.dispose();
+        scene.remove(boundingBox);
+
+        delete selectedEntities[object.uuid];
+      }
+    } else {/* Object not already selected */
+      if (event.shiftKey) {
+        /* If multiple select is not there,
+         * deselect all currently selected entities
+         */
+        if (!event.ctrlKey) {
+          for (const uuid in selectedEntities) {
+            if (selectedEntities.hasOwnProperty(uuid)) {
+              const boundingBox = selectedEntities[uuid];
+
+              boundingBox.geometry.dispose();
+              boundingBox.material.dispose();
+              scene.remove(boundingBox);
+
+              delete boundingBox
+            }
+          }
+        }
+
+        /* Add to selection */
+        var boundingBox = new THREE.BoxHelper(object, 0xffffff);
+        selectedEntities[object.uuid] = boundingBox
+
+        scene.add(boundingBox);
+      }
+    }
+  }
+}
 
 function animate() {
   requestAnimationFrame(animate);

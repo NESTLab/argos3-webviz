@@ -63,12 +63,16 @@ var onAllFilesLoaded = function () {
       var renderer = IntializeThreejs()
 
       /* Get the panel from layout */
-      var threejs_panel = $("#layout_app_layout_panel_main .w2ui-panel-content")
+      window.threejs_panel = $("#layout_app_layout_panel_main .w2ui-panel-content")
 
       renderer.setSize(threejs_panel.width(), threejs_panel.height());
 
       /* Define aspect ratio to be used later */
       window.threejs_aspect_ratio = threejs_panel.width() / threejs_panel.height()
+
+      /* Add event hander for mouse move, to able to select objects */
+      // threejs_panel.mousemove(onThreejsPanelMouseMove);
+      threejs_panel.click(onThreejsPanelMouseClick);
 
       /* Add canvas to page */
       threejs_panel.append(renderer.domElement);
