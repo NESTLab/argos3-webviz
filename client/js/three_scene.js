@@ -189,8 +189,8 @@ function onThreejsPanelMouseClick(event) {
   if (intersects.length > 0) {
     /* Get only the top object */
     var object = intersects[0].object
-    /* Get top parent mesh */
-    while (object.parent.type === "Mesh") {
+    /* Get root object, whole parent is Scene */
+    while (object.parent.type != "Scene") {
       object = object.parent
     }
 
@@ -222,7 +222,7 @@ function onThreejsPanelMouseClick(event) {
               boundingBox.material.dispose();
               scene.remove(boundingBox);
 
-              delete boundingBox
+              delete selectedEntities[uuid]
             }
           }
         }
