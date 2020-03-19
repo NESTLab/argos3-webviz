@@ -167,16 +167,14 @@ namespace argos {
                    uWS::WebSocket<SSL, true> *pc_ws,
                    std::string_view strv_message,
                    uWS::OpCode e_opCode) {
-                   if (strv_message.compare("play") == 0) {
-                     m_pcMyWebviz->PlayExperiment();
-                   } else if (strv_message.compare("pause") == 0) {
-                     m_pcMyWebviz->PauseExperiment();
-                   } else if (strv_message.compare("step") == 0) {
-                     m_pcMyWebviz->StepExperiment();
-                   } else if (strv_message.compare("reset") == 0) {
-                     m_pcMyWebviz->ResetExperiment();
-                   } else if (strv_message.compare("fastforward") == 0) {
-                     m_pcMyWebviz->FastForwardExperiment();
+                   try {
+                     /* Try to parse the message as JSON */
+                     CommandFromClient(nlohmann::json::parse(strv_message));
+
+                   } catch (nlohmann::json::exception &ignored) {
+                     LOGERR << "[ERROR] " << ignored.what() << '\n';
+                     /* Ignored as we cant guarantee client to send json,
+                     We cannot reply back with error to the client */
                    }
                  },
                .drain =
@@ -366,6 +364,64 @@ namespace argos {
       /* Join all the threads */
       tWebServerThread->join();
       tBroadcasterThread->join();
+    }
+
+    /****************************************/
+    /****************************************/
+    void CWebServer::CommandFromClient(nlohmann::json json_ClientCommand) {
+      auto strCmd = json_ClientCommand["command"].get<std::string>();
+
+      /* Dispatch commands */
+      if (strCmd.compare("play") == 0) {
+        m_pcMyWebviz->PlayExperiment();
+
+      } else if (strCmd.compare("pause") == 0) {
+        m_pcMyWebviz->PauseExperiment();
+
+      } else if (strCmd.compare("step") == 0) {
+        m_pcMyWebviz->StepExperiment();
+
+      } else if (strCmd.compare("reset") == 0) {
+        m_pcMyWebviz->ResetExperiment();
+
+      } else if (strCmd.compare("fastforward") == 0) {
+        /* number of Steps defined */
+        if (json_ClientCommand["steps"].is_number_integer()) {
+          auto strSteps = json_ClientCommand["steps"].get<int16_t>();
+          /* Validate steps */
+          if (1 <= strSteps && strSteps <= 1000) {
+            m_pcMyWebviz->FastForwardExperiment(strSteps);
+          }
+        } else {
+          /* No steps defined */
+          m_pcMyWebviz->FastForwardExperiment();
+        }
+      } else if (strCmd.compare("moveEntity") == 0) {
+        try {
+          CVector3 cNewPos;
+          CQuaternion cNewOrientation;
+
+          cNewPos.SetX(json_ClientCommand["position"]["x"].get<float_t>());
+          cNewPos.SetY(json_ClientCommand["position"]["y"].get<float_t>());
+          cNewPos.SetZ(json_ClientCommand["position"]["z"].get<float_t>());
+
+          cNewOrientation.SetX(
+            json_ClientCommand["orientation"]["x"].get<float_t>());
+          cNewOrientation.SetY(
+            json_ClientCommand["orientation"]["y"].get<float_t>());
+          cNewOrientation.SetZ(
+            json_ClientCommand["orientation"]["z"].get<float_t>());
+          cNewOrientation.SetW(
+            json_ClientCommand["orientation"]["w"].get<float_t>());
+
+          m_pcMyWebviz->MoveEntity(
+            json_ClientCommand["entity_id"].get<std::string>(),
+            cNewPos,
+            cNewOrientation);
+        } catch (const std::exception &e) {
+          LOGERR << "[ERROR] In function MoveEntity: " << e.what() << '\n';
+        }
+      }
     }
 
     /****************************************/

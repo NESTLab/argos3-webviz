@@ -1,11 +1,10 @@
 
 var camera, controls, renderer, stats;
 var scale;
-
-var scene = new THREE.Scene();
-
+var uuid2idMap = {};
 var selectedEntities = {}
 
+var scene = new THREE.Scene();
 
 window.isInitialized = false;
 window.isLoadingModels = false;
@@ -103,6 +102,7 @@ function initSceneWithScale(_scale) {
         map: texture
       })
       var plane = new THREE.Mesh(plane_geometry, material);
+      plane.layers.set(0);
 
       scene.add(plane)
     });
@@ -120,6 +120,9 @@ function cleanUpdateScene() {
       scene.remove(object);
     }
   });
+  /* reset Map */
+  uuid2idMap = {};
+  selectedEntities = {}
 
   var count = window.experiment.data.entities.length
   window.experiment.data.entities.map((entity) => {
@@ -127,20 +130,33 @@ function cleanUpdateScene() {
     if (entity) { //Neglect Null Entities
       GetEntity(entity, scale, function (entityObject) {
         if (entityObject) {
+          /* Copy basic properties from Argos entities to threejs objects */
+          entityObject.id = entity.id;
+          entityObject.type_description = entity.type;
+
+          /* UUID to ID map */
+          uuid2idMap[entityObject.mesh.uuid] = entity.id;
+
           sceneEntities[entity.id] = entityObject;
 
           /* Its not an object with "is_movable", so considering it movable(robots) */
           if (typeof entity.is_movable === 'undefined' || entity.is_movable === null) {
-            /* Add to selectable layer */
-            entityObject.mesh.layers.set(1);
-            entityObject.mesh.traverse(function (child) { child.layers.set(1) })
+            /* Hardcoded floor entity in non-selectable entity */
+            if (entity.type == "floor") {
+              /* Non selectable */
+              entityObject.mesh.layers.set(0);
+            } else {
+              /* Add to selectable layer */
+              entityObject.mesh.layers.set(1);
+              entityObject.mesh.traverse(function (child) { child.layers.set(1) })
+            }
           } else {
             /* If "is_movable" is true */
             if (entity.is_movable && entity.is_movable === true) {
               /* Add to selectable layer */
               entityObject.mesh.layers.set(1);
             } else {
-              /* Non movable */
+              /* Non selectable */
               entityObject.mesh.layers.set(0);
             }
           }
@@ -196,8 +212,6 @@ function onThreejsPanelMouseClick(event) {
 
     /* Already selected */
     if (selectedEntities[object.uuid]) {
-      //TODO
-      // if ctrl go to move
       if (event.shiftKey) {
         /* remove from selection */
         var boundingBox = selectedEntities[object.uuid]
@@ -228,11 +242,65 @@ function onThreejsPanelMouseClick(event) {
         }
 
         /* Add to selection */
-        var boundingBox = new THREE.BoxHelper(object, 0xffffff);
+        var boundingBox = new THREE.BoxHelper(object, 0x000000);
         selectedEntities[object.uuid] = boundingBox
 
         scene.add(boundingBox);
       }
+    }
+  } else { // No object intersected
+    var ids = [];
+
+    for (const uuid in selectedEntities) {
+      if (selectedEntities.hasOwnProperty(uuid)) {
+        if (uuid2idMap[uuid]) { // Found object
+          ids.push(uuid2idMap[uuid]);
+        }// selected object is no more in scene, dont know what to do...
+      }
+    }
+
+
+    /* Move object if  only control pressed, and one object selected */
+    if (event.ctrlKey &&
+      !event.altKey &&
+      !event.shiftKey &&
+      ids.length == 1) {
+
+      /* Robot's Z plane */
+      var z_plane = sceneEntities[ids[0]].mesh.position.z / scale;
+
+      var mouse_point = new THREE.Vector3();
+      mouse_point.x = mouse.x;
+      mouse_point.y = mouse.y;
+      mouse_point.z = z_plane;
+
+      var pos = new THREE.Vector3();
+
+
+      /* Get point under the mouse */
+      mouse_point.unproject(camera);
+      mouse_point.sub(camera.position).normalize();
+      var distance = (z_plane - camera.position.z) / mouse_point.z;
+      pos.copy(camera.position).add(mouse_point.multiplyScalar(distance));
+
+      /* divide by scale to convert back to units from server */
+      pos.divideScalar(scale)
+
+      window.wsp.sendPacked({
+        command: 'moveEntity',
+        entity_id: ids[0],
+        position: {
+          x: pos.x,
+          y: pos.y,
+          z: pos.z
+        },
+        orientation: {
+          x: sceneEntities[ids[0]].mesh.quaternion._x,
+          y: sceneEntities[ids[0]].mesh.quaternion._y,
+          z: sceneEntities[ids[0]].mesh.quaternion._z,
+          w: sceneEntities[ids[0]].mesh.quaternion._w
+        }
+      });
     }
   }
 }
@@ -262,6 +330,12 @@ function render() {
     window.experiment.data.entities.map((entity) => {
       sceneEntities[entity.id].update(entity, scale);
     });
+
+    for (const uuid in selectedEntities) {
+      if (selectedEntities.hasOwnProperty(uuid)) {
+        selectedEntities[uuid].update();
+      }
+    }
   }
 
   renderer.render(scene, camera);

@@ -123,7 +123,7 @@ var onAllFilesLoaded = function () {
           .attr("title", "Step experiment")
           .prop("title", "Step experiment")//for IE
           .click(function () {
-            window.wsp.send('step')
+            window.wsp.sendPacked({ command: 'step' })
           })
         )
         .append($("<div/>")
@@ -133,12 +133,11 @@ var onAllFilesLoaded = function () {
           .attr("title", "Play experiment")
           .prop("title", "Play experiment")//for IE
           .click(function () {
-            window.wsp.send('step')
             if (window.experiment.state != "EXPERIMENT_PLAYING" &&
               window.experiment.state != "EXPERIMENT_FAST_FORWARDING") {
-              window.wsp.send('play')
+              window.wsp.sendPacked({ command: 'play' })
             } else {
-              window.wsp.send('pause')
+              window.wsp.sendPacked({ command: 'pause' })
             }
           })
         )
@@ -149,7 +148,7 @@ var onAllFilesLoaded = function () {
           .attr("title", "Fast forward experiment")
           .prop("title", "Fast forward experiment")//for IE
           .click(function () {
-            window.wsp.send('fastforward')
+            window.wsp.sendPacked({ command: 'fastforward' })
           })
         )
         /* Divider */
@@ -171,7 +170,7 @@ var onAllFilesLoaded = function () {
           .attr("title", "Reset experiment")
           .prop("title", "Reset experiment")//for IE
           .click(function () {
-            window.wsp.send('reset')
+            window.wsp.sendPacked({ command: 'reset' })
           })
         )
 

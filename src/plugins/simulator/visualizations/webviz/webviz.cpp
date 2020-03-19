@@ -258,7 +258,7 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  void CWebviz::FastForwardExperiment() {
+  void CWebviz::FastForwardExperiment(unsigned short un_steps) {
     /* Make sure we are in the right state */
     if (
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_INITIALIZED &&
@@ -273,6 +273,13 @@ namespace argos {
         return;
       }
     }
+
+    /* If Steps are passed, and valid */
+    if (1 <= un_steps && un_steps <= 1000) {
+      /* Update FF steps variable */
+      m_unDrawFrameEvery = un_steps;
+    }
+
     m_bFastForwarding = true;
 
     m_cSimulatorTickMillis = std::chrono::milliseconds(
@@ -449,6 +456,45 @@ namespace argos {
   /****************************************/
   /****************************************/
 
+  void CWebviz::MoveEntity(
+    std::string str_entity_id, CVector3 c_pos, CQuaternion c_orientation) {
+    /* throws CARGoSException if entity doesn't exist */
+    try {
+      CEntity* cEntity = &m_cSpace.GetEntity(str_entity_id);
+      CEmbodiedEntity* pcEntity = dynamic_cast<CEmbodiedEntity*>(cEntity);
+
+      if (pcEntity == NULL) {
+        /* Treat selected entity as a composable entity with an embodied
+         * component */
+        CComposableEntity* pcCompEntity =
+          dynamic_cast<CComposableEntity*>(cEntity);
+        if (pcCompEntity != NULL && pcCompEntity->HasComponent("body")) {
+          pcEntity = &pcCompEntity->GetComponent<CEmbodiedEntity>("body");
+        } else {
+          /* All conversions failed, get out */
+          // s
+          THROW_ARGOSEXCEPTION(
+            "[ERROR] No entity found with id:" + str_entity_id);
+          return;
+        }
+      }
+
+      if (pcEntity->MoveTo(c_pos, c_orientation)) {
+        LOG << "[INFO] Entity Moved (" + str_entity_id + ")" << '\n';
+      } else {
+        LOG << "[WARNING] Entity cannot be moved, collision detected. (" +
+                 str_entity_id + ")"
+            << '\n';
+      }
+    } catch (CARGoSException& ex) {
+      THROW_ARGOSEXCEPTION_NESTED(
+        "[ERROR] No entity found with id:" + str_entity_id, ex);
+    }
+  }
+
+  /****************************************/
+  /****************************************/
+
   CWebviz::~CWebviz() {
     delete m_cWebServer;
     delete m_pcLogStream;
@@ -473,9 +519,8 @@ namespace argos {
     "Prajankya [prajankya@gmail.com]",
     "0.4.21",
     "An interactive web interface to manage argos simulation over network\n",
-    "It allows the user to watch and modify the simulation as it's running in "
-    "an\n"
-    "intuitive way.\n\n"
+    "It allows the user to watch and modify the simulation as it's running \n"
+    "in an intuitive way.\n\n"
     "REQUIRED XML CONFIGURATION\n\n"
     "  <visualization>\n"
     "    <webviz />\n"
@@ -508,7 +553,7 @@ namespace argos {
 
     "ff_draw_frames_every(unsigned short): Number of steps to skip\n"
     "\twhen in fast forward mode\n"
-    "    Default: 10\n\n"
+    "    Default: 2\n\n"
 
     "autoplay(bool): Allows user to auto-play the simulation at startup\n"
     "    Default: false\n\n"

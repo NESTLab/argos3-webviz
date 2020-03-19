@@ -83,6 +83,13 @@ namespace argos {
       struct m_sPerSocketData {};
 
       /**
+       * @brief act on the commands sent from client
+       *
+       * @param json_ClientCommand JSON object from client
+       */
+      void CommandFromClient(nlohmann::json json_ClientCommand);
+
+      /**
        * @brief Function to run server depending on SSL
        *
        * @tparam SSL bool: to start with SSL

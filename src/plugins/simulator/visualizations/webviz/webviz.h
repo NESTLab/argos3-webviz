@@ -41,6 +41,7 @@ namespace argos {
 
 }  // namespace argos
 
+#include <argos3/core/simulator/entity/composable_entity.h>
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/visualization/visualization.h>
@@ -91,8 +92,9 @@ namespace argos {
     /**
      * @brief Fast forwards the experiment.
      *
+     * @param un_steps optionally update fastforward steps to skip
      */
-    void FastForwardExperiment();
+    void FastForwardExperiment(unsigned short un_steps = 0);
 
     /**
      * @brief Resets the state of the experiment to its state right after
@@ -100,6 +102,19 @@ namespace argos {
      *
      */
     void ResetExperiment();
+
+    /**
+     * @brief Move an Entity to a new position
+     *
+     * @param str_entity_id
+     * @param c_pos
+     * @param c_orientation
+     *
+     * @throw CARGoSException if entity doesn't exist
+     *
+     */
+    void MoveEntity(
+      std::string str_entity_id, CVector3 c_pos, CQuaternion c_orientation);
 
    private:
     /** Experiment State, declared atomic as it is used by many threads */

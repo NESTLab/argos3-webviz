@@ -26,7 +26,7 @@
             margin: 0;
             background-color: #000;
         }
-        
+
         canvas {
             display: block;
         }
@@ -50,7 +50,7 @@
                     // A function that given a CloseEvent or an online event (https://developer.mozilla.org/en-US/docs/Online_and_offline_events) and the `RobustWebSocket`,
                     // will return the number of milliseconds to wait to reconnect, or a non-Number to not reconnect.
                     // see below for more examples; below is the default functionality.
-                    shouldReconnect: function(event, ws) {
+                    shouldReconnect: function (event, ws) {
                         if (event.code === 1008 || event.code === 1011) return
                         return [0, 3000, 10000][ws.attempts]
                     },
@@ -70,7 +70,7 @@
             window.menu.experiment_state = data.state
             if (data.state != "EXPERIMENT_PLAYING" && !hasPlayedOnStart) {
                 hasPlayedOnStart = true;
-                window.wsp.send('play');
+                window.wsp.sendPacked('play');
             }
 
             window.menu.counter = data.steps;
@@ -188,11 +188,11 @@
 
 
 
-        const teleportAndLook = (function() {
+        const teleportAndLook = (function () {
             const cameraDirection = new THREE.Vector3();
             const teleportToLook = new THREE.Vector3();
             const cameraOffset = new THREE.Vector3();
-            return function(teleportPos, lookPos, rig, camera) {
+            return function (teleportPos, lookPos, rig, camera) {
                 cameraDirection.set(0, 0, Math.PI);
                 cameraDirection.applyQuaternion(camera.quaternion);
                 // cameraDirection.y = 0;
@@ -294,7 +294,7 @@
             window.experiment.entities.map((entity) => {
 
                 if (entity) { //Neglect Null Entities
-                    GetEntity(entity, scale, function(entityObject) {
+                    GetEntity(entity, scale, function (entityObject) {
                         if (entityObject) {
                             sceneEntities[entity.id] = entityObject;
                             scene.add(entityObject.mesh);
