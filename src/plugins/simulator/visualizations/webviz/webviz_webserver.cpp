@@ -232,7 +232,8 @@ namespace argos {
               m_unPort,
               [&](auto *pc_token) {
                 if (pc_token) {
-                  LOG << "[INFO] Thread listening on port " << m_unPort << '\n';
+                  LOG << "[INFO] ARGoS3-Webviz server listening on port "
+                      << m_unPort << '\n';
                 } else {
                   throw CARGoSException(
                     "[Error] CWebServer::Start() failed to listen on "
