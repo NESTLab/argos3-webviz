@@ -138,10 +138,10 @@ namespace argos {
                    uWS::WebSocket<SSL, true> *pc_ws, uWS::HttpRequest *pc_req) {
                    /* Selectivly subscribe to different channels */
                    if (pc_req->getQuery().size() > 0) {
-                     std::stringstream str_stream(
+                     std::stringstream strStream(
                        std::string(pc_req->getQuery()));
                      std::string str_token;
-                     while (std::getline(str_stream, str_token, ',')) {
+                     while (std::getline(strStream, str_token, ',')) {
                        pc_ws->subscribe(str_token);
                      }
                    } else {
@@ -212,19 +212,19 @@ namespace argos {
               "/", /* Start with SSL */
               [](auto *res, auto *req) {
                 res->cork([res]() {
-                  std::stringstream strs_stream;
-                  strs_stream << "Reached ARGoS-Webviz server\n\n";
-                  strs_stream << "Webviz version: ";
-                  strs_stream << ARGOS_WEBVIZ_VERSION;
-                  strs_stream << '\n';
-                  strs_stream << "ARGoS3 version: ";
-                  strs_stream << ARGOS_VERSION;
-                  strs_stream << '\n';
-                  strs_stream << "ARGoS3 release: ";
-                  strs_stream << ARGOS_RELEASE;
-                  strs_stream << '\n';
+                  std::stringstream strStream;
+                  strStream << "Reached ARGoS-Webviz server\n\n";
+                  strStream << "Webviz version: ";
+                  strStream << ARGOS_WEBVIZ_VERSION;
+                  strStream << '\n';
+                  strStream << "ARGoS3 version: ";
+                  strStream << ARGOS_VERSION;
+                  strStream << '\n';
+                  strStream << "ARGoS3 release: ";
+                  strStream << ARGOS_RELEASE;
+                  strStream << '\n';
 
-                  res->end(strs_stream.str());
+                  res->end(strStream.str());
                 });
               })
             /* Start listening to Port */

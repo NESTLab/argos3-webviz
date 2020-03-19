@@ -185,7 +185,6 @@
             title: 'Cannot connect to server',
             modal: true,
             showClose: false,
-            // width: 1000,     // width in px
             height: 100,
           });
         }, 500);

@@ -58,20 +58,26 @@ function initSceneWithScale(_scale) {
   controls.maxDistance = scale * 10;
   controls.maxPolarAngle = Math.PI / 2;
 
-  // Grid
-  var grid = new THREE.GridHelper(scale * 5, scale / 4, 0x111111, 0x111111);
-  grid.geometry.rotateX(Math.PI / 2);
-  scene.add(grid);
-
   /* Ground plane */
-  var plane = new THREE.Mesh(new THREE.PlaneGeometry(
-    scale * 5, scale * 5
-  ), new THREE.MeshBasicMaterial({
-    color: 0xaaaaaa
-  }));
-  plane.position.z = -0.2
+  var plane_geometry = new THREE.BoxBufferGeometry(
+    window.experiment.data.arena.size.x * scale,
+    window.experiment.data.arena.size.y * scale,
+    0.01
+  );
+  new THREE.TextureLoader().load("/images/ground.png", function (texture) {
+    texture.minFilter = THREE.LinearFilter;
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(5, 5);
 
-  scene.add(plane)
+    var material = new THREE.MeshPhongMaterial({
+      specular: 0x111111,
+      shininess: 10,
+      map: texture
+    })
+    var plane = new THREE.Mesh(plane_geometry, material);
+
+    scene.add(plane)
+  });
 }
 
 function cleanUpdateScene() {
