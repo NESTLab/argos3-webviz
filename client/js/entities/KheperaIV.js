@@ -14,21 +14,15 @@ class KheperaIV {
             var boundingBox = new THREE.Box3().setFromObject(kheperaiv_bot);
 
             for (let i = 0; i < kheperaiv_bot.children.length; i++) {
-                /* The scale in model were not right */
-                kheperaiv_bot.children[i].geometry.scale(0.825, 0.825, 1);
-
                 /* Move above the surface */
-                kheperaiv_bot.children[i].geometry.translate(0, 0, boundingBox.getSize().z + 4.7 * UNIT_SCALE);
+                kheperaiv_bot.children[i].geometry.translate(0, 0, boundingBox.getSize().z);
 
                 kheperaiv_bot.children[i].material = new THREE.MeshBasicMaterial({
                     map: kheperaiv_bot.children[i].material.map,
                     color: 0xffffff,
                     side: THREE.SingleSide
-
                 });
             }
-            kheperaiv_bot.rotateZ(1.572);
-
 
             // --- LED 1
             var led1Geom = new THREE.SphereBufferGeometry(
@@ -36,10 +30,10 @@ class KheperaIV {
                 4,
                 4
             );
-            led1Geom.translate(40 * UNIT_SCALE, 25 * UNIT_SCALE, 54 * UNIT_SCALE)
+            led1Geom.translate(40 * UNIT_SCALE, 25 * UNIT_SCALE, 57.7 * UNIT_SCALE)
 
             var led1 = new THREE.Mesh(led1Geom, new THREE.MeshLambertMaterial({
-                emissive: 0x00ff00,
+                emissive: 0x000000,
                 color: 0x000000
             }));
 
@@ -49,9 +43,9 @@ class KheperaIV {
                 4,
                 4
             );
-            led2Geom.translate(-50 * UNIT_SCALE, 0, 54 * UNIT_SCALE)
+            led2Geom.translate(-50 * UNIT_SCALE, 0, 57.7 * UNIT_SCALE)
             var led2 = new THREE.Mesh(led2Geom, new THREE.MeshLambertMaterial({
-                emissive: 0xff0000,
+                emissive: 0x000000,
                 color: 0x000000
             }));
 
@@ -61,7 +55,7 @@ class KheperaIV {
                 4,
                 4
             );
-            led3Geom.translate(40 * UNIT_SCALE, -25 * UNIT_SCALE, 54 * UNIT_SCALE)
+            led3Geom.translate(40 * UNIT_SCALE, -25 * UNIT_SCALE, 57.7 * UNIT_SCALE)
             var led3 = new THREE.Mesh(led3Geom, new THREE.MeshLambertMaterial({
                 emissive: 0x000000,
                 color: 0x000000
