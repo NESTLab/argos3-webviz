@@ -59,8 +59,8 @@ namespace argos {
       /** Struct to hold websocket with its loop thread */
       template <bool SSL>
       struct SWebSocketClient {
-        uWS::WebSocket<SSL, true>* m_cWS;
-        struct uWS::Loop* m_cLoop;
+        uWS::WebSocket<SSL, true>* m_pcWS;
+        struct uWS::Loop* m_pcLoop;
       };
 
       /** Mutex to protect access to m_mutex4BroadcastString */
