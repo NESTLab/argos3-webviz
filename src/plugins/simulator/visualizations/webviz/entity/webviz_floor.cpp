@@ -23,9 +23,6 @@ namespace argos {
 
     class CWebvizOperationGenerateFloorJSON
         : public CWebvizOperationGenerateJSON {
-     private:
-      std::string m_strFloorImage;
-
      public:
       nlohmann::json ApplyTo(CWebviz& c_webviz, CFloorEntity& c_entity) {
         nlohmann::json cJson;
@@ -34,8 +31,8 @@ namespace argos {
         cJson["id"] = c_entity.GetId();
 
 #ifdef ARGOS_WITH_FREEIMAGE
-        /* If floor is updated, or our Floor value was empty */
-        if (c_entity.HasChanged() || m_strFloorImage.empty()) {
+        /* If floor is updated */
+        if (c_entity.HasChanged()) {
           std::string strFilePath =
             "/tmp/argos3_webviz_floor_" +
             std::to_string(
@@ -64,10 +61,10 @@ namespace argos {
           infile.read(&buffer[0], buffer.size());
           infile.close();
 
-          Base64::Encode(buffer, &m_strFloorImage);
-          m_strFloorImage = "data:image/png;base64," + m_strFloorImage;
+          std::string strFloorImage;
+          Base64::Encode(buffer, &strFloorImage);
+          cJson["floor_image"] = "data:image/png;base64," + strFloorImage;
         }
-        cJson["floor_image"] = m_strFloorImage;
 #endif
 
         return cJson;
