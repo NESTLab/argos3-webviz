@@ -127,9 +127,9 @@ namespace argos {
             "/*",
             {/* Settings */
              .compression = uWS::DEDICATED_COMPRESSOR_8KB,
-             .maxPayloadLength = 16 * 1024,
+             .maxPayloadLength = 1024 * 1024,
              .idleTimeout = 10,
-             .maxBackpressure = 16 * 1024,
+             .maxBackpressure = 100 * 1024 * 1024,
              /* Handlers */
              /* new client is connected */
              .open =
@@ -176,7 +176,7 @@ namespace argos {
                },
              .drain =
                [](uWS::WebSocket<SSL, true> *ws) {
-                 LOG << "Drain: " << ws->getBufferedAmount() << '\n';
+                 //  LOG << "Drain: " << ws->getBufferedAmount() << '\n';
                },
              .ping =
                [](uWS::WebSocket<SSL, true> *ws) { LOG << "Ping" << '\n'; },
