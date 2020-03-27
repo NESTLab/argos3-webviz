@@ -1,3 +1,4 @@
+# Largely taken from
 # https://github.com/ilpincy/argos3-kilobot/blob/master/src/cmake/ARGoSBuildOptions.cmake
 #
 # What is ARGoS being built for?

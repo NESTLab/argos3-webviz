@@ -18,7 +18,7 @@ set(CPACK_PACKAGE_DESCRIPTION "ARGoS-WebViz (WebViz plugin for ARGoS)
  A plugin to support over the web control of ARGoS multi-robot 
  simulator (http://www.argos-sim.info/).")
 set(CPACK_PACKAGE_HOMEPAGE "https://github.com/NESTLab/argos3-webviz/")
-set(CPACK_PACKAGE_MAINTAINER "Prajankya Sonar <contact@prajankya.me>")
+set(CPACK_PACKAGE_MAINTAINER "Prajankya Sonar <prajankya@gmail.com>")
 set(CPACK_PACKAGE_NAME "argos3plugins_${ARGOS_BUILD_FOR}_webviz")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Web control support for ARGoS")
 set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
