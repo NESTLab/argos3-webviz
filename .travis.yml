@@ -18,7 +18,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew unlink python@2         ; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install argos3          ; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
-      sudo dpkg -i "argos3_simulator-3.0.0-x86_64-beta56.deb"
+      sudo dpkg -i argos3_simulator-3.0.0-x86_64-beta56.deb; 
     fi
 before_script:
   - ${CXX} --version
