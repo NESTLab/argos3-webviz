@@ -34,8 +34,18 @@ class Box {
         this.mesh = box;
     }
 
-    update(entity) {
-        /* Do not update anything, considering the boxes doesn't move */
-        /* TODO: handle "is_movable" and move the box */
+    update(entity, scale) {
+        if (entity.is_movable) {
+            try {
+                this.mesh.position.x = entity.position.x * scale;
+                this.mesh.position.y = entity.position.y * scale;
+
+                this.mesh.rotation.setFromQuaternion(new THREE.Quaternion(
+                    entity.orientation.x,
+                    entity.orientation.y,
+                    entity.orientation.z,
+                    entity.orientation.w));
+            } catch (ignored) { }
+        }
     }
 }

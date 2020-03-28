@@ -40,7 +40,7 @@
           automaticOpen: true,
           // A boolean indicating whether to disable subscribing to the connectivity events provided by the browser.
           // By default RobustWebSocket instances use connectivity events to avoid triggering reconnection when the browser is offline. This flag is provided in the unlikely event of cases where this may not be desired.
-          ignoreConnectivityEvents: true
+          ignoreConnectivityEvents: false
         })
       }
     });
@@ -185,7 +185,6 @@
             title: 'Cannot connect to server',
             modal: true,
             showClose: false,
-            // width: 1000,     // width in px
             height: 100,
           });
         }, 500);

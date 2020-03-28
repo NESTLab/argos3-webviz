@@ -1,7 +1,6 @@
 [ ] Add ping pong to WebSockets to enable testing connection
 [ ] Implement ~CWebviz(), Reset(), Destroy() of CWebviz
 [ ] Write unit tests
-[ ] To document: event is sent in next cycle of broadcast loop (which depends on broadcast frequency)
 [ ] Entities to implement:
     [ ] Box with LEDs
     [ ] Footbot (only 3d model is remaining)

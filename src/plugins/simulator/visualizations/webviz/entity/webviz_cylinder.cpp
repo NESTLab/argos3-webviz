@@ -61,14 +61,13 @@ namespace argos {
           for (UInt32 i = 0; i < cLEDEquippedEntity.GetLEDs().size(); i++) {
             nlohmann::json cLedJson;
 
-            std::stringstream str_LEDStream;
+            std::stringstream strLEDStream;
             const CColor& cColor = cLEDEquippedEntity.GetLED(i).GetColor();
 
-            str_LEDStream << "#" << std::setfill('0') << std::setw(6)
-                          << std::hex
-                          << (cColor.GetRed() << 16 | cColor.GetGreen() << 8 |
-                              cColor.GetBlue());
-            cLedJson["color"] = str_LEDStream.str();
+            strLEDStream << "#" << std::setfill('0') << std::setw(6) << std::hex
+                         << (cColor.GetRed() << 16 | cColor.GetGreen() << 8 |
+                             cColor.GetBlue());
+            cLedJson["color"] = strLEDStream.str();
 
             /* Get the position of the box */
             const argos::CVector3& cPosition =

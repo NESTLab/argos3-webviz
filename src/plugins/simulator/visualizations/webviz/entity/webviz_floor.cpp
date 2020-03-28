@@ -9,8 +9,10 @@
  */
 
 #include <argos3/core/simulator/entity/floor_entity.h>
+#include <argos3/plugins/simulator/visualizations/webviz/utility/base64.h>
 #include <argos3/plugins/simulator/visualizations/webviz/webviz.h>
 #include <iomanip>
+#include <iostream>
 #include <nlohmann/json.hpp>
 
 namespace argos {
@@ -28,9 +30,43 @@ namespace argos {
         cJson["type"] = c_entity.GetTypeDescription();
         cJson["id"] = c_entity.GetId();
 
-        // cArenaSize.GetX()
-        // c_entity.GetColorAtPoint();
-        // TODO implement Floor image
+#ifdef ARGOS_WITH_FREEIMAGE
+        /* If floor is updated */
+        if (c_entity.HasChanged()) {
+          std::string strFilePath =
+            "/tmp/argos3_webviz_floor_" +
+            std::to_string(
+              std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch())
+                .count()) +
+            ".png";
+
+          /* TODO: below code is not at all optimized ...  */
+          c_entity.SaveAsImage(strFilePath);
+
+          /* Read the file */
+
+          std::ifstream infile(
+            strFilePath, std::ifstream::binary | std::ios::ate);
+
+          std::streamsize size = infile.tellg();
+
+          infile.seekg(0, std::ios::beg);
+
+          // Allocate a string, make it large enough to hold the input
+          std::string buffer;
+          buffer.resize(size);
+
+          // read the text into the string
+          infile.read(&buffer[0], buffer.size());
+          infile.close();
+
+          std::string strFloorImage;
+          Base64::Encode(buffer, &strFloorImage);
+          cJson["floor_image"] = "data:image/png;base64," + strFloorImage;
+        }
+#endif
+
         return cJson;
       }
     };

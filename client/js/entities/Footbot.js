@@ -22,11 +22,11 @@ class Footbot {
             color: 0x2f22ff
         });
 
-        var khiv = new THREE.Mesh(geometry, material);
+        var footbot = new THREE.Mesh(geometry, material);
 
-        var meshParent = new THREE.Mesh();
+        var meshParent = new THREE.Group();
         /* Add all parts to a parent mesh */
-        meshParent.add(khiv);
+        meshParent.add(footbot);
 
         /* LEDs */
         for (let i = 0; i < 12; ++i) {
@@ -36,7 +36,7 @@ class Footbot {
                 4
             );
 
-            ledGeom.translate(85 * UNIT_SCALE /* Radius */ , 0, 50 * UNIT_SCALE /* Height */ )
+            ledGeom.translate(85 * UNIT_SCALE /* Radius */, 0, 50 * UNIT_SCALE /* Height */)
             ledGeom.rotateZ(i * (2 * 3.142 / 12));
             var led = new THREE.Mesh(ledGeom, new THREE.MeshLambertMaterial({
                 emissive: 0x000000,
