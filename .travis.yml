@@ -14,8 +14,8 @@ install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install bash-completion ; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install argos3          ; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
-      wget https://drive.google.com/open?id=1OVKPMZFa0GzSU1RwioaEReUCUl-vngkR ;
-      sudo dpkg -i argos3_simulator-3.0.0-x86_64-beta56.deb
+      wget "https://drive.google.com/open?id=1OVKPMZFa0GzSU1RwioaEReUCUl-vngkR" ;
+      sudo dpkg -i "argos3_simulator-3.0.0-x86_64-beta56.deb"
     fi
 before_script:
   - ${CXX} --version
