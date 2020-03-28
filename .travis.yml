@@ -10,11 +10,15 @@ jobs:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
     # Ubuntu 18.04
     - os: linux
       dist: bionic
     - os: osx
       osx_image: xcode10.1 # for CLANG 3.1
+before_install:
+  - eval "${MATRIX_EVAL}"
 install:
   ######################## Install using brew on OSX #########################
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew tap ilpincy/argos3      ; fi
