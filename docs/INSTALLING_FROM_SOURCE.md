@@ -9,7 +9,7 @@
 - cmake >= 3.5.1
 
 **Optional dependency**
-- OpenSSL >= 1.1 (for websockets over SSl)
+- OpenSSL >= 1.1 (for websockets over SSL)
 - FreeImage >= 3.15 (for floor image, also need ARGoS 3 built with FreeImage support)
 
 ## Downloading
