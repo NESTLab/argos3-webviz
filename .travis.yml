@@ -14,6 +14,7 @@ jobs:
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
         - PKG_BUILD="DEB"
+        - PKG_EXT="deb"
     # Ubuntu 18.04
     - os: linux
       dist: bionic
@@ -25,8 +26,12 @@ jobs:
             - zip
       env:
         - PKG_BUILD="DEB"
+        - PKG_EXT="deb"
     - os: osx
       osx_image: xcode10.1 # for CLANG 3.1
+      env:
+        - PKG_BUILD="DragNDrop"
+        - PKG_EXT="dmg"
 before_install:
   - eval "${MATRIX_EVAL}"
 install:
@@ -52,19 +57,19 @@ script:
   - mkdir -p build
   - cd build
   - cmake ../src 
-  - make
+  - cmake --build . --target all
   - cpack -G ${PKG_BUILD}
   # Get filename variable from CMake
   - EXPORT_PACKAGE_NAME=$(cat package_name.txt)
   # New filename if linux
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
-      EXPORT_FILE_NAME=${EXPORT_PACKAGE_NAME}-$(lsb_release -sr).${PKG_BUILD};
+      EXPORT_FILE_NAME=${EXPORT_PACKAGE_NAME}-$(lsb_release -sr).${PKG_EXT};
     fi
   # New filename if OSX
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
-      EXPORT_FILE_NAME=${EXPORT_PACKAGE_NAME}.${PKG_BUILD};
+      EXPORT_FILE_NAME=${EXPORT_PACKAGE_NAME}.${PKG_EXT};
     fi
-  - mv ${EXPORT_PACKAGE_NAME}.${PKG_BUILD} ../${EXPORT_FILE_NAME}
+  - mv ${EXPORT_PACKAGE_NAME}.${PKG_EXT} ../${EXPORT_FILE_NAME}
   # Combine Client files into zip
   - cd .. && zip -r web_client.zip client
 deploy:
