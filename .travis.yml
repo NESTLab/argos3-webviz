@@ -3,9 +3,10 @@ jobs:
   include:
     # Ubuntu 16.04
     - os: linux
-      dist: trusty
-    - os: linux
       dist: xenial
+    # Ubuntu 18.04
+    - os: linux
+      dist: bionic
     - os: osx
       osx_image: xcode10.1 # for CLANG 3.1
 before_install:
@@ -13,25 +14,19 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install bash-completion ; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install qt              ; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install argos3          ; fi
-
-install:
-  - echo ${PATH}
-  - echo ${CXX}
+  - if [ "$TRAVIS_OS_NAME" = "linux" ];
+      sudo dpkg -i argos3_simulator-3.0.0-x86_64-beta56.deb
+    fi
+before_script:
   - ${CXX} --version
   - ${CXX} -v
-  
-  # Download and cmake v3.5.1 as per README
-  - |
-    if [[ ${TRAVIS_OS_NAME} == "linux" ]]; then
-      CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.1-Linux-x86_64.tar.gz"
-      mkdir -p ${DEPS_DIR}/cmake
-      travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C ${DEPS_DIR}/cmake
-      export PATH=${DEPS_DIR}/cmake/bin:${PATH}
-    fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install qt              ; fi
+
 script:
   ############################################################################
   # Build main and tests
   ############################################################################
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install qt              ; fi
   - mkdir -p build
   - cd build
   - cmake ../src 
