@@ -12,16 +12,15 @@ jobs:
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew tap ilpincy/argos3      ; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install bash-completion ; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install qt              ; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install argos3          ; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
-      wget https://drive.google.com/open?id=1OVKPMZFa0GzSU1RwioaEReUCUl-vngkR
+      wget https://drive.google.com/open?id=1OVKPMZFa0GzSU1RwioaEReUCUl-vngkR ;
       sudo dpkg -i argos3_simulator-3.0.0-x86_64-beta56.deb
     fi
 before_script:
   - ${CXX} --version
   - ${CXX} -v
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install qt              ; fi
-
+  
 script:
   ############################################################################
   # Build main and tests
