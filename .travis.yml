@@ -31,3 +31,11 @@ script:
   - cd build
   - cmake ../src 
   - make
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cpack -G DEB               ; fi
+deploy:
+  provider: releases
+  api_key: $GITHUB_OAUTH_ACCESS_TOKEN
+  file: "build/argos3plugins_simulator_webviz-0.4.45-x86_64-.deb"
+  skip_cleanup: true
+  overwrite: true
+  draft: true
