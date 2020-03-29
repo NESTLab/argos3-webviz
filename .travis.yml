@@ -2,8 +2,7 @@ language: cpp
 jobs:
   include:
     #
-    - name: "Ubuntu 16.04"
-      os: linux
+    - os: linux
       dist: xenial
       addons:
         apt:
@@ -17,8 +16,7 @@ jobs:
         - PKG_BUILD="DEB"
         - PKG_EXT="deb"
     #
-    - name: "Ubuntu 18.04"
-      os: linux
+    - os: linux
       dist: bionic
       addons:
         apt:
@@ -30,8 +28,7 @@ jobs:
         - PKG_BUILD="DEB"
         - PKG_EXT="deb"
     #
-    - name: "Mac OSX"
-      os: osx
+    - os: osx
       osx_image: xcode10.1 # for CLANG 3.1
       env:
         - PKG_BUILD="DragNDrop"
