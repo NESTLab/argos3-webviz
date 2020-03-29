@@ -1,8 +1,9 @@
 language: cpp
 jobs:
   include:
-    # Ubuntu 16.04
-    - os: linux
+    #
+    - name: "Ubuntu 16.04"
+      os: linux
       dist: xenial
       addons:
         apt:
@@ -15,8 +16,9 @@ jobs:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
         - PKG_BUILD="DEB"
         - PKG_EXT="deb"
-    # Ubuntu 18.04
-    - os: linux
+    #
+    - name: "Ubuntu 18.04"
+      os: linux
       dist: bionic
       addons:
         apt:
@@ -27,19 +29,33 @@ jobs:
       env:
         - PKG_BUILD="DEB"
         - PKG_EXT="deb"
-    - os: osx
+    #
+    - name: "Mac OSX"
+      os: osx
       osx_image: xcode10.1 # for CLANG 3.1
       env:
         - PKG_BUILD="DragNDrop"
         - PKG_EXT="dmg"
+      # cache shares between builds
+      cache:
+        directories:
+          # `cache: ccache: true` has no effect if `language:` is not `c` or `cpp`
+          - $HOME/.ccache
+          # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
+          - $HOME/Library/Caches/Homebrew
+          - /usr/local/Homebrew/
+      before_cache:
+        - brew cleanup
 before_install:
   - eval "${MATRIX_EVAL}"
 install:
   ######################## Install using brew on OSX #########################
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew tap ilpincy/argos3      ; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install bash-completion ; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew unlink python@2         ; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install argos3          ; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
+      brew tap ilpincy/argos3      ;
+      brew install bash-completion ;
+      brew unlink python@2         ; # some issues with dependency
+      brew install argos3          ;
+    fi
   ################### Download from Google drive for linux ###################
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
       wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1OVKPMZFa0GzSU1RwioaEReUCUl-vngkR' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1OVKPMZFa0GzSU1RwioaEReUCUl-vngkR" -O argos3_simulator-3.0.0-x86_64-beta56.deb && rm -rf /tmp/cookies.txt ;
@@ -63,7 +79,7 @@ script:
   - EXPORT_PACKAGE_NAME=$(cat package_name.txt)
   # New filename if linux
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
-      EXPORT_FILE_NAME=${EXPORT_PACKAGE_NAME}-$(lsb_release -sr).${PKG_EXT};
+      EXPORT_FILE_NAME=${EXPORT_PACKAGE_NAME}-$(lsb_release -is)_$(lsb_release -sr).${PKG_EXT};
     fi
   # New filename if OSX
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
@@ -82,5 +98,6 @@ deploy:
       - LICENSE
     skip_cleanup: true
     prerelease: true
+    overwrite: true
     draft: true
   
