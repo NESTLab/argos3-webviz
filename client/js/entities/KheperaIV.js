@@ -134,6 +134,16 @@ class KheperaIV {
             if (entity.points.length > 0) {
                 var points = pointMesh.geometry.getAttribute('position').array
 
+                /* Dynamically add new points if more than 8 (for lidar, UltraSonic) */
+
+                /* Multipled by 3 as its a flattened array with each point having 3 components */
+                if (entity.points.length * 3 > points.length) {
+                    pointMesh.geometry.setAttribute('position', new THREE.BufferAttribute(
+                        new Float32Array(entity.points.length * 3), // * 3 axis per point
+                        3
+                    ));
+                }
+
                 for (let i = 0; i < entity.points.length; i++) {
                     var pointVals = entity.points[i].split(",")
                     points[3 * i] = pointVals[0] * scale
@@ -148,6 +158,20 @@ class KheperaIV {
 
             /* Draw rays */
             if (entity.rays.length > 0) {
+                /* Dynamically add new lines if more than 8 (for lidar, UltraSonic) */
+                for (let i = this.lines.length; this.lines.length < entity.rays.length; i++) {
+                    var lineGeom = new THREE.BufferGeometry();
+
+                    // attributes
+                    var linesPos = new Float32Array(2 * 3); //2 points per line * 3 axis per point
+                    lineGeom.setAttribute('position', new THREE.BufferAttribute(linesPos, 3));
+
+                    var line = new THREE.Line(lineGeom);
+
+                    this.mesh.add(line);
+                    this.lines.push(line);
+                }
+
                 for (let i = 0; i < entity.rays.length; i++) {
                     /*
                         For each ray as a string,
@@ -159,7 +183,7 @@ class KheperaIV {
                     var start = rayArr[1].split(",")
                     var end = rayArr[2].split(",")
 
-                    var line = this.mesh.children[5 + i];
+                    var line = this.lines[i]; //this.mesh.children[5 + i];
 
                     if (line) {
                         if (rayArr[0] == "true") {
@@ -184,7 +208,7 @@ class KheperaIV {
                 }
             }
             /* Hide all the previous lines */
-            /* 5 are the number of objects in meshParent before rays */
+            /* 5 is the number of objects in meshParent before rays */
             for (let i = 5 + entity.rays.length; i < this.mesh.children.length; i++) {
                 this.mesh.children[i].geometry.setDrawRange(0, 0);
             }
