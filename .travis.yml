@@ -92,7 +92,7 @@ script:
   ## For OSX, convert zip output to pkg
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
     pkgbuild --root "./_CPack_Packages/Darwin/ZIP/${EXPORT_PACKAGE_NAME}" --identifier "com.argos3.plugins.webviz" --install-location "/" ${EXPORT_FILE_NAME} ;
-  fi
+    fi
 
   # Combine Client files into zip
   - cd .. && zip -r web_client.zip client
