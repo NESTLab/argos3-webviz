@@ -80,6 +80,7 @@ script:
   # New filename if linux
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
       EXPORT_FILE_NAME=${EXPORT_PACKAGE_NAME}-$(lsb_release -is)_$(lsb_release -sr).${PKG_EXT};
+      mv ${EXPORT_PACKAGE_NAME}.${PKG_EXT} ${EXPORT_FILE_NAME};
     fi
   # New filename if OSX
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
