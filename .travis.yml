@@ -80,7 +80,6 @@ script:
   # New filename if linux
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
       EXPORT_FILE_NAME=${EXPORT_PACKAGE_NAME}-$(lsb_release -is)_$(lsb_release -sr).${PKG_EXT};
-      mv ${EXPORT_PACKAGE_NAME}.${PKG_EXT} ${EXPORT_FILE_NAME};
     fi
   # New filename if OSX
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
@@ -89,10 +88,15 @@ script:
   
   # Build package
   - cpack -G ${PKG_BUILD}
-
+  
   ## For OSX, convert zip output to pkg
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
     pkgbuild --root "./_CPack_Packages/Darwin/ZIP/${EXPORT_PACKAGE_NAME}" --identifier "com.argos3.plugins.webviz" --install-location "/" ${EXPORT_FILE_NAME} ;
+    fi
+
+  # For linux, rename files with ubuntu version
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
+      mv ${EXPORT_PACKAGE_NAME}.${PKG_EXT} ${EXPORT_FILE_NAME};
     fi
 
   # Combine Client files into zip
