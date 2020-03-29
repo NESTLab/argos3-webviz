@@ -3,6 +3,7 @@ jobs:
   include:
     #
     - os: linux
+      name: Ubuntu 16.04
       dist: xenial
       addons:
         apt:
@@ -17,6 +18,7 @@ jobs:
         - PKG_EXT="deb"
     #
     - os: linux
+      name: Ubuntu 18.04
       dist: bionic
       addons:
         apt:
@@ -29,20 +31,21 @@ jobs:
         - PKG_EXT="deb"
     #
     - os: osx
+      name: Mac OSX
       osx_image: xcode10.1 # for CLANG 3.1
       env:
         - PKG_BUILD="DragNDrop"
         - PKG_EXT="dmg"
-# cache shares between builds
-cache:
-  directories:
-    # `cache: ccache: true` has no effect if `language:` is not `c` or `cpp`
-    - $HOME/.ccache
-    # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
-    - $HOME/Library/Caches/Homebrew
-    - /usr/local/Homebrew/
-before_cache:
-  - brew cleanup
+        # cache shares between builds
+      before_cache:
+        - brew cleanup
+      cache:
+        directories:
+          # `cache: ccache: true` has no effect if `language:` is not `c` or `cpp`
+          - $HOME/.ccache
+          # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
+          - $HOME/Library/Caches/Homebrew
+          - /usr/local/Homebrew/
 before_install:
   - eval "${MATRIX_EVAL}"
 install:
@@ -50,7 +53,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
       brew tap ilpincy/argos3      ;
       brew install bash-completion ;
-      brew unlink python@2         ; # some issues with dependency
+      brew unlink python@2         ;
       brew install argos3          ;
     fi
   ################### Download from Google drive for linux ###################
