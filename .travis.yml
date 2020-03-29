@@ -33,16 +33,16 @@ jobs:
       env:
         - PKG_BUILD="DragNDrop"
         - PKG_EXT="dmg"
-      # cache shares between builds
-      cache:
-        directories:
-          # `cache: ccache: true` has no effect if `language:` is not `c` or `cpp`
-          - $HOME/.ccache
-          # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
-          - $HOME/Library/Caches/Homebrew
-          - /usr/local/Homebrew/
-      before_cache:
-        - brew cleanup
+# cache shares between builds
+cache:
+  directories:
+    # `cache: ccache: true` has no effect if `language:` is not `c` or `cpp`
+    - $HOME/.ccache
+    # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
+    - $HOME/Library/Caches/Homebrew
+    - /usr/local/Homebrew/
+before_cache:
+  - brew cleanup
 before_install:
   - eval "${MATRIX_EVAL}"
 install:
