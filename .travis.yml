@@ -34,8 +34,8 @@ jobs:
       name: Mac OSX
       osx_image: xcode10.1 # for CLANG 3.1
       env:
-        - PKG_BUILD="DragNDrop"
-        - PKG_EXT="dmg"
+        - PKG_BUILD="ZIP"
+        - PKG_EXT="pkg"
         # cache shares between builds
       before_cache:
         - brew cleanup
@@ -72,27 +72,35 @@ script:
   ############################################################################
   - mkdir -p build
   - cd build
-  - cmake ../src 
+  - cmake -DCMAKE_BUILD_TYPE=Release -DARGOS_BUILD_NATIVE=ON  ../src 
   - cmake --build . --target all
-  - cpack -G ${PKG_BUILD}
   # Get filename variable from CMake
   - EXPORT_PACKAGE_NAME=$(cat package_name.txt)
+
   # New filename if linux
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
       EXPORT_FILE_NAME=${EXPORT_PACKAGE_NAME}-$(lsb_release -is)_$(lsb_release -sr).${PKG_EXT};
     fi
   # New filename if OSX
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
-      EXPORT_FILE_NAME=${EXPORT_PACKAGE_NAME}.${PKG_EXT};
+      EXPORT_FILE_NAME=${EXPORT_PACKAGE_NAME}-OSX.${PKG_EXT};
     fi
-  - mv ${EXPORT_PACKAGE_NAME}.${PKG_EXT} ../${EXPORT_FILE_NAME}
+  
+  # Build package
+  - cpack -G ${PKG_BUILD}
+
+  ## For OSX, convert zip output to pkg
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
+    pkgbuild --root "./_CPack_Packages/Darwin/ZIP/${EXPORT_PACKAGE_NAME}" --identifier "com.argos3.plugins.webviz" --install-location "/" ${EXPORT_FILE_NAME} ;
+  fi
+
   # Combine Client files into zip
   - cd .. && zip -r web_client.zip client
 deploy:
   - provider: releases
     api_key: $GITHUB_OAUTH_ACCESS_TOKEN
     file:
-      - "${EXPORT_FILE_NAME}"
+      - "build/${EXPORT_FILE_NAME}"
       - web_client.zip
       - README.md
       - LICENSE
