@@ -97,8 +97,6 @@ function initSceneWithScale(_scale) {
       texture.repeat.set(scale / 2.5, scale / 2.5);
 
       var material = new THREE.MeshPhongMaterial({
-        specular: 0x111111,
-        shininess: 10,
         map: texture
       })
       var plane = new THREE.Mesh(plane_geometry, material);
