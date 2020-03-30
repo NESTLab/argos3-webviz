@@ -517,7 +517,7 @@ namespace argos {
     CWebviz,
     "webviz",
     "Prajankya [prajankya@gmail.com]",
-    "0.4.21",
+    ARGOS_WEBVIZ_VERSION,
     "An interactive web interface to manage argos simulation over network\n",
     "It allows the user to watch and modify the simulation as it's running \n"
     "in an intuitive way.\n\n"
@@ -529,7 +529,7 @@ namespace argos {
     "  <visualization>\n"
     "    <webviz port=3000\n"
     "         broadcast_frequency=10\n"
-    "         ff_draw_frames_every=10\n"
+    "         ff_draw_frames_every=2\n"
     "         autoplay=\"true\"\n"
     "         ssl_key_file=\"NULL\"\n"
     "         ssl_cert_file=\"NULL\"\n"
@@ -542,7 +542,7 @@ namespace argos {
     "Where:\n"
     "port(unsigned short): is the network port to listen incoming \n"
     "\ttraffic on (Websockets and HTTP both share the same port)\n"
-    "    Default: 10\n"
+    "    Default: 3000\n"
     "    Range: [1,65535]\n"
     "        Note: For ports < 1024 need root privileges.\n\n"
 

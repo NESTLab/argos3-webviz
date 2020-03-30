@@ -11,6 +11,8 @@ jobs:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
+            - zlib1g-dev
+            - libssl-dev
             - zip
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
@@ -25,6 +27,8 @@ jobs:
           sources:
             - ubuntu-toolchain-r-test
           packages:
+            - zlib1g-dev
+            - libssl-dev
             - zip
       env:
         - PKG_BUILD="DEB"
@@ -51,10 +55,11 @@ before_install:
 install:
   ######################## Install using brew on OSX #########################
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
-      brew tap ilpincy/argos3      ;
-      brew install bash-completion ;
-      brew unlink python@2         ;
-      brew install argos3          ;
+      brew tap ilpincy/argos3         ;
+      brew install bash-completion    ;
+      brew unlink python@2            ;
+      brew install argos3             ;
+      brew install openssl zlib libuv ;
     fi
   ################### Download from Google drive for linux ###################
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
