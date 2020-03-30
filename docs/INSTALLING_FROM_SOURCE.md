@@ -7,10 +7,17 @@
 - g++ >= 5.7 (on Linux)
 - clang >= 3.1 (on MacOSX)
 - cmake >= 3.5.1
+- zlib >= 1.x
+- libuv 1.3+ or Boost.Asio 1.x (both optional on Linux)
 
 **Optional dependency**
 - OpenSSL >= 1.1 (for websockets over SSL)
-- FreeImage >= 3.15 (for floor image, also need ARGoS 3 built with FreeImage support)
+
+
+For installing all dependencies
+Homebrew: `brew install cmake zlib openssl libuv`
+Debian `sudo apt install cmake zlib1g-dev libssl-dev`
+Fedora: `sudo dnf install cmake zlib-devel openssl-devel`
 
 ## Downloading
 ```console
