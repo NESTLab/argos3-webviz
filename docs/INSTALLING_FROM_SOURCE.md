@@ -8,16 +8,17 @@
 - clang >= 3.1 (on MacOSX)
 - cmake >= 3.5.1
 - zlib >= 1.x
-- libuv 1.3+ or Boost.Asio 1.x (both optional on Linux)
+- libuv >= 1.3 or Boost.Asio 1.x (both optional on Linux)
+- git (for autoinstalling dependencies)
 
 **Optional dependency**
 - OpenSSL >= 1.1 (for websockets over SSL)
 
 
 For installing all dependencies
-Homebrew: `brew install cmake zlib openssl libuv`
-Debian `sudo apt install cmake zlib1g-dev libssl-dev`
-Fedora: `sudo dnf install cmake zlib-devel openssl-devel`
+- Homebrew: `brew install cmake git zlib openssl libuv`  
+- Debian: `sudo apt install cmake git zlib1g-dev libssl-dev`  
+- Fedora: `sudo dnf install cmake git zlib-devel openssl-devel`  
 
 ## Downloading
 ```console
