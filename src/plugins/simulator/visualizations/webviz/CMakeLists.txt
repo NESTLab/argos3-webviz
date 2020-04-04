@@ -25,17 +25,43 @@ download_project(PROJ     uWebSockets
   UPDATE_DISCONNECTED 1
 )
 
+if(APPLE)
+  # Set sysroot makefile inside uSockets project
+  set(uSOCKETS_SETTINGS ${uSOCKETS_SETTINGS} "CFLAGS=-isysroot${CMAKE_OSX_SYSROOT}")
+
+  # Fix for Catalina specific linking issues
+  # https://cmake.org/pipermail/cmake/2019-June/069554.html
+  execute_process(COMMAND brew --prefix openssl 
+      OUTPUT_VARIABLE OPENSSL_LOCATION
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      RESULT_VARIABLE BREW_NOT_INSTALLED)
+  
+  if(BREW_NOT_INSTALLED)
+    # Brew location not found, use hardcoded location
+    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
+  else(BREW_NOT_INSTALLED)
+    set(OPENSSL_ROOT_DIR ${OPENSSL_LOCATION})
+  endif(BREW_NOT_INSTALLED)
+endif()
+
 ## Optionally enable Open SSL for SSL support
 find_package(OpenSSL)
 if(OpenSSL_FOUND)
   message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
-  set(OPENSSL_DEP WITH_OPENSSL=1)
+  set(uSOCKETS_SETTINGS ${uSOCKETS_SETTINGS} WITH_OPENSSL=1)
+
+  if(APPLE)
+    # add SSL include folder to CFLAGS for the makefile
+    set(uSOCKETS_SETTINGS ${uSOCKETS_SETTINGS} "CFLAGS+=-I${OPENSSL_INCLUDE_DIR}")
+  endif(APPLE)
+
+  set(OPENSSL_LIBS ${OPENSSL_LIBRARIES})
 endif(OpenSSL_FOUND)
 
 # Build uSockets(inside uWebSockets directory)
 execute_process(
   WORKING_DIRECTORY ${uWebSockets_SOURCE_DIR}/uSockets
-  COMMAND make ${OPENSSL_DEP})
+  COMMAND make ${uSOCKETS_SETTINGS})
 
 #
 # Download nlohmann/json library from github
@@ -119,7 +145,7 @@ target_link_libraries(${TARGET_NAME}
   ${ARGOS_WEBVIZ_LIBRARIES}
   ${uWebSockets_SOURCE_DIR}/uSockets/uSockets.a
   nlohmann_json::nlohmann_json
-  ${OPENSSL_LIBRARIES}
+  ${OPENSSL_LIBS}
 )
 
 set_target_properties( 
