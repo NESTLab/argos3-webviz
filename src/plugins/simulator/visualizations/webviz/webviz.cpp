@@ -544,7 +544,7 @@ namespace argos {
     "\ttraffic on (Websockets and HTTP both share the same port)\n"
     "    Default: 3000\n"
     "    Range: [1,65535]\n"
-    "        Note: For ports < 1024 need root privileges.\n\n"
+    "        Note: Ports < 1024 need root privileges.\n\n"
 
     "broadcast_frequency(unsigned short): Frequency (in Hertz) at which\n"
     "\tto broadcast the updates(through websockets)\n"
@@ -559,7 +559,8 @@ namespace argos {
     "    Default: false\n\n"
     "--\n\n"
     "SSL CONFIGURATION\n"
-    "SSL can be used to host the server over \"https\".\n"
+    "SSL can be used to host the server over \"wss\"(analogous to \n"
+    "\t\"https\" for websockets).\n"
     "NOTE: You need Webviz to be compiled with OpenSSL support to use SSL.\n"
     "\n"
     "You might have to use any combination of the following to enable\n"
@@ -571,8 +572,8 @@ namespace argos {
     "\t* ssl_dh_params_file\n"
     "\t* ssl_cert_passphrase\n"
     "Where file parameters supports relative and absolute paths.\n"
-    "\trelative path to the file. NOTE:(It needs read access\n"
+    "\tNOTE:(It needs read access\n"
     "\t to the files)\n"
     "\n",
-    "Under development");
+    "Usable");
 }  // namespace argos
