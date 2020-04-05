@@ -49,6 +49,7 @@ install:
       brew install bash-completion    ;
       brew unlink python@2            ;
       brew install argos3             ;
+      brew install openssl zlib libuv ;
     fi
   ################### Download from Google drive for linux ###################
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
@@ -67,7 +68,7 @@ script:
   - mkdir -p build
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=Release ../src
-  - cmake --build . --target all
+  - cmake --build . --target all --parallel
   # Get filename variable from CMake
   - EXPORT_PACKAGE_NAME=$(cat package_name.txt)
 

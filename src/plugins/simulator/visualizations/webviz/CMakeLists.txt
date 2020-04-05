@@ -27,7 +27,10 @@ download_project(PROJ     uWebSockets
 
 if(APPLE)
   # Set sysroot makefile inside uSockets project
-  set(uSOCKETS_SETTINGS ${uSOCKETS_SETTINGS} "CFLAGS=-isysroot${CMAKE_OSX_SYSROOT}")
+  # Fix for Catalina
+  if(CMAKE_OSX_SYSROOT)
+    set(uSOCKETS_SETTINGS ${uSOCKETS_SETTINGS} "CFLAGS=-isysroot${CMAKE_OSX_SYSROOT}")
+  endif(CMAKE_OSX_SYSROOT)
 
   # Fix for Catalina specific linking issues
   # https://cmake.org/pipermail/cmake/2019-June/069554.html
