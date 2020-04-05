@@ -86,7 +86,9 @@ script:
   
   ## For OSX, convert zip output to pkg
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
-    pkgbuild --root "./_CPack_Packages/Darwin/ZIP/${EXPORT_PACKAGE_NAME}" --identifier "com.argos3.plugins.webviz" --install-location "/" ${EXPORT_FILE_NAME} ;
+    pkgbuild --root "./_CPack_Packages/Darwin/ZIP/${EXPORT_PACKAGE_NAME}" --identifier "com.argos3.plugins.webviz" --install-location "/" --ownership recommended pkg_output.pkg ;
+    
+    productbuild --distribution ../src/packaging/darwin/distribution.xml --package-path "./_CPack_Packages/Darwin/ZIP/${EXPORT_PACKAGE_NAME}"  ${EXPORT_FILE_NAME} ;
     fi
 
   # For linux, rename files with ubuntu version
