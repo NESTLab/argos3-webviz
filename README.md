@@ -151,11 +151,89 @@ Now you can access the URL using any browser.
 
 *Visit [http static servers one-liners](https://gist.github.com/willurd/5720255) for alternatives to the python3 server shown above.*
 
+<details>
+<summary style="font-size:20px">Configuration</summary>
+<br>
+[You can check more documentation in `docs` folder](docs/README.md)
+
+#### REQUIRED XML CONFIGURATION
+```xml
+
+  <visualization>
+    <webviz />
+  </visualization>
+```
+
+#### OPTIONAL XML CONFIGURATION 
+with all the defaults:
+```xml
+  <visualization>
+    <webviz port=3000
+         broadcast_frequency=10
+         ff_draw_frames_every=2
+         autoplay="true"
+         ssl_key_file="NULL"
+         ssl_cert_file="NULL"
+         ssl_ca_file="NULL"
+         ssl_dh_params_file="NULL"
+         ssl_cert_passphrase="NULL"
+    />
+  </visualization>
+```
+
+Where:
+
+`port(unsigned short)`: is the network port to listen incoming traffic on (Websockets and HTTP both share the same port)
+```
+Default: 3000
+Range: [1,65535]
+
+Note: Ports less < 1024 need root privileges.
+```
+
+`broadcast_frequency(unsigned short)`: Frequency (in Hertz) at which to broadcast the updates(through websockets)
+```
+Default: 10
+Range: [1,1000]
+```
+`ff_draw_frames_every(unsigned short)`: Number of steps to skip when in fast forward mode
+```
+Default: 2
+```
+`autoplay(bool)`: Allows user to auto-play the simulation at startup
+```
+Default: false
+```
+
+#### SSL CONFIGURATION
+
+SSL can be used to host the server over "wss"(analogous to "https" for websockets).
+
+**NOTE**: You need Webviz to be compiled with OpenSSL support to use SSL.
+
+You might have to use any combination of the following to enable SSL, depending upon your implementation.
+
+- ssl_key_file
+- ssl_cert_file
+- ssl_ca_file
+- ssl_dh_params_file
+- ssl_cert_passphrase
+
+Where file parameters supports relative and absolute paths.
+
+**NOTE**: Webviz need read access to the files.
+
+
+[You can check more documentation in `docs` folder](docs/README.md)
+
+</details>
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 Please make sure to update tests as appropriate.
 [Check full contributing info](docs/CONTRIBUTING.md)
+
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
 
