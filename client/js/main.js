@@ -116,12 +116,17 @@ var onAllFilesLoaded = function () {
           .attr("title", "Play experiment")
           .prop("title", "Play experiment")//for IE
           .click(function () {
-            if (window.experiment.state != "EXPERIMENT_PLAYING" &&
-              window.experiment.state != "EXPERIMENT_FAST_FORWARDING") {
-              window.wsp.sendPacked({ command: 'play' })
-            } else {
-              window.wsp.sendPacked({ command: 'pause' })
-            }
+            window.wsp.sendPacked({ command: 'play' })
+          })
+        )
+        .append($("<div/>")
+          .addClass('button')
+          .addClass('icon-pause')
+          .attr('id', 'pause_button')
+          .attr("title", "Pause experiment")
+          .prop("title", "Pause experiment")//for IE
+          .click(function () {
+            window.wsp.sendPacked({ command: 'pause' })
           })
         )
         .append($("<div/>")
@@ -138,18 +143,20 @@ var onAllFilesLoaded = function () {
         .append($("<div/>")
           .addClass('toolbar_divider')
         )
-        .append($("<div/>")
-          .addClass('button')
-          .addClass('icon-stop')
-          .attr("title", "Terminate experiment")
-          .prop("title", "Terminate experiment")//for IE
-          .click(function () {
-            // window.wsp.send('step')
-          })
-        )
+        // .append($("<div/>")
+        //   .addClass('button')
+        //   .attr('id', 'stop_button')
+        //   .addClass('icon-stop')
+        //   .attr("title", "Terminate experiment")
+        //   .prop("title", "Terminate experiment")//for IE
+        //   .click(function () {
+        //     // window.wsp.send('step')
+        //   })
+        // )
         .append($("<div/>")
           .addClass('button')
           .addClass('icon-reset')
+          .attr('id', 'reset_button')
           .attr("title", "Reset experiment")
           .prop("title", "Reset experiment")//for IE
           .click(function () {
@@ -160,14 +167,15 @@ var onAllFilesLoaded = function () {
         .append($("<div/>")
           .addClass('toolbar_divider')
         )
-        .append($("<div/>")
-          .addClass('button')
-          .addClass('icon-settings')
-          .attr("title", "Settings")
-          .prop("title", "Settings")//for IE
-          .click(function () {
-          })
-        )
+        // .append($("<div/>")
+        //   .addClass('button')
+        //   .addClass('icon-settings')
+        //   .attr('id', 'settings_button')
+        //   .attr("title", "Settings")
+        //   .prop("title", "Settings")//for IE
+        //   .click(function () {
+        //   })
+        // )
         .append($("<div/>")
           .addClass('button')
           .addClass('icon-help')

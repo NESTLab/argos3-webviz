@@ -207,55 +207,8 @@ pre {
     color: #000;
 }
 
-/* Play button */
-
-.play-button:active:before, .play-button.active:before {
-    content: '\e800';
-}
-
-.play-button:before, .play-button:disabled:active:before, .play-button.active:disabled:before, .play-button.disabled:active:before, .play-button.active.disabled:before {
-    content: '\e805';
-}
-
-/* pause button */
-
-.pause-button:active:before, .pause-button.active:before {
-    content: '\e804';
-}
-
-.pause-button:before, .pause-button:disabled:active:before, .pause-button.active:disabled:before, .pause-button.disabled:active:before, .pause-button.active.disabled:before {
-    content: '\e803';
-}
-
-/* Stop button */
-
-.stop-button:active:before, .stop-button.active:before {
-    content: '\e802';
-}
-
-.stop-button:before, .stop-button:disabled:active:before, .stop-button.active:disabled:before, .stop-button.disabled:active:before, .stop-button.active.disabled:before {
-    content: '\e801';
-}
-
-/* Reset button */
-
-.reset-button:active:before, .reset-button.active:before {
-    content: '\e807';
-    font-size: 28px;
-}
-
-.reset-button:before, .reset-button:disabled:active:before, .reset-button.active:disabled:before, .reset-button.disabled:active:before, .reset-button.active.disabled:before {
-    content: '\e80a';
-}
-
-/* FF button */
-
-.ff-button:active:before, .ff-button.active:before {
-    content: '\e809';
-}
-
-.ff-button:before, .ff-button:disabled:active:before, .ff-button.active:disabled:before, .ff-button.disabled:active:before, .ff-button.active.disabled:before {
-    content: '\e808';
+.button:active:before, .button.active:before {
+    color: #5cb85c;
 }
 
 .icon-pause:before {
@@ -288,25 +241,4 @@ pre {
 
 .icon-help:before {
     content: '\004c';
-}
-
-/* Settings button */
-
-.settings-button:active:before, .settings-button.active:before {
-    content: '\e806';
-}
-
-.settings-button:before, .settings-button:disabled:active:before, .settings-button.active:disabled:before, .settings-button.disabled:active:before, .settings-button.active.disabled:before {
-    content: '\e80e';
-}
-
-/* Help button */
-
-.help-button:active:before, .help-button.active:before {
-    content: '?';
-    font-weight: bolder;
-}
-
-.help-button:before, .help-button:disabled:active:before, .help-button.active:disabled:before, .help-button.disabled:active:before, .help-button.active.disabled:before {
-    content: '?';
 }
