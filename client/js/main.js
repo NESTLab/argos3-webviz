@@ -136,10 +136,9 @@ var onAllFilesLoaded = function () {
           .attr("title", "Fast forward experiment")
           .prop("title", "Fast forward experiment")//for IE
           .click(function () {
-
             var steps = parseInt($("#ff_steps_input").val());
 
-            if (steps && steps >= 1 && steps <= 500) {
+            if (steps && steps >= 1 && steps <= 1000) {
               $("#ff_steps_input").val(steps)
               window.wsp.sendPacked({ command: 'fastforward', steps: steps })
             } else {
@@ -151,8 +150,8 @@ var onAllFilesLoaded = function () {
           .attr('type', 'number')
           .attr('id', 'ff_steps_input')
           .attr('min', '1')
-          .attr('max', '500')
-          .attr('value', '10')
+          .attr('max', '1000')
+          .attr('value', '2')
           .attr("title", "Fast forward steps")
           .prop("title", "Fast forward steps")//for IE
         )

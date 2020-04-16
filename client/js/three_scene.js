@@ -293,6 +293,12 @@ function onThreejsPanelMouseContextMenu(event) {
           name: "Select",
           accesskey: 's',
           callback: function () {
+            /* deselect all currently selected entities */
+            for (const uuid in selectedEntities) {
+              if (selectedEntities.hasOwnProperty(uuid)) {
+                deselectObjectByUUID(uuid)
+              }
+            }
             selectObject(object)
           }
         },
@@ -380,22 +386,10 @@ function onThreejsPanelMouseClick(event) {
       }
     } else {/* Object not already selected */
       if (event.shiftKey) {
-        /* If multiple select is not there,
-         * deselect all currently selected entities
-         */
-        if (!event.ctrlKey) {
-          for (const uuid in selectedEntities) {
-            if (selectedEntities.hasOwnProperty(uuid)) {
-              deselectObjectByUUID(uuid)
-            }
-          }
-        }
-
-        /* Check if new entity is of same type as previously selected */
-        if (Object.keys(selectedEntities).length > 0) {
-          prev_object_type = sceneEntities[uuid2idMap[Object.keys(selectedEntities)[0]]].type_description
-          if (prev_object_type != sceneEntities[uuid2idMap[object.uuid]].type_description) {
-            return;// Do not allow different type to be selected
+        /* deselect all currently selected entities */
+        for (const uuid in selectedEntities) {
+          if (selectedEntities.hasOwnProperty(uuid)) {
+            deselectObjectByUUID(uuid)
           }
         }
 

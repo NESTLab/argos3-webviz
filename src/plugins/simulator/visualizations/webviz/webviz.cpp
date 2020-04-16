@@ -243,7 +243,7 @@ namespace argos {
       LOGERR
         << "[WARNING] CWebviz::FastForwardExperiment() called in wrong state: "
         << Webviz::EExperimentStateToStr(m_eExperimentState)
-        << "Running the experiment in FastForward mode" << '\n';
+        << ", Running the experiment in FastForward mode" << '\n';
 
       /* Do not fast forward if experiment is done */
       if (m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_DONE) {
