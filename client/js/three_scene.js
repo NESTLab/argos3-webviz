@@ -1,8 +1,10 @@
 
-var camera, controls, renderer, stats;
+var camera, controls, renderer, stats, menuRenderer;
 var scale;
 var uuid2idMap = {};
 var selectedEntities = {}
+
+var dom_menu;
 
 var scene = new THREE.Scene();
 
@@ -17,14 +19,29 @@ scene.background = new THREE.Color(0x007f7f);
 /* ----------------------- */
 var sceneEntities = [];
 
-function IntializeThreejs(params) {
+var IntializeThreejs = function (threejs_panel) {
+  var _width = threejs_panel.width();
+  var _height = threejs_panel.height();
+
   /* WebGLRenderer */
   renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    // precision: "mediump"
+    antialias: true
   });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.outputEncoding = THREE.sRGBEncoding;
+
+  /* Add canvas to page */
+  renderer.setSize(_width, _height);
+  threejs_panel.append(renderer.domElement);
+
+  /* Right click menu renderer */
+  menuRenderer = new THREE.CSS2DRenderer();
+  dom_menu = menuRenderer.domElement;
+  dom_menu.id = "dom_menu"
+
+  /* Add canvas, and menu renderers to page */
+  menuRenderer.setSize(_width, _height);
+  threejs_panel.append(menuRenderer.domElement);
 
   /* Lights */
   var light = new THREE.DirectionalLight(0xffffff, 1);
@@ -45,13 +62,17 @@ function IntializeThreejs(params) {
   light.layers.enable(1);// All selectable objects
   scene.add(light);
 
-  return renderer;
+  /* Add event hander for mouse left click */
+  threejs_panel.click(onThreejsPanelMouseClick);
+
+  /* Add event hander for mouse right click */
+  threejs_panel.contextmenu(onThreejsPanelMouseContextMenu);
 }
 
 function initSceneWithScale(_scale) {
   scale = _scale;
 
-  camera = new THREE.PerspectiveCamera(45, window.threejs_aspect_ratio, 0.01, scale * 2500);
+  camera = new THREE.PerspectiveCamera(45, window.threejs_panel.width() / window.threejs_panel.height(), 0.01, scale * 2500);
 
   camera.position.set(-scale * 3, 0, scale * 5);
 
@@ -182,6 +203,85 @@ function cleanUpdateScene() {
   })
 }
 
+function onThreejsPanelResize() {
+  var _width = window.threejs_panel.width();
+  var _height = window.threejs_panel.height();
+
+  camera.aspect = _width / _height
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(_width, _height);
+  menuRenderer.setSize(_width, _height);
+}
+
+function onThreejsPanelMouseContextMenu(event) {
+  var mouse = new THREE.Vector2();
+  var raycaster = new THREE.Raycaster();
+  raycaster.layers.set(1);// Allow to select only in layer 1
+
+  // Convert to -1 to +1
+  mouse.x = (event.offsetX / window.threejs_panel.width()) * 2 - 1;
+  mouse.y = - (event.offsetY / window.threejs_panel.height()) * 2 + 1;
+
+
+  // update the picking ray with the camera and mouse position
+  raycaster.setFromCamera(mouse, camera);
+
+
+  // calculate objects intersecting the picking ray // true for recursive(nested)
+  var intersects = raycaster.intersectObjects(scene.children, true);
+
+  if (intersects.length > 0) {
+
+    /* Get only the top object */
+    var object = intersects[0].object
+    /* Get root object, whole parent is Scene */
+    while (object.parent.type != "Scene") {
+      object = object.parent
+    }
+
+    /* Already selected */
+    if (selectedEntities[object.uuid]) {
+      $.contextMenu({
+        selector: '#menu_point',
+        trigger: 'none',
+        events: {
+          hide: function (options) {
+            $(this).hide()
+            $("#menu_point").hide()
+            $("#dom_menu").hide()
+          }
+        },
+        callback: function (key, options) {
+          var m = "clicked: " + key;
+          console.log(m);
+        },
+        items: {
+          "": ""
+        }
+      })
+
+      $("#dom_menu").css({
+        position: "absolute",
+        top: "0",
+        "background-color": "rgba(0,0,0,0.3)"
+      }).empty()
+        .append($("<div/>")
+          .attr("id", "menu_point")
+          .css({
+            position: "absolute",
+            top: event.offsetY,
+            left: event.offsetX,
+            width: "0px",
+            height: "0px",
+          })
+        )
+        .show()
+
+      $("#menu_point").contextMenu()
+    }
+  }
+}
 
 function onThreejsPanelMouseClick(event) {
   var mouse = new THREE.Vector2();
@@ -239,6 +339,18 @@ function onThreejsPanelMouseClick(event) {
           }
         }
 
+        /* Check if new entity is of same type as previously selected */
+        if (Object.keys(selectedEntities).length > 0) {
+          prev_object_type = sceneEntities[uuid2idMap[Object.keys(selectedEntities)[0]]].type_description
+          if (prev_object_type != sceneEntities[uuid2idMap[object.uuid]].type_description) {
+            return;// Do not allow different type to be selected
+          }
+
+          if (prev_object_type == "box") {
+            return; // Disable multiple selection for boxes
+          }
+        }
+
         /* Add to selection */
         var boundingBox = new THREE.BoxHelper(object, 0x000000);
         selectedEntities[object.uuid] = boundingBox
@@ -264,25 +376,7 @@ function onThreejsPanelMouseClick(event) {
       !event.shiftKey &&
       ids.length == 1) {
 
-      /* Robot's Z plane */
-      var z_plane = sceneEntities[ids[0]].mesh.position.z / scale;
-
-      var mouse_point = new THREE.Vector3();
-      mouse_point.x = mouse.x;
-      mouse_point.y = mouse.y;
-      mouse_point.z = z_plane;
-
-      var pos = new THREE.Vector3();
-
-
-      /* Get point under the mouse */
-      mouse_point.unproject(camera);
-      mouse_point.sub(camera.position).normalize();
-      var distance = (z_plane - camera.position.z) / mouse_point.z;
-      pos.copy(camera.position).add(mouse_point.multiplyScalar(distance));
-
-      /* divide by scale to convert back to units from server */
-      pos.divideScalar(scale)
+      var pos = get2DProjectedPosition(mouse, sceneEntities[ids[0]]);
 
       window.wsp.sendPacked({
         command: 'moveEntity',
@@ -303,11 +397,34 @@ function onThreejsPanelMouseClick(event) {
   }
 }
 
+function get2DProjectedPosition(mouse, object) {
+  /* Object's Z plane */
+  var z_plane = object.mesh.position.z / scale;
+
+  var mouse_point = new THREE.Vector3();
+  mouse_point.x = mouse.x;
+  mouse_point.y = mouse.y;
+  mouse_point.z = z_plane;
+
+  var pos = new THREE.Vector3();
+
+
+  /* Get point under the mouse */
+  mouse_point.unproject(camera);
+  mouse_point.sub(camera.position).normalize();
+  var distance = (z_plane - camera.position.z) / mouse_point.z;
+  pos.copy(camera.position).add(mouse_point.multiplyScalar(distance));
+
+  /* divide by scale to convert back to units from server */
+  pos.divideScalar(scale)
+
+  return pos
+}
+
 function animate() {
   requestAnimationFrame(animate);
-  controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+  controls.update();
   render();
-  // stats.update();
 }
 
 
@@ -329,6 +446,7 @@ function render() {
       sceneEntities[entity.id].update(entity, scale);
     });
 
+    /* Update all bounding boxes */
     for (const uuid in selectedEntities) {
       if (selectedEntities.hasOwnProperty(uuid)) {
         selectedEntities[uuid].update();
@@ -337,4 +455,5 @@ function render() {
   }
 
   renderer.render(scene, camera);
+  menuRenderer.render(scene, camera);
 }
