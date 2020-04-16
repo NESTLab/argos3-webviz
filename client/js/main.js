@@ -102,7 +102,7 @@ var onAllFilesLoaded = function () {
         )
         .append($("<div/>")
           .addClass('button')
-          .addClass('step-button')
+          .addClass('icon-step')
           .attr("title", "Step experiment")
           .prop("title", "Step experiment")//for IE
           .click(function () {
@@ -111,7 +111,7 @@ var onAllFilesLoaded = function () {
         )
         .append($("<div/>")
           .addClass('button')
-          .addClass('play-button')
+          .addClass('icon-play')
           .attr('id', 'play_button')
           .attr("title", "Play experiment")
           .prop("title", "Play experiment")//for IE
@@ -126,7 +126,7 @@ var onAllFilesLoaded = function () {
         )
         .append($("<div/>")
           .addClass('button')
-          .addClass('ff-button')
+          .addClass('icon-ff')
           .attr('id', 'ff_button')
           .attr("title", "Fast forward experiment")
           .prop("title", "Fast forward experiment")//for IE
@@ -138,18 +138,18 @@ var onAllFilesLoaded = function () {
         .append($("<div/>")
           .addClass('toolbar_divider')
         )
-        // .append($("<div/>")
-        //   .addClass('button')
-        //   .addClass('stop-button')
-        //   .attr("title", "Terminate experiment")
-        //   .prop("title", "Terminate experiment")//for IE
-        //   .click(function () {
-        //     // window.wsp.send('step')
-        //   })
-        // )
         .append($("<div/>")
           .addClass('button')
-          .addClass('reset-button')
+          .addClass('icon-stop')
+          .attr("title", "Terminate experiment")
+          .prop("title", "Terminate experiment")//for IE
+          .click(function () {
+            // window.wsp.send('step')
+          })
+        )
+        .append($("<div/>")
+          .addClass('button')
+          .addClass('icon-reset')
           .attr("title", "Reset experiment")
           .prop("title", "Reset experiment")//for IE
           .click(function () {
@@ -160,17 +160,17 @@ var onAllFilesLoaded = function () {
         .append($("<div/>")
           .addClass('toolbar_divider')
         )
-        // .append($("<div/>")
-        //   .addClass('button')
-        //   .addClass('settings-button')
-        //   .attr("title", "Settings")
-        //   .prop("title", "Settings")//for IE
-        //   .click(function () {
-        //   })
-        // )
         .append($("<div/>")
           .addClass('button')
-          .addClass('help-button')
+          .addClass('icon-settings')
+          .attr("title", "Settings")
+          .prop("title", "Settings")//for IE
+          .click(function () {
+          })
+        )
+        .append($("<div/>")
+          .addClass('button')
+          .addClass('icon-help')
           .attr("title", "Help")
           .prop("title", "Help")//for IE
           .click(function () {

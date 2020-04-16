@@ -87,16 +87,16 @@
           case 'EXPERIMENT_DONE':
           case 'EXPERIMENT_PAUSED':
 
-            $("#play_button").removeClass('pause-button')
-              .addClass('play-button')
+            $("#play_button").removeClass('icon-pause')
+              .addClass('icon-play')
               .removeClass('active')
               .attr("title", "Play experiment")
               .prop("title", "Play experiment")//for IE
 
             break;
           case 'EXPERIMENT_FAST_FORWARDING':
-            $("#play_button").removeClass('play-button')
-              .addClass('pause-button')
+            $("#play_button").removeClass('icon-play')
+              .addClass('icon-pause')
               .removeClass('active')
               .attr("title", "Pause experiment")
               .prop("title", "Pause experiment")//for IE
@@ -104,8 +104,8 @@
             $("#ff_button").addClass('active')
             break;
           case 'EXPERIMENT_PLAYING':
-            $("#play_button").removeClass('play-button')
-              .addClass('pause-button')
+            $("#play_button").removeClass('icon-play')
+              .addClass('icon-pause')
               .addClass('active')
               .attr("title", "Pause experiment")
               .prop("title", "Pause experiment")//for IE
