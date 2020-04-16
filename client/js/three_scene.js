@@ -4,8 +4,6 @@ var scale;
 var uuid2idMap = {};
 var selectedEntities = {}
 
-var dom_menu;
-
 var scene = new THREE.Scene();
 
 window.isInitialized = false;
@@ -36,8 +34,9 @@ var IntializeThreejs = function (threejs_panel) {
 
   /* Right click menu renderer */
   menuRenderer = new THREE.CSS2DRenderer();
-  dom_menu = menuRenderer.domElement;
-  dom_menu.id = "dom_menu"
+  menuRenderer.domElement.id = 'dom_menu'
+  menuRenderer.domElement.style.backgroundColor = 'rgba(0,0,0,0.4)';
+  menuRenderer.domElement.style.display = 'none';
 
   /* Add canvas, and menu renderers to page */
   menuRenderer.setSize(_width, _height);
@@ -66,7 +65,7 @@ var IntializeThreejs = function (threejs_panel) {
   threejs_panel.click(onThreejsPanelMouseClick);
 
   /* Add event hander for mouse right click */
-  threejs_panel.contextmenu(onThreejsPanelMouseContextMenu);
+  threejs_panel.mouseup(onThreejsPanelMouseContextMenu);
 }
 
 function initSceneWithScale(_scale) {
@@ -215,6 +214,43 @@ function onThreejsPanelResize() {
 }
 
 function onThreejsPanelMouseContextMenu(event) {
+  event.preventDefault();
+  if (!event.originalEvent || event.which != 3) {
+    return
+  }
+
+
+  var contextMenuConfig = {
+    selector: '#dom_menu',
+    appendTo: '#dom_menu',
+    trigger: 'none',
+    events: {
+      show: function () {
+        $("#dom_menu").show()
+      },
+      hide: function (options) {
+        $("#dom_menu").hide()
+        $.contextMenu('destroy'); // Delete menu
+      }
+    },
+    position: function (opt, x, y) {
+      var origX = x - window.threejs_panel.offset().left - 4
+      var origY = y - window.threejs_panel.offset().top - 4
+
+      if (origX + opt.$menu.width() > window.threejs_panel.width()) {
+        origX -= opt.$menu.width()
+      }
+      if (origY + opt.$menu.height() > window.threejs_panel.height()) {
+        origY -= opt.$menu.height() + 10
+      }
+
+      opt.$menu.css({
+        top: origY,
+        left: origX
+      });
+    }
+  };
+
   var mouse = new THREE.Vector2();
   var raycaster = new THREE.Raycaster();
   raycaster.layers.set(1);// Allow to select only in layer 1
@@ -227,12 +263,11 @@ function onThreejsPanelMouseContextMenu(event) {
   // update the picking ray with the camera and mouse position
   raycaster.setFromCamera(mouse, camera);
 
-
-  // calculate objects intersecting the picking ray // true for recursive(nested)
+  // calculate objects intersecting the picking ray 
+  // true for recursive(nested)
   var intersects = raycaster.intersectObjects(scene.children, true);
 
   if (intersects.length > 0) {
-
     /* Get only the top object */
     var object = intersects[0].object
     /* Get root object, whole parent is Scene */
@@ -242,44 +277,74 @@ function onThreejsPanelMouseContextMenu(event) {
 
     /* Already selected */
     if (selectedEntities[object.uuid]) {
-      $.contextMenu({
-        selector: '#menu_point',
-        trigger: 'none',
-        events: {
-          hide: function (options) {
-            $(this).hide()
-            $("#menu_point").hide()
-            $("#dom_menu").hide()
+      contextMenuConfig.items = {
+        "deselect": {
+          name: "Deselect",
+          accesskey: 'd',
+          callback: function () {
+            deselectObject(object)
           }
         },
-        callback: function (key, options) {
-          var m = "clicked: " + key;
-          console.log(m);
+      };
+    } else {
+      /* Not selected already */
+      contextMenuConfig.items = {
+        "select": {
+          name: "Select",
+          accesskey: 's',
+          callback: function () {
+            selectObject(object)
+          }
         },
-        items: {
-          "": ""
-        }
-      })
+      };
 
-      $("#dom_menu").css({
-        position: "absolute",
-        top: "0",
-        "background-color": "rgba(0,0,0,0.3)"
-      }).empty()
-        .append($("<div/>")
-          .attr("id", "menu_point")
-          .css({
-            position: "absolute",
-            top: event.offsetY,
-            left: event.offsetX,
-            width: "0px",
-            height: "0px",
-          })
-        )
-        .show()
-
-      $("#menu_point").contextMenu()
     }
+  } else { // No items intersects
+    /* Only one entity is selected */
+    if (Object.keys(selectedEntities).length == 1) {
+      var ids = [];
+
+      for (const uuid in selectedEntities) {
+        if (selectedEntities.hasOwnProperty(uuid)) {
+          if (uuid2idMap[uuid]) { // Found object
+            ids.push(uuid2idMap[uuid]);
+          }// selected object is no more in scene, dont know what to do...
+        }
+      }
+
+      contextMenuConfig.items = {
+        "move": {
+          name: "Move selected here",
+          accesskey: 'm',
+          callback: function () {
+            var pos = get2DProjectedPosition(mouse, sceneEntities[ids[0]]);
+
+            window.wsp.sendPacked({
+              command: 'moveEntity',
+              entity_id: ids[0],
+              position: {
+                x: pos.x,
+                y: pos.y,
+                z: pos.z
+              },
+              orientation: {
+                x: sceneEntities[ids[0]].mesh.quaternion._x,
+                y: sceneEntities[ids[0]].mesh.quaternion._y,
+                z: sceneEntities[ids[0]].mesh.quaternion._z,
+                w: sceneEntities[ids[0]].mesh.quaternion._w
+              }
+            });
+          }
+        },
+      };
+    }
+  }
+
+  if (contextMenuConfig.items) {
+    $.contextMenu(contextMenuConfig);
+
+    /* Show menu */
+    $('#dom_menu').contextMenu({ x: event.clientX, y: event.clientY });
   }
 }
 
@@ -311,14 +376,7 @@ function onThreejsPanelMouseClick(event) {
     /* Already selected */
     if (selectedEntities[object.uuid]) {
       if (event.shiftKey) {
-        /* remove from selection */
-        var boundingBox = selectedEntities[object.uuid]
-
-        boundingBox.geometry.dispose();
-        boundingBox.material.dispose();
-        scene.remove(boundingBox);
-
-        delete selectedEntities[object.uuid];
+        deselectObject(object)
       }
     } else {/* Object not already selected */
       if (event.shiftKey) {
@@ -328,13 +386,7 @@ function onThreejsPanelMouseClick(event) {
         if (!event.ctrlKey) {
           for (const uuid in selectedEntities) {
             if (selectedEntities.hasOwnProperty(uuid)) {
-              const boundingBox = selectedEntities[uuid];
-
-              boundingBox.geometry.dispose();
-              boundingBox.material.dispose();
-              scene.remove(boundingBox);
-
-              delete selectedEntities[uuid]
+              deselectObjectByUUID(uuid)
             }
           }
         }
@@ -345,17 +397,10 @@ function onThreejsPanelMouseClick(event) {
           if (prev_object_type != sceneEntities[uuid2idMap[object.uuid]].type_description) {
             return;// Do not allow different type to be selected
           }
-
-          if (prev_object_type == "box") {
-            return; // Disable multiple selection for boxes
-          }
         }
 
         /* Add to selection */
-        var boundingBox = new THREE.BoxHelper(object, 0x000000);
-        selectedEntities[object.uuid] = boundingBox
-
-        scene.add(boundingBox);
+        selectObject(object)
       }
     }
   } else { // No object intersected
@@ -395,6 +440,32 @@ function onThreejsPanelMouseClick(event) {
       });
     }
   }
+}
+
+function selectObject(object) {
+  if (!selectedEntities[object.uuid]) {
+    var boundingBox = new THREE.BoxHelper(object, 0x000000);
+    selectedEntities[object.uuid] = boundingBox
+
+    scene.add(boundingBox);
+  }
+}
+
+function deselectObjectByUUID(uuid) {
+  if (selectedEntities[uuid]) {
+    /* remove from selection */
+    var boundingBox = selectedEntities[uuid]
+
+    boundingBox.geometry.dispose();
+    boundingBox.material.dispose();
+    scene.remove(boundingBox);
+
+    delete selectedEntities[uuid];
+  }
+}
+
+function deselectObject(object) {
+  deselectObjectByUUID(object.uuid)
 }
 
 function get2DProjectedPosition(mouse, object) {
