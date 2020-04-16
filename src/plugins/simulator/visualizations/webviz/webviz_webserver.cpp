@@ -403,17 +403,20 @@ namespace argos {
         m_pcMyWebviz->ResetExperiment();
 
       } else if (strCmd.compare("fastforward") == 0) {
-        /* number of Steps defined */
-        if (json_ClientCommand["steps"].is_number_integer()) {
-          auto strSteps = json_ClientCommand["steps"].get<int16_t>();
+        try {
+          /* number of Steps defined */
+          int16_t unSteps = json_ClientCommand["steps"].get<int16_t>();
           /* Validate steps */
-          if (1 <= strSteps && strSteps <= 1000) {
-            m_pcMyWebviz->FastForwardExperiment(strSteps);
+          if (1 <= unSteps && unSteps <= 1000) {
+            m_pcMyWebviz->FastForwardExperiment(unSteps);
+          } else {
+            m_pcMyWebviz->FastForwardExperiment();
           }
-        } else {
+        } catch (const std::exception &_ignored) {
           /* No steps defined */
           m_pcMyWebviz->FastForwardExperiment();
         }
+
       } else if (strCmd.compare("moveEntity") == 0) {
         try {
           CVector3 cNewPos;

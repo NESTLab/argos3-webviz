@@ -136,8 +136,25 @@ var onAllFilesLoaded = function () {
           .attr("title", "Fast forward experiment")
           .prop("title", "Fast forward experiment")//for IE
           .click(function () {
-            window.wsp.sendPacked({ command: 'fastforward' })
+
+            var steps = parseInt($("#ff_steps_input").val());
+
+            if (steps && steps >= 1 && steps <= 500) {
+              $("#ff_steps_input").val(steps)
+              window.wsp.sendPacked({ command: 'fastforward', steps: steps })
+            } else {
+              window.wsp.sendPacked({ command: 'fastforward' })
+            }
           })
+        )
+        .append($("<input/>")
+          .attr('type', 'number')
+          .attr('id', 'ff_steps_input')
+          .attr('min', '1')
+          .attr('max', '500')
+          .attr('value', '10')
+          .attr("title", "Fast forward steps")
+          .prop("title", "Fast forward steps")//for IE
         )
         /* Divider */
         .append($("<div/>")
