@@ -25,6 +25,7 @@ namespace argos {
 #include <nlohmann/json.hpp>
 #include <queue>
 #include <string_view>
+
 #include "App.h"  // uWebSockets
 #include "config.h"
 #include "utility/CTimer.h"
@@ -142,11 +143,9 @@ namespace argos {
        * @brief Broadcasts on log channels to all the connected clients
        *
        * @param log_type either LOG or LOGERR
-       * @param timestep simulation clock/timestep
        * @param message log message
        */
-      void EmitLog(
-        std::string log_type, std::string timestep, std::string message);
+      void EmitLog(std::string log_type, std::string message);
 
       /** Broadcasts JSON to all the connected clients */
       void Broadcast(nlohmann::json);

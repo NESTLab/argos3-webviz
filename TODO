@@ -10,3 +10,4 @@
 [ ] BUG: Reset while fast-forwarding, goes to few steps(instead of 0 steps)
 [ ] Add Terminate experiment
 [ ] Duplicate log messages
+[ ] BUG: LOG & LOGERR doesn't emit until experiment has started

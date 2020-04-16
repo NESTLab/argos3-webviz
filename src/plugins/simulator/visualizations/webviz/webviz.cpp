@@ -79,29 +79,6 @@ namespace argos {
       strCAFilePath,
       strCertPassphrase);
 
-    LOG << "[INFO] Starting WebSockets Server on port " << unPort << '\n';
-
-    /* Write all the pending stuff */
-    LOG.Flush();
-    LOGERR.Flush();
-
-    /* Disable Colors in LOG, as its going to be shown in web and not in CLI */
-    LOG.DisableColoredOutput();
-    LOGERR.DisableColoredOutput();
-
-    /* Initialize the LOG streams from Execute thread */
-    m_pcLogStream =
-      new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData) {
-        m_cWebServer->EmitLog(
-          "LOG", ToString(m_cSpace.GetSimulationClock()), str_logData);
-      });
-
-    m_pcLogErrStream = new Webviz::CLogStream(
-      LOGERR.GetStream(), [this](std::string str_logData) {
-        m_cWebServer->EmitLog(
-          "LOGERR", ToString(m_cSpace.GetSimulationClock()), str_logData);
-      });
-
     /* Should we play instantly? */
     bool bAutoPlay = false;
     GetNodeAttributeOrDefault(t_tree, "autoplay", bAutoPlay, bAutoPlay);
@@ -205,10 +182,10 @@ namespace argos {
           std::this_thread::sleep_for(
             m_cSimulatorTickMillis - m_cTimer.Elapsed());
         } else {
-          LOG << "[WARNING] Clock tick took " << m_cTimer
-              << " milli-secs, more than the expected "
-              << m_cSimulatorTickMillis.count() << " milli-secs. "
-              << "Recovering in next cycle." << '\n';
+          LOGERR << "[WARNING] Clock tick took " << m_cTimer
+                 << " milli-secs, more than the expected "
+                 << m_cSimulatorTickMillis.count() << " milli-secs. "
+                 << "Recovering in next cycle." << '\n';
         }
 
         /* Restart Timer */
@@ -234,8 +211,8 @@ namespace argos {
     if (
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_INITIALIZED &&
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PAUSED) {
-      LOG << "[WARNING] CWebviz::PlayExperiment() called in wrong state: "
-          << Webviz::EExperimentStateToStr(m_eExperimentState) << '\n';
+      LOGERR << "[WARNING] CWebviz::PlayExperiment() called in wrong state: "
+             << Webviz::EExperimentStateToStr(m_eExperimentState) << '\n';
 
       // silently return;
       return;
@@ -263,10 +240,10 @@ namespace argos {
     if (
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_INITIALIZED &&
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PAUSED) {
-      LOG
+      LOGERR
         << "[WARNING] CWebviz::FastForwardExperiment() called in wrong state: "
         << Webviz::EExperimentStateToStr(m_eExperimentState)
-        << "\nRunning the experiment in FastForward mode" << '\n';
+        << "Running the experiment in FastForward mode" << '\n';
 
       /* Do not fast forward if experiment is done */
       if (m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_DONE) {
@@ -303,8 +280,8 @@ namespace argos {
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PLAYING &&
       m_eExperimentState !=
         Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
-      LOG << "[WARNING] CWebviz::PauseExperiment() called in wrong state: "
-          << Webviz::EExperimentStateToStr(m_eExperimentState) << '\n';
+      LOGERR << "[WARNING] CWebviz::PauseExperiment() called in wrong state: "
+             << Webviz::EExperimentStateToStr(m_eExperimentState) << '\n';
 
       return;
     }
@@ -327,9 +304,9 @@ namespace argos {
       m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_PLAYING ||
       m_eExperimentState ==
         Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
-      LOG << "[WARNING] CWebviz::StepExperiment() called in wrong state: "
-          << Webviz::EExperimentStateToStr(m_eExperimentState)
-          << " pausing the experiment to run a step" << '\n';
+      LOGERR << "[WARNING] CWebviz::StepExperiment() called in wrong state: "
+             << Webviz::EExperimentStateToStr(m_eExperimentState)
+             << " pausing the experiment to run a step" << '\n';
 
       /* Make experiment pause */
       m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_PAUSED;
@@ -482,9 +459,9 @@ namespace argos {
       if (pcEntity->MoveTo(c_pos, c_orientation)) {
         LOG << "[INFO] Entity Moved (" + str_entity_id + ")" << '\n';
       } else {
-        LOG << "[WARNING] Entity cannot be moved, collision detected. (" +
-                 str_entity_id + ")"
-            << '\n';
+        LOGERR << "[WARNING] Entity cannot be moved, collision detected. (" +
+                    str_entity_id + ")"
+               << '\n';
       }
     } catch (CARGoSException& ex) {
       THROW_ARGOSEXCEPTION_NESTED(

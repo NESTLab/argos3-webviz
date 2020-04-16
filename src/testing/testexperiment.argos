@@ -7,9 +7,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="0"
-                ticks_per_second="10"
-                random_seed="124" />
+    <experiment length="0" ticks_per_second="10" random_seed="124" />
   </framework>
 
   <!-- *************** -->
@@ -17,8 +15,7 @@
   <!-- *************** -->
   <controllers>
 
-    <footbot_diffusion_controller id="fdc"
-                                  library="build/testing/controllers/libfootbot_diffusion.so">
+    <footbot_diffusion_controller id="fdc" library="build/testing/controllers/libfootbot_diffusion.so">
       <actuators>
         <differential_steering implementation="default" />
       </actuators>
@@ -108,9 +105,7 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-    <webviz 
-      ff_draw_frames_every="10" 
-    />
+    <webviz ff_draw_frames_every="10" />
     <!-- <qt-opengl /> -->
   </visualization>
 </argos-configuration>

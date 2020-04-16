@@ -22,6 +22,7 @@ namespace argos {
 }  // namespace argos
 
 #include <argos3/core/simulator/entity/entity.h>
+
 #include <nlohmann/json.hpp>
 
 namespace argos {
@@ -47,8 +48,10 @@ namespace argos {
 #include <argos3/core/simulator/visualization/visualization.h>
 #include <argos3/core/utility/configuration/argos_exception.h>
 #include <argos3/core/utility/math/vector3.h>
+
 #include <atomic>
 #include <thread>
+
 #include "utility/CTimer.h"
 #include "utility/EExperimentState.h"
 #include "utility/LogStream.h"
