@@ -146,12 +146,6 @@ pre {
     margin-right: 8px;
 }
 
-#dom_menu {
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-
 .HelpModalBody {
     padding: 0px 10px;
     font-size: 14px;

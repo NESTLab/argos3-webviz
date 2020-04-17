@@ -41,12 +41,11 @@ class KheperaIV {
 
                     for (let i = 0; i < kheperaiv_bot.children.length; i++) {
                         /* Move above the surface */
-                        kheperaiv_bot.children[i].geometry.translate(0, 0, boundingBox.getSize().z);
+                        kheperaiv_bot.children[i].geometry.translate(0, 0, boundingBox.getSize(new THREE.Vector3()).z);
 
                         kheperaiv_bot.children[i].material = new THREE.MeshBasicMaterial({
                             map: kheperaiv_bot.children[i].material.map,
-                            color: 0xffffff,
-                            side: THREE.SingleSide
+                            color: 0xffffff
                         });
                     }
 
