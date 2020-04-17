@@ -123,9 +123,6 @@ namespace argos {
         m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_PLAYING ||
         m_eExperimentState ==
           Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
-        /* Run user's pre step function */
-        m_cSimulator.GetLoopFunctions().PreStep();
-
         if (m_bFastForwarding) {
           /* Number of frames to drop in fast-forward */
           unFFStepCounter = m_unDrawFrameEvery;
@@ -152,9 +149,6 @@ namespace argos {
 
         /* Broadcast current experiment state */
         BroadcastExperimentState();
-
-        /* Run user's post step function */
-        m_cSimulator.GetLoopFunctions().PostStep();
 
         /* Experiment done while in while loop */
         if (m_cSimulator.IsExperimentFinished()) {
