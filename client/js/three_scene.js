@@ -128,7 +128,6 @@ function initSceneWithScale(_scale) {
     plane_geometry.translate(0, 0, -0.005 * scale);
 
     new THREE.TextureLoader().load("/images/ground.png", function (texture) {
-      texture.minFilter = THREE.LinearFilter;
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
       texture.repeat.set(scale / 2.5, scale / 2.5);
 
