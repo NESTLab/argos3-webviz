@@ -15,6 +15,8 @@ var scale;
 var uuid2idMap = {};
 var selectedEntities = {}
 
+var mouseDownEvent = null
+
 var scene = new THREE.Scene();
 
 window.isInitialized = false;
@@ -77,6 +79,9 @@ var IntializeThreejs = function (threejs_panel) {
 
   /* Add event hander for mouse right click */
   threejs_panel.mouseup(onThreejsPanelMouseContextMenu);
+  threejs_panel.mousedown(function (event) {
+    mouseDownEvent = event
+  });
 }
 
 function initSceneWithScale(_scale) {
@@ -232,7 +237,11 @@ function onThreejsPanelMouseContextMenu(event) {
   if (!event.originalEvent || event.which != 3) {
     return
   }
-
+  if (mouseDownEvent.offsetX !== event.offsetX ||
+    mouseDownEvent.offsetY !== event.offsetY) {
+    /* User is panning */
+    return
+  }
 
   var contextMenuConfig = {
     selector: '#dom_menu',
