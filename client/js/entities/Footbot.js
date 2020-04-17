@@ -1,10 +1,23 @@
+/**
+ * @file <client/js/entities/Footbot.js>
+ * 
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ * 
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ * 
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
+
 class Footbot {
-    constructor(entity, scale, callback) {
+    constructor(entity, scale, EntityLoadingFinishedFn) {
         this.scale = scale;
+        this.entity = entity;
         this.lines = [];
 
         /* Scale to convert from mm to scale used here */
         var UNIT_SCALE = 0.001 * scale
+
         var that = this;
         var geometry = new THREE.CylinderBufferGeometry(
             70.40 * UNIT_SCALE,
@@ -78,10 +91,16 @@ class Footbot {
 
         that.mesh = meshParent;
 
-        callback(that)
+        EntityLoadingFinishedFn(that);
     }
 
-    update(entity, scale) {
+    getMesh() {
+        return this.mesh;
+    }
+
+    update(entity) {
+        var scale = this.scale
+
         if (this.mesh) {
             this.mesh.position.x = entity.position.x * scale;
             this.mesh.position.y = entity.position.y * scale;

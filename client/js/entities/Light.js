@@ -1,5 +1,18 @@
+/**
+ * @file <client/js/entities/Light.js>
+ * 
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ * 
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ * 
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
+
 class Light {
-    constructor(entity, scale_) {
+    constructor(entity, scale_, EntityLoadingFinishedFn) {
+        this.entity = entity;
+
         this.scale = scale_ * 0.001;
 
         var geometry = new THREE.SphereBufferGeometry(
@@ -30,6 +43,14 @@ class Light {
             entity.position.z * scale);
 
         this.light = pointLight
+
+        this.mesh.add(pointLight);
+
+        EntityLoadingFinishedFn(this);
+    }
+
+    getMesh() {
+        return this.mesh;
     }
 
     update(entity) {

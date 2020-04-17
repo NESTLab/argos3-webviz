@@ -1,6 +1,18 @@
+/**
+ * @file <client/js/entities/KheperaIV.js>
+ * 
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ * 
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ * 
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
+
 class KheperaIV {
-    constructor(entity, scale, callback) {
+    constructor(entity, scale, EntityLoadingFinishedFn) {
         this.scale = scale;
+        this.entity = entity;
         this.lines = [];
 
         /* Scale to convert from mm to scale used here */
@@ -102,11 +114,17 @@ class KheperaIV {
 
             that.mesh = meshParent;
 
-            callback(that)
+            EntityLoadingFinishedFn(that);
         });
     }
 
-    update(entity, scale) {
+    getMesh() {
+        return this.mesh
+    }
+
+    update(entity) {
+        var scale = this.scale;
+
         if (this.mesh) {
             this.mesh.position.x = entity.position.x * scale;
             this.mesh.position.y = entity.position.y * scale;
@@ -179,9 +197,9 @@ class KheperaIV {
                         For example -> "true:1,2,3:1,2,4"
                     */
 
-                    var rayArr = entity.rays[i].split(":")
-                    var start = rayArr[1].split(",")
-                    var end = rayArr[2].split(",")
+                    var rayArr = entity.rays[i].split(":");
+                    var start = rayArr[1].split(",");
+                    var end = rayArr[2].split(",");
 
                     var line = this.lines[i]; //this.mesh.children[5 + i];
 
@@ -192,15 +210,15 @@ class KheperaIV {
                             line.material.color.setHex(0x00ffff);
                         }
 
-                        var positions = line.geometry.getAttribute('position').array
+                        var positions = line.geometry.getAttribute('position').array;
 
-                        positions[0] = start[0] * scale
-                        positions[1] = start[1] * scale
-                        positions[2] = start[2] * scale
+                        positions[0] = start[0] * scale;
+                        positions[1] = start[1] * scale;
+                        positions[2] = start[2] * scale;
 
-                        positions[3] = end[0] * scale
-                        positions[4] = end[1] * scale
-                        positions[5] = end[2] * scale
+                        positions[3] = end[0] * scale;
+                        positions[4] = end[1] * scale;
+                        positions[5] = end[2] * scale;
 
                         line.geometry.getAttribute('position').needsUpdate = true;
                         line.geometry.setDrawRange(0, 2);

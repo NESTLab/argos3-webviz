@@ -1,3 +1,14 @@
+/**
+ * @file <client/js/three_scene.js>
+ * 
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ * 
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ * 
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
+
 
 var camera, controls, renderer, stats, menuRenderer;
 var scale;
@@ -130,14 +141,19 @@ function initSceneWithScale(_scale) {
 function cleanUpdateScene() {
   window.isLoadingModels = true;
   /* Remove all meshes */
-  Object.keys(sceneEntities).map((i) => {
-    const object = scene.getObjectByProperty('uuid', i.mesh);
-    if (object) {
-      object.geometry.dispose();
-      object.material.dispose();
-      scene.remove(object);
+
+  for (const key in sceneEntities) {
+    if (sceneEntities.hasOwnProperty(key)) {
+
+      const object = scene.getObjectByProperty('uuid', sceneEntities[key].uuid);
+
+      if (object) {
+        object.geometry.dispose();
+        object.material.dispose();
+        scene.remove(object);
+      }
     }
-  });
+  }
   /* reset Map */
   uuid2idMap = {};
   selectedEntities = {}
@@ -148,46 +164,44 @@ function cleanUpdateScene() {
     if (entity) { //Neglect Null Entities
       GetEntity(entity, scale, function (entityObject) {
         if (entityObject) {
-          /* Copy basic properties from Argos entities to threejs objects */
-          entityObject.id = entity.id;
-          entityObject.type_description = entity.type;
+          var mesh = entityObject.getMesh()
 
-          /* UUID to ID map */
-          uuid2idMap[entityObject.mesh.uuid] = entity.id;
+          if (mesh) {
+            entityObject.uuid = mesh.uuid
 
-          sceneEntities[entity.id] = entityObject;
+            /* Copy basic properties from Argos entities to threejs objects */
+            entityObject.id = entity.id;
+            entityObject.type_description = entity.type;
 
-          /* Its not an object with "is_movable", so considering it movable(robots) */
-          if (typeof entity.is_movable === 'undefined' || entity.is_movable === null) {
-            /* Hardcoded floor entity in non-selectable entity */
-            if (entity.type == "floor") {
-              /* Non selectable */
-              entityObject.mesh.layers.set(0);
+            /* UUID to ID map */
+            uuid2idMap[mesh.uuid] = entity.id;
+
+            sceneEntities[entity.id] = entityObject;
+
+            /* Its not an object with "is_movable", so considering it movable(robots) */
+            if (typeof entity.is_movable === 'undefined' || entity.is_movable === null) {
+              /* Hardcoded floor entity in non-selectable entity */
+              if (entity.type == "floor") {
+                /* Non selectable */
+                mesh.layers.set(0);
+              } else {
+                /* Add to selectable layer */
+                mesh.layers.set(1);
+                mesh.traverse(function (child) { child.layers.set(1) })
+              }
             } else {
-              /* Add to selectable layer */
-              entityObject.mesh.layers.set(1);
-              entityObject.mesh.traverse(function (child) { child.layers.set(1) })
+              /* If "is_movable" is true */
+              if (entity.is_movable && entity.is_movable === true) {
+                /* Add to selectable layer */
+                mesh.layers.set(1);
+              } else {
+                /* Non selectable */
+                mesh.layers.set(0);
+              }
             }
-          } else {
-            /* If "is_movable" is true */
-            if (entity.is_movable && entity.is_movable === true) {
-              /* Add to selectable layer */
-              entityObject.mesh.layers.set(1);
-            } else {
-              /* Non selectable */
-              entityObject.mesh.layers.set(0);
-            }
+
+            scene.add(mesh);
           }
-
-          scene.add(entityObject.mesh);
-        }
-
-        /*
-          Comment this to not give a "Point light"
-          for a light-entity
-        */
-        if (entity.type == "light") {
-          scene.add(entityObject.light);
         }
 
         count--;
@@ -324,6 +338,7 @@ function onThreejsPanelMouseContextMenu(event) {
           accesskey: 'm',
           callback: function () {
             var pos = get2DProjectedPosition(mouse, sceneEntities[ids[0]]);
+            var mesh = sceneEntities[ids[0]].getMesh()
 
             window.wsp.sendPacked({
               command: 'moveEntity',
@@ -334,10 +349,10 @@ function onThreejsPanelMouseContextMenu(event) {
                 z: pos.z
               },
               orientation: {
-                x: sceneEntities[ids[0]].mesh.quaternion._x,
-                y: sceneEntities[ids[0]].mesh.quaternion._y,
-                z: sceneEntities[ids[0]].mesh.quaternion._z,
-                w: sceneEntities[ids[0]].mesh.quaternion._w
+                x: mesh.quaternion._x,
+                y: mesh.quaternion._y,
+                z: mesh.quaternion._z,
+                w: mesh.quaternion._w
               }
             });
           }
@@ -416,6 +431,7 @@ function onThreejsPanelMouseClick(event) {
       ids.length == 1) {
 
       var pos = get2DProjectedPosition(mouse, sceneEntities[ids[0]]);
+      var mesh = sceneEntities[ids[0]].getMesh()
 
       window.wsp.sendPacked({
         command: 'moveEntity',
@@ -426,10 +442,10 @@ function onThreejsPanelMouseClick(event) {
           z: pos.z
         },
         orientation: {
-          x: sceneEntities[ids[0]].mesh.quaternion._x,
-          y: sceneEntities[ids[0]].mesh.quaternion._y,
-          z: sceneEntities[ids[0]].mesh.quaternion._z,
-          w: sceneEntities[ids[0]].mesh.quaternion._w
+          x: mesh.quaternion._x,
+          y: mesh.quaternion._y,
+          z: mesh.quaternion._z,
+          w: mesh.quaternion._w
         }
       });
     }

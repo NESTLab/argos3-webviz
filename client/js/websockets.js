@@ -1,4 +1,14 @@
-/*  */
+/**
+ * @file <client/js/websockets.js>
+ * 
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ * 
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ * 
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
+
 (function (w) {
   var ConnectWebSockets = function () {
     var sockets_api = server + "?broadcasts,logs";

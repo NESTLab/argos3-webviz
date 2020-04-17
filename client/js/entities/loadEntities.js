@@ -1,13 +1,24 @@
+/**
+ * @file <client/js/entities/loadEntities.js>
+ * 
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ * 
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ * 
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
 
 /* Load All entities */
-loadJS("/js/entities/Box.js", true)
-loadJS("/js/entities/DefaultEntity.js", true)
-loadJS("/js/entities/Light.js", true)
-loadJS("/js/entities/Floor.js", true)
+loadJS("/js/entities/DefaultEntity.js")
+loadJS("/js/entities/Light.js")
+loadJS("/js/entities/Floor.js")
 
-loadJS("/js/entities/Cylinder.js", true)
-loadJS("/js/entities/Footbot.js", true)
-loadJS("/js/entities/KheperaIV.js", true)
+loadJS("/js/entities/Box.js")
+loadJS("/js/entities/Cylinder.js")
+loadJS("/js/entities/Footbot.js")
+
+loadJS("/js/entities/KheperaIV.js")
 
 /* Add your custom entity here.. */
 
@@ -16,25 +27,18 @@ function GetEntity(entity, scale, callback) {
   /* You can use callback to get content synchronously */
   switch (entity.type) {
     case 'floor':
-      new Floor(entity, scale, callback)
-      break;
+      return new Floor(entity, scale, callback)
     case 'light':
-      callback(new Light(entity, scale))
-      break;
+      return new Light(entity, scale, callback)
     case 'box':
-      callback(new Box(entity, scale))
-      break;
+      return new Box(entity, scale, callback)
     case 'cylinder':
-      callback(new Cylinder(entity, scale))
-      break;
+      return new Cylinder(entity, scale, callback)
     case 'kheperaiv':
       return new KheperaIV(entity, scale, callback)
-      break;
     case 'foot-bot':
       return new Footbot(entity, scale, callback)
-      break;
     default:
-      callback(new DefaultEntity(entity, scale))
-      break;
+      return new DefaultEntity(entity, scale, callback)
   }
 }
