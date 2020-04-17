@@ -1,3 +1,14 @@
+/**
+ * @file <argos3/plugins/simulator/visualizations/webviz/config.h>
+ *
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ *
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ *
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
+
 #ifndef ARGOS_WEBVIZ_VERSION_CONFIG_H
 #define ARGOS_WEBVIZ_VERSION_CONFIG_H
 

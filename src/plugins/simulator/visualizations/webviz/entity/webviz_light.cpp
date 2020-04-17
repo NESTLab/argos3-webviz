@@ -4,12 +4,15 @@
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ *
  * MIT License
  * Copyright (c) 2020 NEST Lab
  */
 
 #include <argos3/plugins/simulator/entities/light_entity.h>
 #include <argos3/plugins/simulator/visualizations/webviz/webviz.h>
+
 #include <nlohmann/json.hpp>
 
 namespace argos {
