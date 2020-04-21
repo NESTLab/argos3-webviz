@@ -37,6 +37,46 @@ namespace argos {
 namespace argos {
   namespace Webviz {
     class CWebServer {
+     public:
+      CWebServer(
+        CWebviz*,
+        unsigned short,
+        unsigned short,
+        std::string&,
+        std::string&,
+        std::string&,
+        std::string&,
+        std::string&);
+
+      ~CWebServer();
+
+      /**
+       * @brief Start the Webserver threads (one for server, one for
+       * broadcasting)
+       *
+       * @param b_IsServerRunning used to stop the threads gracefully
+       */
+      void Start(std::atomic<bool>& b_IsServerRunning);
+
+      /**
+       * @brief Broadcasts on event channel to all the connected clients
+       *
+       * @param str_event_name string: event name
+       * @param e_state EExperimentState: state of the experiment
+       */
+      void EmitEvent(std::string str_event_name, EExperimentState e_state);
+
+      /**
+       * @brief Broadcasts on log channels to all the connected clients
+       *
+       * @param log_type either LOG or LOGERR
+       * @param message log message
+       */
+      void EmitLog(std::string log_type, std::string message);
+
+      /** Broadcasts JSON to all the connected clients */
+      void Broadcast(nlohmann::json);
+
      private:
       /** Reference to CWebviz object to call function over it */
       CWebviz* m_pcMyWebviz;
@@ -111,46 +151,6 @@ namespace argos {
         uWS::HttpResponse<SSL>*,
         nlohmann::json,
         std::string = "400 Bad Request");
-
-     public:
-      CWebServer(
-        CWebviz*,
-        unsigned short,
-        unsigned short,
-        std::string&,
-        std::string&,
-        std::string&,
-        std::string&,
-        std::string&);
-
-      ~CWebServer();
-
-      /**
-       * @brief Start the Webserver threads (one for server, one for
-       * broadcasting)
-       *
-       * @param b_IsServerRunning used to stop the threads gracefully
-       */
-      void Start(std::atomic<bool>& b_IsServerRunning);
-
-      /**
-       * @brief Broadcasts on event channel to all the connected clients
-       *
-       * @param str_event_name string: event name
-       * @param e_state EExperimentState: state of the experiment
-       */
-      void EmitEvent(std::string str_event_name, EExperimentState e_state);
-
-      /**
-       * @brief Broadcasts on log channels to all the connected clients
-       *
-       * @param log_type either LOG or LOGERR
-       * @param message log message
-       */
-      void EmitLog(std::string log_type, std::string message);
-
-      /** Broadcasts JSON to all the connected clients */
-      void Broadcast(nlohmann::json);
     };
   }  // namespace Webviz
 }  // namespace argos
