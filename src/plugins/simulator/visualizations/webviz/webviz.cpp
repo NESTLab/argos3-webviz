@@ -70,6 +70,31 @@ namespace argos {
         "Broadcast frequency set in configuration is invalid ( < 1 )");
     }
 
+    /* Parse XML for user functions */
+    if (NodeExists(t_tree, "user_functions")) {
+      /* Use the passed user functions */
+      /* Get data from XML */
+      TConfigurationNode tNode = GetNode(t_tree, "user_functions");
+      std::string strLabel, strLibrary;
+      GetNodeAttribute(tNode, "label", strLabel);
+      GetNodeAttributeOrDefault(tNode, "library", strLibrary, strLibrary);
+      try {
+        /* Load the library */
+        if (strLibrary != "") {
+          CDynamicLoading::LoadLibrary(strLibrary);
+        }
+        /* Create the user functions */
+        m_pcUserFunctions = CFactory<CWebvizUserFunctions>::New(strLabel);
+
+      } catch (CARGoSException& ex) {
+        THROW_ARGOSEXCEPTION_NESTED(
+          "Failed opening QTOpenGL user function library", ex);
+      }
+    } else {
+      /* Use standard (empty) user functions */
+      m_pcUserFunctions = new CWebvizUserFunctions;
+    }
+
     /* Initialize Webserver */
     m_cWebServer = new Webviz::CWebServer(
       this,

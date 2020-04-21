@@ -96,7 +96,8 @@ include_directories(
 # argos3/plugins/simulator/visualizations/webviz
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ
   webviz.h
-  webviz_webserver.h)
+  webviz_webserver.h
+  webviz_user_functions.h)
 
 #
 # Source files
@@ -106,6 +107,7 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ
   ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ}
   webviz.cpp
   webviz_webserver.cpp
+  webviz_user_functions.cpp
   ${ENTITIES_SOURCE_FILES})
 
 set(TARGET_NAME

@@ -14,6 +14,7 @@
 
 namespace argos {
   class CWebviz;
+  class CWebvizUserFunctions;
 
   namespace Webviz {
     class CWebServer;
@@ -50,6 +51,7 @@ namespace argos {
 #include <argos3/core/simulator/visualization/visualization.h>
 #include <argos3/core/utility/configuration/argos_exception.h>
 #include <argos3/core/utility/math/vector3.h>
+#include <argos3/core/utility/plugins/dynamic_loading.h>
 
 #include <atomic>
 #include <thread>
@@ -57,6 +59,7 @@ namespace argos {
 #include "utility/CTimer.h"
 #include "utility/EExperimentState.h"
 #include "utility/LogStream.h"
+#include "webviz_user_functions.h"
 #include "webviz_webserver.h"
 
 namespace argos {
@@ -146,6 +149,8 @@ namespace argos {
     /** Log stream objects, to catch logs from Argos */
     Webviz::CLogStream* m_pcLogStream;
     Webviz::CLogStream* m_pcLogErrStream;
+
+    CWebvizUserFunctions* m_pcUserFunctions;
 
     /**
      * @brief Function which run in Simulation thread
