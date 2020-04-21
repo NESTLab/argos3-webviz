@@ -34,14 +34,14 @@ class KheperaIV {
 
                 var objectLoader = new THREE.ObjectLoader();
                 objectLoader.load("/models/KheperaIV.json", function (kheperaiv_bot) {
-                    console.log("loaded");
-                    kheperaiv_bot.rotateY(-1.572)
+                    kheperaiv_bot.scale.multiplyScalar(scale / 20);
+                    kheperaiv_bot.rotateY(-1.572);
 
                     var boundingBox = new THREE.Box3().setFromObject(kheperaiv_bot);
 
                     for (let i = 0; i < kheperaiv_bot.children.length; i++) {
                         /* Move above the surface */
-                        kheperaiv_bot.children[i].geometry.translate(0, 0, boundingBox.getSize(new THREE.Vector3()).z);
+                        kheperaiv_bot.children[i].geometry.translate(0, 0, boundingBox.getSize(new THREE.Vector3()).z / 2);
 
                         kheperaiv_bot.children[i].material = new THREE.MeshBasicMaterial({
                             map: kheperaiv_bot.children[i].material.map,
