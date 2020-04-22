@@ -15,6 +15,8 @@ class CTestUserFunctions : public CWebvizUserFunctions {
   virtual ~CTestUserFunctions();
 
   virtual nlohmann::json sendExtraData();
+
+  nlohmann::json sendRobotData(CFootBotEntity &);
 };
 
 #endif

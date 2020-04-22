@@ -3,18 +3,33 @@
 /****************************************/
 /****************************************/
 
-CTestUserFunctions::CTestUserFunctions() { std::cout << "LOADED" << std::endl; }
+CTestUserFunctions::CTestUserFunctions() {
+  RegisterWebvizUserFunction<CTestUserFunctions, CFootBotEntity>(
+    &CTestUserFunctions::sendRobotData);
+}
+
+/****************************************/
+/****************************************/
 
 CTestUserFunctions::~CTestUserFunctions() {}
 
 /****************************************/
 /****************************************/
 
+nlohmann::json CTestUserFunctions::sendRobotData(CFootBotEntity &robot) {
+  nlohmann::json outJson;
+
+  outJson["distance_travelled"] = 1.46;
+
+  outJson["bump_count"] = 48128;
+
+  return outJson;
+}
+
 nlohmann::json CTestUserFunctions::sendExtraData() {
   nlohmann::json outJson;
 
   outJson["status"] = "running";
-  outJson["distance_travelled"] = 1.46;
 
   std::vector<float> weights;
   weights.push_back(0.14525);

@@ -404,29 +404,50 @@ namespace argos {
     nlohmann::json cStateJson;
 
     /************* Convert Entities info to JSON *************/
+
     /* Get all entities in the experiment */
     CEntity::TVector& vecEntities = m_cSpace.GetRootEntityVector();
-    for (CEntity::TVector::iterator itEntities = vecEntities.begin();
-         itEntities != vecEntities.end();
+
+    for (auto itEntities = vecEntities.begin();  //
+         itEntities != vecEntities.end();        //
          ++itEntities) {
+      /************* Generate JSON from Entities *************/
+
       auto cEntityJSON = CallEntityOperation<
         CWebvizOperationGenerateJSON,
         CWebviz,
         nlohmann::json>(*this, **itEntities);
+
       if (cEntityJSON != nullptr) {
+        /************* get data from User functions for entity *************/
+        const nlohmann::json& extra_data =
+          m_pcUserFunctions->Call(**itEntities);
+
+        if (!extra_data.is_null()) {
+          cEntityJSON["extra_data"] = extra_data;
+        }
+
         cStateJson["entities"].push_back(cEntityJSON);
       } else {
-        LOGERR << "[ERROR] Entity cannot be converted:";
-        LOGERR << (**itEntities).GetTypeDescription();
+        LOGERR << "[ERROR] Unknown Entity:"
+               << (**itEntities).GetTypeDescription() << "\n"
+               << "Please register a class to convert Entity to JSON, "
+               << "Check documentation for how to implement custom entity";
       }
     }
 
-    /************* Check and get data from User functions *************/
+    /************* get data from User functions for experiment *************/
 
-    cStateJson["extra_data"] = m_pcUserFunctions->sendExtraData();
+    const nlohmann::json& extra_data = m_pcUserFunctions->sendExtraData();
+
+    if (!extra_data.is_null()) {
+      cStateJson["extra_data"] = extra_data;
+    }
 
     /************* Add other information about experiment *************/
+
     /* Get Arena details */
+
     const CVector3& cArenaSize = m_cSpace.GetArenaSize();
     cStateJson["arena"]["size"]["x"] = cArenaSize.GetX();
     cStateJson["arena"]["size"]["y"] = cArenaSize.GetY();

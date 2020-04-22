@@ -106,7 +106,7 @@
   <!-- ****************** -->
   <visualization>
     <webviz>
-      <user_functions library="build/testing/loop_functions/libuser_loop_functions" label="test_user_functions" />
+      <user_functions library="build/testing/loop_functions/libuser_loop_functions.so" label="test_user_functions" />
     </webviz>
     <!-- <qt-opengl /> -->
   </visualization>
