@@ -88,7 +88,7 @@ namespace argos {
 
       } catch (CARGoSException& ex) {
         THROW_ARGOSEXCEPTION_NESTED(
-          "Failed opening QTOpenGL user function library", ex);
+          "Failed opening Webviz user function library", ex);
       }
     } else {
       /* Use standard (empty) user functions */

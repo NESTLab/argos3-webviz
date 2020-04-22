@@ -3,9 +3,9 @@
 /****************************************/
 /****************************************/
 
-CTestUserFunctions::CTestUserFunctions() {
-  std::cout << "Test user functions" << std::endl;
-}
+CTestUserFunctions::CTestUserFunctions() { std::cout << "LOADED" << std::endl; }
+
+CTestUserFunctions::~CTestUserFunctions() {}
 
 /****************************************/
 /****************************************/

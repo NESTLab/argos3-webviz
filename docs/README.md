@@ -1,3 +1,7 @@
+# Advanced usage
+- [Sending data from server to client](sending_data_from_server.md)
+
+
 ## Supporting a new Entity
 
 If you have an entity type which is not already implemented to Generate JSON within Webviz, you can implement it with two parts. One is on Webviz server side(Cpp code), and another is on client side (javascript code).

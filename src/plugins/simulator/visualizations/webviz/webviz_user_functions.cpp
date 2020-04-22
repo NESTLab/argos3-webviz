@@ -16,5 +16,9 @@ namespace argos {
 
   CWebvizUserFunctions::CWebvizUserFunctions() {}
 
+  /****************************************/
+  /****************************************/
+
   CWebvizUserFunctions::~CWebvizUserFunctions() {}
+
 }  // namespace argos

@@ -35,7 +35,7 @@ namespace argos {
      */
     virtual ~CWebvizUserFunctions();
 
-    virtual void Init(TConfigurationNode& t_tree) {}
+    virtual void Init(TConfigurationNode &t_tree) {}
     virtual void Reset() {}
     virtual void Destroy() {}
 
@@ -44,8 +44,6 @@ namespace argos {
      * Return a JSON object which will be attached to JSON body as "extra_data"
      */
     virtual nlohmann::json sendExtraData() { return nlohmann::json(); }
-
-    //  private:
   };
 }  // namespace argos
 
