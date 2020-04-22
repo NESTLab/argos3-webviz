@@ -173,4 +173,4 @@ install(TARGETS ${TARGET_NAME}
 )
 
 # Stop compiling on first error
-target_compile_options(${TARGET_NAME} PRIVATE -Wfatal-errors)
+target_compile_options(${TARGET_NAME} PRIVATE -Werror -Wfatal-errors)

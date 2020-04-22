@@ -1,8 +1,8 @@
 #
 # Set minimum required version
 #
-cmake_minimum_required(VERSION 3.0.2)
-project(webviz)
+cmake_minimum_required(VERSION 3.5)
+
 
 #
 # Project version
@@ -12,6 +12,8 @@ set(MINOR_VERSION 4)
 set(PATCH_VERSION 74)
 
 set(VERSION_STRING ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION})
+
+project(webviz VERSION ${VERSION_STRING} LANGUAGES CXX)
 
 #
 # Set C++ Version 17
