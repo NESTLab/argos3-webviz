@@ -400,8 +400,10 @@ namespace argos {
   /****************************************/
 
   void CWebviz::BroadcastExperimentState() {
+    /************* Build a JSON object to be sent to all clients *************/
     nlohmann::json cStateJson;
 
+    /************* Convert Entities info to JSON *************/
     /* Get all entities in the experiment */
     CEntity::TVector& vecEntities = m_cSpace.GetRootEntityVector();
     for (CEntity::TVector::iterator itEntities = vecEntities.begin();
@@ -419,6 +421,11 @@ namespace argos {
       }
     }
 
+    /************* Check and get data from User functions *************/
+
+    cStateJson["extra_data"] = m_pcUserFunctions->sendExtraData();
+
+    /************* Add other information about experiment *************/
     /* Get Arena details */
     const CVector3& cArenaSize = m_cSpace.GetArenaSize();
     cStateJson["arena"]["size"]["x"] = cArenaSize.GetX();
@@ -430,7 +437,7 @@ namespace argos {
     cStateJson["arena"]["center"]["y"] = cArenaCenter.GetY();
     cStateJson["arena"]["center"]["z"] = cArenaCenter.GetZ();
 
-    // m_cSpace.GetArenaLimits();
+    // TODO: m_cSpace.GetArenaLimits();
 
     /* Added Unix Epoch in milliseconds */
     cStateJson["timestamp"] =

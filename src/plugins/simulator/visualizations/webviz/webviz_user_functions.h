@@ -20,6 +20,8 @@ namespace argos {
 #include <argos3/core/utility/configuration/base_configurable_resource.h>
 #include <argos3/core/utility/plugins/factory.h>
 
+#include <nlohmann/json.hpp>
+
 namespace argos {
   class CWebvizUserFunctions : public CBaseConfigurableResource {
    public:
@@ -36,6 +38,12 @@ namespace argos {
     virtual void Init(TConfigurationNode& t_tree) {}
     virtual void Reset() {}
     virtual void Destroy() {}
+
+    /**
+     * Send data hook to add extra content to JSON message sent to clients.
+     * Return a JSON object which will be attached to JSON body as "extra_data"
+     */
+    virtual nlohmann::json sendExtraData() { return nlohmann::json(); }
 
     //  private:
   };

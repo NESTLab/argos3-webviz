@@ -11,3 +11,4 @@
 [ ] Add Terminate experiment
 [ ] Duplicate log messages (it comes up randomly, not able to reproduce everytime while testing)
 [ ] BUG: LOG & LOGERR doesn't emit until experiment has started
+[ ] Document: user loop functions need to link nlohmann::json to compile 
