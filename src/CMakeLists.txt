@@ -13,7 +13,9 @@ set(PATCH_VERSION 74)
 
 set(VERSION_STRING ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION})
 
-project(webviz VERSION ${VERSION_STRING} LANGUAGES CXX)
+project(webviz LANGUAGES CXX)
+
+message(STATUS "Building ARGoS3 Webviz :${VERSION_STRING}")
 
 #
 # Set C++ Version 17
@@ -55,23 +57,36 @@ endif(NOT UNIX)
 #
 # Add all the CMake modules we need
 #
-include(${CMAKE_SOURCE_DIR}/cmake/DownloadProject.cmake)
+include(DownloadProject)
 # Set build options
-include(${CMAKE_SOURCE_DIR}/cmake/ARGoSBuildOptions.cmake)
+include(ARGoSBuildOptions)
 # Set compiler flags
-include(${CMAKE_SOURCE_DIR}/cmake/ARGoSBuildFlags.cmake)
+include(ARGoSBuildFlags)
 # Check for libraries
-include(${CMAKE_SOURCE_DIR}/cmake/ARGoSBuildChecks.cmake)
+include(ARGoSBuildChecks)
 # Set up CPack
-include(${CMAKE_SOURCE_DIR}/cmake/ARGoSPackaging.cmake)
+include(ARGoSPackaging)
 # Set FindArgosPlugin
-include(${CMAKE_SOURCE_DIR}/cmake/FindARGoSPlugin.cmake)
+include(FindARGoSPlugin)
 
 
 #
 # Compile stuff
 #
 add_subdirectory(plugins)
+
+#
+# Testing
+#
+option(PACKAGE_TESTS "Build the tests" ON)
+
+
+if(PACKAGE_TESTS)
+  enable_testing()
+  include(GoogleTest)
+  add_subdirectory(tests)
+endif()
+
 add_subdirectory(testing)
 
 # Add Uninstall target
