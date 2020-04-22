@@ -3,6 +3,8 @@
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ *
  * MIT License
  * Copyright (c) 2020 NEST Lab
  */
@@ -12,6 +14,7 @@
 
 namespace argos {
   class CWebviz;
+  class CWebvizUserFunctions;
 
   namespace Webviz {
     class CWebServer;
@@ -22,6 +25,7 @@ namespace argos {
 }  // namespace argos
 
 #include <argos3/core/simulator/entity/entity.h>
+
 #include <nlohmann/json.hpp>
 
 namespace argos {
@@ -47,11 +51,15 @@ namespace argos {
 #include <argos3/core/simulator/visualization/visualization.h>
 #include <argos3/core/utility/configuration/argos_exception.h>
 #include <argos3/core/utility/math/vector3.h>
+#include <argos3/core/utility/plugins/dynamic_loading.h>
+
 #include <atomic>
 #include <thread>
+
 #include "utility/CTimer.h"
 #include "utility/EExperimentState.h"
 #include "utility/LogStream.h"
+#include "webviz_user_functions.h"
 #include "webviz_webserver.h"
 
 namespace argos {
@@ -141,6 +149,8 @@ namespace argos {
     /** Log stream objects, to catch logs from Argos */
     Webviz::CLogStream* m_pcLogStream;
     Webviz::CLogStream* m_pcLogErrStream;
+
+    CWebvizUserFunctions* m_pcUserFunctions;
 
     /**
      * @brief Function which run in Simulation thread

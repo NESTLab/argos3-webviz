@@ -1,3 +1,13 @@
+/**
+ * @file <client/js/main.js>
+ * 
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ * 
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ * 
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
 
 
 /* Define function to run after all files are loaded */
@@ -45,13 +55,8 @@ var onAllFilesLoaded = function () {
     w2ui['app_layout'].on('resize', function (event) {
       /* When resizing is complete */
       event.onComplete = function () {
-        if (window.camera) {
-          var threejs_panel = $("#layout_app_layout_panel_main .w2ui-panel-content")
-
-          window.threejs_aspect_ratio = threejs_panel.width() / threejs_panel.height()
-          camera.aspect = window.threejs_aspect_ratio
-          camera.updateProjectionMatrix();
-          renderer.setSize(threejs_panel.width(), threejs_panel.height());
+        if (window.threejs_panel) {
+          onThreejsPanelResize();
         }
       }
     });
@@ -59,23 +64,11 @@ var onAllFilesLoaded = function () {
     /* Load main logic code sub-files - sequentially */
     /* load threejs scene */
     loadJS("/js/three_scene.js", function () {
-      /* Setup scene */
-      var renderer = IntializeThreejs()
-
       /* Get the panel from layout */
       window.threejs_panel = $("#layout_app_layout_panel_main .w2ui-panel-content")
 
-      renderer.setSize(threejs_panel.width(), threejs_panel.height());
-
-      /* Define aspect ratio to be used later */
-      window.threejs_aspect_ratio = threejs_panel.width() / threejs_panel.height()
-
-      /* Add event hander for mouse move, to able to select objects */
-      // threejs_panel.mousemove(onThreejsPanelMouseMove);
-      threejs_panel.click(onThreejsPanelMouseClick);
-
-      /* Add canvas to page */
-      threejs_panel.append(renderer.domElement);
+      /* Setup scene */
+      IntializeThreejs(threejs_panel)
     }, true);
 
     /* Load websockets and connect to server */
@@ -119,7 +112,7 @@ var onAllFilesLoaded = function () {
         )
         .append($("<div/>")
           .addClass('button')
-          .addClass('step-button')
+          .addClass('icon-step')
           .attr("title", "Step experiment")
           .prop("title", "Step experiment")//for IE
           .click(function () {
@@ -128,28 +121,49 @@ var onAllFilesLoaded = function () {
         )
         .append($("<div/>")
           .addClass('button')
-          .addClass('play-button')
+          .addClass('icon-play')
           .attr('id', 'play_button')
           .attr("title", "Play experiment")
           .prop("title", "Play experiment")//for IE
           .click(function () {
-            if (window.experiment.state != "EXPERIMENT_PLAYING" &&
-              window.experiment.state != "EXPERIMENT_FAST_FORWARDING") {
-              window.wsp.sendPacked({ command: 'play' })
-            } else {
-              window.wsp.sendPacked({ command: 'pause' })
-            }
+            window.wsp.sendPacked({ command: 'play' })
           })
         )
         .append($("<div/>")
           .addClass('button')
-          .addClass('ff-button')
+          .addClass('icon-pause')
+          .attr('id', 'pause_button')
+          .attr("title", "Pause experiment")
+          .prop("title", "Pause experiment")//for IE
+          .click(function () {
+            window.wsp.sendPacked({ command: 'pause' })
+          })
+        )
+        .append($("<div/>")
+          .addClass('button')
+          .addClass('icon-ff')
           .attr('id', 'ff_button')
           .attr("title", "Fast forward experiment")
           .prop("title", "Fast forward experiment")//for IE
           .click(function () {
-            window.wsp.sendPacked({ command: 'fastforward' })
+            var steps = parseInt($("#ff_steps_input").val());
+
+            if (steps && steps >= 1 && steps <= 1000) {
+              $("#ff_steps_input").val(steps)
+              window.wsp.sendPacked({ command: 'fastforward', steps: steps })
+            } else {
+              window.wsp.sendPacked({ command: 'fastforward' })
+            }
           })
+        )
+        .append($("<input/>")
+          .attr('type', 'number')
+          .attr('id', 'ff_steps_input')
+          .attr('min', '1')
+          .attr('max', '1000')
+          .attr('value', '2')
+          .attr("title", "Fast forward steps")
+          .prop("title", "Fast forward steps")//for IE
         )
         /* Divider */
         .append($("<div/>")
@@ -157,7 +171,8 @@ var onAllFilesLoaded = function () {
         )
         // .append($("<div/>")
         //   .addClass('button')
-        //   .addClass('stop-button')
+        //   .attr('id', 'stop_button')
+        //   .addClass('icon-stop')
         //   .attr("title", "Terminate experiment")
         //   .prop("title", "Terminate experiment")//for IE
         //   .click(function () {
@@ -166,11 +181,40 @@ var onAllFilesLoaded = function () {
         // )
         .append($("<div/>")
           .addClass('button')
-          .addClass('reset-button')
+          .addClass('icon-reset')
+          .attr('id', 'reset_button')
           .attr("title", "Reset experiment")
           .prop("title", "Reset experiment")//for IE
           .click(function () {
             window.wsp.sendPacked({ command: 'reset' })
+          })
+        )
+        /* Divider */
+        .append($("<div/>")
+          .addClass('toolbar_divider')
+        )
+        // .append($("<div/>")
+        //   .addClass('button')
+        //   .addClass('icon-settings')
+        //   .attr('id', 'settings_button')
+        //   .attr("title", "Settings")
+        //   .prop("title", "Settings")//for IE
+        //   .click(function () {
+        //   })
+        // )
+        .append($("<div/>")
+          .addClass('button')
+          .addClass('icon-help')
+          .attr("title", "Help")
+          .prop("title", "Help")//for IE
+          .click(function () {
+            $("#HelpModal").w2popup({
+              title: 'Help',
+              showClose: true,
+              height: 300,
+              width: 500
+            })
+            // window.wsp.sendPacked({ command: 'reset' })
           })
         )
 
@@ -198,6 +242,7 @@ var onAllFilesLoaded = function () {
 loadJS("/js/libs/jquery.min.js", true)
 loadJS("/js/libs/w2ui-1.5.rc1.min.js", true) /* Panels */
 loadJS("/js/libs/clusterize.min.js", true) /* Better scroll for logs */
+loadJS("/js/libs/jquery.contextMenu.min.js", true); /* Right click */
 
 /* Load Websockets code */
 loadJS("/js/libs/websocket-as-promised.js", true); /* basic websockets */
@@ -206,7 +251,9 @@ loadJS("/js/libs/robust-websocket.js", true); /* auto Reconnect */
 /* Load Three.js code */
 loadJS("/js/libs/three.min.js", true);
 loadJS("/js/libs/OrbitControls.js", true);
-loadJS("/js/libs/GLTFLoader.js", true);
+
+loadJS("/js/libs/CSS2DRenderer.js", true);
+
 loadJS("/js/libs/stats.min.js", true);
 loadJS("/js/libs/GLTFLoader.js", true);
 

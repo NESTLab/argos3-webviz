@@ -105,7 +105,9 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-    <webviz ff_draw_frames_every="10" />
+    <webviz>
+      <user_functions library="build/testing/loop_functions/libuser_loop_functions.so" label="test_user_functions" />
+    </webviz>
     <!-- <qt-opengl /> -->
   </visualization>
 </argos-configuration>

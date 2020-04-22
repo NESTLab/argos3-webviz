@@ -1,6 +1,18 @@
+/**
+ * @file <client/js/entities/Floor.js>
+ * 
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ * 
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ * 
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
+
 class Floor {
-    constructor(entity, scale, callback) {
+    constructor(entity, scale, EntityLoadingFinishedFn) {
         this.scale = scale;
+        this.entity = entity;
 
         var geometry = new THREE.BoxBufferGeometry(
             window.experiment.data.arena.size.x * scale,
@@ -11,8 +23,11 @@ class Floor {
         /* Bring to on top of zero*/
         geometry.translate(0, 0, -0.005 * scale);
 
-        var that = this
+        this.mesh = undefined;
+
         if (entity.floor_image) {
+            var that = this
+
             new THREE.TextureLoader().load(entity.floor_image, function (texture) {
                 texture.minFilter = THREE.LinearFilter;
                 var material = new THREE.MeshPhongMaterial({
@@ -20,10 +35,16 @@ class Floor {
                 })
                 var floor = new THREE.Mesh(geometry, material);
                 that.mesh = floor;
-                callback(that)
+
+                EntityLoadingFinishedFn(that);
             });
+        } else {
+            EntityLoadingFinishedFn(this);
         }
-        this.mesh = undefined
+    }
+
+    getMesh() {
+        return this.mesh;
     }
 
     update(entity) {

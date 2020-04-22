@@ -3,6 +3,8 @@
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ *
  * MIT License
  * Copyright (c) 2020 NEST Lab
  */
@@ -68,6 +70,31 @@ namespace argos {
         "Broadcast frequency set in configuration is invalid ( < 1 )");
     }
 
+    /* Parse XML for user functions */
+    if (NodeExists(t_tree, "user_functions")) {
+      /* Use the passed user functions */
+      /* Get data from XML */
+      TConfigurationNode tNode = GetNode(t_tree, "user_functions");
+      std::string strLabel, strLibrary;
+      GetNodeAttribute(tNode, "label", strLabel);
+      GetNodeAttributeOrDefault(tNode, "library", strLibrary, strLibrary);
+      try {
+        /* Load the library */
+        if (strLibrary != "") {
+          CDynamicLoading::LoadLibrary(strLibrary);
+        }
+        /* Create the user functions */
+        m_pcUserFunctions = CFactory<CWebvizUserFunctions>::New(strLabel);
+
+      } catch (CARGoSException& ex) {
+        THROW_ARGOSEXCEPTION_NESTED(
+          "Failed opening Webviz user function library", ex);
+      }
+    } else {
+      /* Use standard (empty) user functions */
+      m_pcUserFunctions = new CWebvizUserFunctions;
+    }
+
     /* Initialize Webserver */
     m_cWebServer = new Webviz::CWebServer(
       this,
@@ -78,29 +105,6 @@ namespace argos {
       strDHParamsFilePath,
       strCAFilePath,
       strCertPassphrase);
-
-    LOG << "[INFO] Starting WebSockets Server on port " << unPort << '\n';
-
-    /* Write all the pending stuff */
-    LOG.Flush();
-    LOGERR.Flush();
-
-    /* Disable Colors in LOG, as its going to be shown in web and not in CLI */
-    LOG.DisableColoredOutput();
-    LOGERR.DisableColoredOutput();
-
-    /* Initialize the LOG streams from Execute thread */
-    m_pcLogStream =
-      new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData) {
-        m_cWebServer->EmitLog(
-          "LOG", ToString(m_cSpace.GetSimulationClock()), str_logData);
-      });
-
-    m_pcLogErrStream = new Webviz::CLogStream(
-      LOGERR.GetStream(), [this](std::string str_logData) {
-        m_cWebServer->EmitLog(
-          "LOGERR", ToString(m_cSpace.GetSimulationClock()), str_logData);
-      });
 
     /* Should we play instantly? */
     bool bAutoPlay = false;
@@ -146,9 +150,6 @@ namespace argos {
         m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_PLAYING ||
         m_eExperimentState ==
           Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
-        /* Run user's pre step function */
-        m_cSimulator.GetLoopFunctions().PreStep();
-
         if (m_bFastForwarding) {
           /* Number of frames to drop in fast-forward */
           unFFStepCounter = m_unDrawFrameEvery;
@@ -176,9 +177,6 @@ namespace argos {
         /* Broadcast current experiment state */
         BroadcastExperimentState();
 
-        /* Run user's post step function */
-        m_cSimulator.GetLoopFunctions().PostStep();
-
         /* Experiment done while in while loop */
         if (m_cSimulator.IsExperimentFinished()) {
           LOG << "[INFO] Experiment done" << '\n';
@@ -205,10 +203,10 @@ namespace argos {
           std::this_thread::sleep_for(
             m_cSimulatorTickMillis - m_cTimer.Elapsed());
         } else {
-          LOG << "[WARNING] Clock tick took " << m_cTimer
-              << " milli-secs, more than the expected "
-              << m_cSimulatorTickMillis.count() << " milli-secs. "
-              << "Recovering in next cycle." << '\n';
+          LOGERR << "[WARNING] Clock tick took " << m_cTimer
+                 << " milli-secs, more than the expected "
+                 << m_cSimulatorTickMillis.count() << " milli-secs. "
+                 << "Recovering in next cycle." << '\n';
         }
 
         /* Restart Timer */
@@ -234,8 +232,8 @@ namespace argos {
     if (
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_INITIALIZED &&
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PAUSED) {
-      LOG << "[WARNING] CWebviz::PlayExperiment() called in wrong state: "
-          << Webviz::EExperimentStateToStr(m_eExperimentState) << '\n';
+      LOGERR << "[WARNING] CWebviz::PlayExperiment() called in wrong state: "
+             << Webviz::EExperimentStateToStr(m_eExperimentState) << '\n';
 
       // silently return;
       return;
@@ -263,10 +261,10 @@ namespace argos {
     if (
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_INITIALIZED &&
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PAUSED) {
-      LOG
+      LOGERR
         << "[WARNING] CWebviz::FastForwardExperiment() called in wrong state: "
         << Webviz::EExperimentStateToStr(m_eExperimentState)
-        << "\nRunning the experiment in FastForward mode" << '\n';
+        << ", Running the experiment in FastForward mode" << '\n';
 
       /* Do not fast forward if experiment is done */
       if (m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_DONE) {
@@ -303,8 +301,8 @@ namespace argos {
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PLAYING &&
       m_eExperimentState !=
         Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
-      LOG << "[WARNING] CWebviz::PauseExperiment() called in wrong state: "
-          << Webviz::EExperimentStateToStr(m_eExperimentState) << '\n';
+      LOGERR << "[WARNING] CWebviz::PauseExperiment() called in wrong state: "
+             << Webviz::EExperimentStateToStr(m_eExperimentState) << '\n';
 
       return;
     }
@@ -327,9 +325,9 @@ namespace argos {
       m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_PLAYING ||
       m_eExperimentState ==
         Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
-      LOG << "[WARNING] CWebviz::StepExperiment() called in wrong state: "
-          << Webviz::EExperimentStateToStr(m_eExperimentState)
-          << " pausing the experiment to run a step" << '\n';
+      LOGERR << "[WARNING] CWebviz::StepExperiment() called in wrong state: "
+             << Webviz::EExperimentStateToStr(m_eExperimentState)
+             << " pausing the experiment to run a step" << '\n';
 
       /* Make experiment pause */
       m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_PAUSED;
@@ -402,26 +400,54 @@ namespace argos {
   /****************************************/
 
   void CWebviz::BroadcastExperimentState() {
+    /************* Build a JSON object to be sent to all clients *************/
     nlohmann::json cStateJson;
+
+    /************* Convert Entities info to JSON *************/
 
     /* Get all entities in the experiment */
     CEntity::TVector& vecEntities = m_cSpace.GetRootEntityVector();
-    for (CEntity::TVector::iterator itEntities = vecEntities.begin();
-         itEntities != vecEntities.end();
+
+    for (auto itEntities = vecEntities.begin();  //
+         itEntities != vecEntities.end();        //
          ++itEntities) {
+      /************* Generate JSON from Entities *************/
+
       auto cEntityJSON = CallEntityOperation<
         CWebvizOperationGenerateJSON,
         CWebviz,
         nlohmann::json>(*this, **itEntities);
+
       if (cEntityJSON != nullptr) {
+        /************* get data from User functions for entity *************/
+        const nlohmann::json& extra_data =
+          m_pcUserFunctions->Call(**itEntities);
+
+        if (!extra_data.is_null()) {
+          cEntityJSON["extra_data"] = extra_data;
+        }
+
         cStateJson["entities"].push_back(cEntityJSON);
       } else {
-        LOGERR << "[ERROR] Entity cannot be converted:";
-        LOGERR << (**itEntities).GetTypeDescription();
+        LOGERR << "[ERROR] Unknown Entity:"
+               << (**itEntities).GetTypeDescription() << "\n"
+               << "Please register a class to convert Entity to JSON, "
+               << "Check documentation for how to implement custom entity";
       }
     }
 
+    /************* get data from User functions for experiment *************/
+
+    const nlohmann::json& extra_data = m_pcUserFunctions->sendExtraData();
+
+    if (!extra_data.is_null()) {
+      cStateJson["extra_data"] = extra_data;
+    }
+
+    /************* Add other information about experiment *************/
+
     /* Get Arena details */
+
     const CVector3& cArenaSize = m_cSpace.GetArenaSize();
     cStateJson["arena"]["size"]["x"] = cArenaSize.GetX();
     cStateJson["arena"]["size"]["y"] = cArenaSize.GetY();
@@ -432,7 +458,7 @@ namespace argos {
     cStateJson["arena"]["center"]["y"] = cArenaCenter.GetY();
     cStateJson["arena"]["center"]["z"] = cArenaCenter.GetZ();
 
-    // m_cSpace.GetArenaLimits();
+    // TODO: m_cSpace.GetArenaLimits();
 
     /* Added Unix Epoch in milliseconds */
     cStateJson["timestamp"] =
@@ -482,9 +508,9 @@ namespace argos {
       if (pcEntity->MoveTo(c_pos, c_orientation)) {
         LOG << "[INFO] Entity Moved (" + str_entity_id + ")" << '\n';
       } else {
-        LOG << "[WARNING] Entity cannot be moved, collision detected. (" +
-                 str_entity_id + ")"
-            << '\n';
+        LOGERR << "[WARNING] Entity cannot be moved, collision detected. (" +
+                    str_entity_id + ")"
+               << '\n';
       }
     } catch (CARGoSException& ex) {
       THROW_ARGOSEXCEPTION_NESTED(

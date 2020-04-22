@@ -1,6 +1,18 @@
+/**
+ * @file <client/js/entities/Cylinder.js>
+ * 
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ * 
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ * 
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
+
 class Cylinder {
-    constructor(entity, scale) {
+    constructor(entity, scale, EntityLoadingFinishedFn) {
         this.scale = scale;
+        this.entity = entity;
 
         var geometry = new THREE.CylinderBufferGeometry(
             entity.radius * scale,
@@ -30,18 +42,25 @@ class Cylinder {
             entity.orientation.y,
             entity.orientation.z,
             entity.orientation.w));
+
         cylinder.position.x = entity.position.x * scale;
         cylinder.position.y = entity.position.y * scale;
         cylinder.position.z = entity.position.z * scale;
 
         this.mesh = cylinder;
+
+        EntityLoadingFinishedFn(this);
+    }
+
+    getMesh() {
+        return this.mesh;
     }
 
     update(entity) {
         if (entity.is_movable) {
             try {
-                this.mesh.position.x = entity.position.x * scale;
-                this.mesh.position.y = entity.position.y * scale;
+                this.mesh.position.x = entity.position.x * this.scale;
+                this.mesh.position.y = entity.position.y * this.scale;
 
                 this.mesh.rotation.setFromQuaternion(new THREE.Quaternion(
                     entity.orientation.x,

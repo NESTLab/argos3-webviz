@@ -3,6 +3,8 @@
  *
  * @author Prajankya Sonar - <prajankya@gmail.com>
  *
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ *
  * MIT License
  * Copyright (c) 2020 NEST Lab
  */
@@ -45,6 +47,26 @@ namespace argos {
       m_strDHparamsFile = str_dh_params_file;
       m_strCAFile = str_ca_file;
       m_strPassphrase = str_cert_passphrase;
+
+      LOG << "[INFO] Starting WebSockets Server on port " << m_unPort << '\n';
+      /* Write all the pending stuff */
+      LOG.Flush();
+      LOGERR.Flush();
+
+      /* Disable Colors in LOG, as its going to be shown in web and not in CLI
+       */
+      LOG.DisableColoredOutput();
+      LOGERR.DisableColoredOutput();
+
+      /* Initialize the LOG streams from Execute thread */
+
+      new Webviz::CLogStream(LOG.GetStream(), [this](std::string str_logData) {
+        EmitLog("LOG", str_logData);
+      });
+
+      new Webviz::CLogStream(
+        LOGERR.GetStream(),
+        [this](std::string str_logData) { EmitLog("LOGERR", str_logData); });
     }
 
     /****************************************/
@@ -155,8 +177,8 @@ namespace argos {
                  /* Add to list of clients connected */
                  vecWebSocketClients.push_back({pc_ws, uWS::Loop::get()});
 
-                 LOG << "1 client connected (Total: "
-                     << vecWebSocketClients.size() << ")" << '\n';
+                 std::cout << "1 client connected (Total: "
+                           << vecWebSocketClients.size() << ")" << '\n';
                },
              /* Incoming message from client */
              .message =
@@ -198,8 +220,8 @@ namespace argos {
                      vecWebSocketClients.erase(vecWebSocketClients.begin() + i);
                    }
                  }
-                 LOG << "1 client disconnected (Total: "
-                     << vecWebSocketClients.size() << ")" << '\n';
+                 std::cout << "1 client disconnected (Total: "
+                           << vecWebSocketClients.size() << ")" << '\n';
                }})
           /* HTML banner */
           .get(
@@ -236,6 +258,10 @@ namespace argos {
           });
 
         std::thread *tBroadcasterThread = new std::thread([&]() {
+          /* Set up thread-safe buffers for this new thread */
+          LOG.AddThreadSafeBuffer();
+          LOGERR.AddThreadSafeBuffer();
+
           /* Start broadcast timer */
           m_cBroadcastTimer.Start();
 
@@ -379,17 +405,20 @@ namespace argos {
         m_pcMyWebviz->ResetExperiment();
 
       } else if (strCmd.compare("fastforward") == 0) {
-        /* number of Steps defined */
-        if (json_ClientCommand["steps"].is_number_integer()) {
-          auto strSteps = json_ClientCommand["steps"].get<int16_t>();
+        try {
+          /* number of Steps defined */
+          int16_t unSteps = json_ClientCommand["steps"].get<int16_t>();
           /* Validate steps */
-          if (1 <= strSteps && strSteps <= 1000) {
-            m_pcMyWebviz->FastForwardExperiment(strSteps);
+          if (1 <= unSteps && unSteps <= 1000) {
+            m_pcMyWebviz->FastForwardExperiment(unSteps);
+          } else {
+            m_pcMyWebviz->FastForwardExperiment();
           }
-        } else {
+        } catch (const std::exception &_ignored) {
           /* No steps defined */
           m_pcMyWebviz->FastForwardExperiment();
         }
+
       } else if (strCmd.compare("moveEntity") == 0) {
         try {
           CVector3 cNewPos;
@@ -438,16 +467,15 @@ namespace argos {
     /****************************************/
 
     void CWebServer::EmitLog(
-      std::string str_log_name,
-      std::string str_step,
-      std::string str_log_data) {
+      std::string str_log_name, std::string str_log_data) {
       /* if message is not empty */
       if (!str_log_data.empty()) {
         /* Build json object */
         nlohmann::json cMyJson;
         cMyJson["log_type"] = str_log_name;
         cMyJson["log_message"] = str_log_data;
-        cMyJson["step"] = str_step;
+        cMyJson["step"] =
+          CSimulator::GetInstance().GetSpace().GetSimulationClock();
 
         // Guard the mutex which locks m_mutex4LogQueue
         std::lock_guard<std::mutex> guard(m_mutex4LogQueue);

@@ -28,7 +28,7 @@ A Web interface plugin for [ARGoS 3](https://www.argos-sim.info/).
 |:-:|:-:|:-:|:-:|
 | [![Travis build](https://img.shields.io/travis/com/NESTLab/argos3-webviz)](https://travis-ci.com/NESTLab/argos3-webviz) | [![Ubuntu 16.04 build](https://travis-matrix-badges.herokuapp.com/repos/NESTLab/argos3-webviz/branches/master/1?use_travis_com=true)](https://travis-ci.com/NESTLab/argos3-webviz) | [![Ubuntu 18.04 build](https://travis-matrix-badges.herokuapp.com/repos/NESTLab/argos3-webviz/branches/master/2?use_travis_com=true)](https://travis-ci.com/NESTLab/argos3-webviz) | [![MacOSX build](https://travis-matrix-badges.herokuapp.com/repos/NESTLab/argos3-webviz/branches/master/3?use_travis_com=true)](https://travis-ci.com/NESTLab/argos3-webviz) |
 
-# Features
+## Features
 
 ![screencast](https://raw.githubusercontent.com/wiki/NESTLab/argos3-webviz/screencast.gif)
 
@@ -41,7 +41,7 @@ A Web interface plugin for [ARGoS 3](https://www.argos-sim.info/).
 - Simple client protocol, can easily be implemented in any technology
 - Using UWebSockets, which is blazing fast([Benchmarks](https://github.com/uNetworking/uWebSockets/blob/master/misc/websocket_lineup.png)).
 - The event-loop is native epoll on Linux, native kqueue on macOS
-# Installing
+## Installing
 
 ### Dependencies
 #### Homebrew 
@@ -102,7 +102,7 @@ You can use `-DCMAKE_BUILD_TYPE=Debug` instead of `Release` with the cmake comma
 </details>
 
 
-# Usage
+## Usage
 Edit your Argos Experiment file (.argos), and change the visualization tag as:
 ```xml
 .. 
@@ -131,7 +131,7 @@ or run an example project,
 $ argos3 -c src/testing/testexperiment.argos
 ```
 
-## Web Client
+### Web Client
 The web client code is placed in `client` directory (or download it as zip from the [Releases](https://github.com/NESTLab/argos3-webviz/releases)). This folder needs to be *served* through an http server(for example `apache`, `nginx`, `lighthttpd`).
 
 The easiest way is to use python's inbuilt server, as python is already installed in most of *nix systems.
@@ -154,7 +154,8 @@ Now you can access the URL using any browser.
 <details>
 <summary style="font-size:20px">Configuration</summary>
 <br>
-[You can check more documentation in `docs` folder](docs/README.md)
+
+You can check more documentation in [docs](docs/README.md) folder
 
 #### REQUIRED XML CONFIGURATION
 ```xml
@@ -223,8 +224,7 @@ Where file parameters supports relative and absolute paths.
 
 **NOTE**: Webviz need read access to the files.
 
-
-[You can check more documentation in `docs` folder](docs/README.md)
+You can check more documentation in [docs](docs/README.md) folder
 
 </details>
 

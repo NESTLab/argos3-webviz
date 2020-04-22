@@ -1,4 +1,14 @@
-/*  */
+/**
+ * @file <client/js/websockets.js>
+ * 
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ * 
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ * 
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
+
 (function (w) {
   var ConnectWebSockets = function () {
     var sockets_api = server + "?broadcasts,logs";
@@ -82,33 +92,22 @@
             window.experiment.status = "Unknown";
             break;
         }
+        $(".button").removeClass('active')
+
         switch (data.state) {
-          case 'EXPERIMENT_INITIALIZED':
-          case 'EXPERIMENT_DONE':
           case 'EXPERIMENT_PAUSED':
-
-            $("#play_button").removeClass('pause-button')
-              .addClass('play-button')
-              .removeClass('active')
-              .attr("title", "Play experiment")
-              .prop("title", "Play experiment")//for IE
-
+            $("#pause_button").addClass('active')
             break;
           case 'EXPERIMENT_FAST_FORWARDING':
-            $("#play_button").removeClass('play-button')
-              .addClass('pause-button')
-              .removeClass('active')
-              .attr("title", "Pause experiment")
-              .prop("title", "Pause experiment")//for IE
-
             $("#ff_button").addClass('active')
             break;
           case 'EXPERIMENT_PLAYING':
-            $("#play_button").removeClass('play-button')
-              .addClass('pause-button')
-              .addClass('active')
-              .attr("title", "Pause experiment")
-              .prop("title", "Pause experiment")//for IE
+            $("#play_button").addClass('active')
+            break;
+          case 'EXPERIMENT_INITIALIZED':
+          case 'EXPERIMENT_DONE':
+            $("#reset_button").addClass('active')
+            break;
           default:
             break;
         }

@@ -15,7 +15,7 @@
   <welcome language="en" mime-type="text/html">
     <![CDATA[<html><body style="margin: 0px; font: 13px 'Lucida Grande'"><br />
           <p style="margin: 0px; font: 13px 'Lucida Grande'">
-            You will be guided through the steps necessary to install this ARGOS3-Webviz plugin.
+            You will be guided through the steps necessary to install ARGOS3-Webviz plugin.
           </p>
           <br />
           <p style="font-face:'Lucida Grande'"> Dependencies </p>

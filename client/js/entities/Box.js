@@ -1,21 +1,35 @@
+/**
+ * @file <client/js/entities/Box.js>
+ * 
+ * @author Prajankya Sonar - <prajankya@gmail.com>
+ * 
+ * @project ARGoS3-Webviz <https://github.com/NESTlab/argos3-webviz>
+ * 
+ * MIT License
+ * Copyright (c) 2020 NEST Lab
+ */
+
 class Box {
-    constructor(entity, scale) {
+    constructor(entity, scale, EntityLoadingFinishedFn) {
         this.scale = scale;
+        this.entity = entity;
 
         var geometry = new THREE.BoxBufferGeometry(
             entity.scale.x * scale,
             entity.scale.y * scale,
             entity.scale.z * scale
         );
-        /* Bring to on top of zero*/
+
+        /* Bring above ground */
         geometry.translate(0, 0, entity.scale.z * scale * 0.5);
 
         var color = null;
         if (entity.is_movable) {
             color = 0xff0000;
         } else {
-            color = 0x766e64
+            color = 0x766e64;
         }
+
         var material = new THREE.MeshPhongMaterial({
             color: color,
         });
@@ -32,13 +46,19 @@ class Box {
         box.position.z = entity.position.z * scale;
 
         this.mesh = box;
+
+        EntityLoadingFinishedFn(this);
     }
 
-    update(entity, scale) {
+    getMesh() {
+        return this.mesh;
+    }
+
+    update(entity) {
         if (entity.is_movable) {
             try {
-                this.mesh.position.x = entity.position.x * scale;
-                this.mesh.position.y = entity.position.y * scale;
+                this.mesh.position.x = entity.position.x * this.scale;
+                this.mesh.position.y = entity.position.y * this.scale;
 
                 this.mesh.rotation.setFromQuaternion(new THREE.Quaternion(
                     entity.orientation.x,
