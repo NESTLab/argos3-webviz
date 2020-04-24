@@ -65,3 +65,10 @@ Command to reset the experiment.
 { "command": "reset" }
 ```
 
+### Terminate
+Command to terminate the experiment.
+
+```json
+{ "command": "terminate" }
+```
+

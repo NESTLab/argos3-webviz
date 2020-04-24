@@ -404,6 +404,9 @@ namespace argos {
       } else if (strCmd.compare("reset") == 0) {
         m_pcMyWebviz->ResetExperiment();
 
+      } else if (strCmd.compare("terminate") == 0) {
+        m_pcMyWebviz->TerminateExperiment();
+
       } else if (strCmd.compare("fastforward") == 0) {
         try {
           /* number of Steps defined */

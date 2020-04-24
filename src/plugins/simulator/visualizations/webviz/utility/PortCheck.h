@@ -27,7 +27,7 @@ class PortChecker {
     /* Create socket */
     int n_fdSocket = socket(AF_INET, SOCK_STREAM, 0);
 
-    if (n_fdSocket < 0) {
+    if (0 > n_fdSocket) {
       std::cerr << "Cannot open socket" << std::endl;
       return false;
     } else {

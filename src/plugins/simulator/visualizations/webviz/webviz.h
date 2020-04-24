@@ -70,12 +70,16 @@ namespace argos {
   class CWebviz : public CVisualization {
    public:
     CWebviz();
-    ~CWebviz();
 
-    void Reset();
-    void Destroy();
-    void Execute();
-    void Init(TConfigurationNode& t_tree);
+    virtual ~CWebviz(){};
+
+    virtual void Init(TConfigurationNode& t_tree);
+
+    virtual void Execute();
+
+    virtual void Reset(){};
+
+    virtual void Destroy();
 
     /**
      * @brief Plays the experiment.
@@ -111,6 +115,12 @@ namespace argos {
      *
      */
     void ResetExperiment();
+
+    /**
+     * @brief Terminates the execution of the experiment
+     *
+     */
+    void TerminateExperiment();
 
     /**
      * @brief Move an Entity to a new position

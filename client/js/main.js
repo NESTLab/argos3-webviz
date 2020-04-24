@@ -169,16 +169,16 @@ var onAllFilesLoaded = function () {
         .append($("<div/>")
           .addClass('toolbar_divider')
         )
-        // .append($("<div/>")
-        //   .addClass('button')
-        //   .attr('id', 'stop_button')
-        //   .addClass('icon-stop')
-        //   .attr("title", "Terminate experiment")
-        //   .prop("title", "Terminate experiment")//for IE
-        //   .click(function () {
-        //     // window.wsp.send('step')
-        //   })
-        // )
+        .append($("<div/>")
+          .addClass('button')
+          .attr('id', 'stop_button')
+          .addClass('icon-stop')
+          .attr("title", "Terminate experiment")
+          .prop("title", "Terminate experiment")//for IE
+          .click(function () {
+            window.wsp.sendPacked({ command: 'terminate' })
+          })
+        )
         .append($("<div/>")
           .addClass('button')
           .addClass('icon-reset')
