@@ -349,6 +349,9 @@ namespace argos {
       /* Run one step */
       m_cSimulator.UpdateSpace();
 
+      /* Make experiment pause */
+      m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_PAUSED;
+
       /* Change state and emit signals */
       m_cWebServer->EmitEvent("Experiment step done", m_eExperimentState);
     } else {
