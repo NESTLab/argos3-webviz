@@ -37,12 +37,21 @@ class PortChecker {
       sServAddr.sin_addr.s_addr = htonl(INADDR_ANY);
       sServAddr.sin_port = htons(un_port);
 
+      /* To reuse the port, if recently closed */
+      int enable = 1;
+      if (
+        setsockopt(n_fdSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) <
+        0) {
+        std::cerr << "setsockopt(SO_REUSEADDR) failed " << std::endl;
+        return false;
+      }
+
       int n_bindSock =
         bind(n_fdSocket, (struct sockaddr *)&sServAddr, sizeof(sServAddr));
       if (0 > n_bindSock) {
         close(n_fdSocket);
 
-        std::cerr << "Cannot connect to address" << std::endl;
+        std::cerr << "Cannot bind to port " << un_port << std::endl;
         return false;
       } else {
         close(n_bindSock);
