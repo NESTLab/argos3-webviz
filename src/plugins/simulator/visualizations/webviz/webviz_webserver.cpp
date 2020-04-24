@@ -453,6 +453,7 @@ namespace argos {
     void CWebServer::EmitEvent(
       std::string str_event_name, argos::Webviz::EExperimentState e_state) {
       nlohmann::json cMyJson;
+      cMyJson["type"] = "event";
       cMyJson["event"] = str_event_name;
       cMyJson["state"] = argos::Webviz::EExperimentStateToStr(e_state);
 
