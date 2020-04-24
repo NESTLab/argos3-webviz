@@ -59,6 +59,7 @@ namespace argos {
 #include "utility/CTimer.h"
 #include "utility/EExperimentState.h"
 #include "utility/LogStream.h"
+#include "utility/PortCheck.h"
 #include "webviz_user_functions.h"
 #include "webviz_webserver.h"
 
@@ -146,10 +147,7 @@ namespace argos {
     /** number of frames to drop in Fast-forwarding */
     unsigned short m_unDrawFrameEvery;
 
-    /** Log stream objects, to catch logs from Argos */
-    Webviz::CLogStream* m_pcLogStream;
-    Webviz::CLogStream* m_pcLogErrStream;
-
+    /** User functions */
     CWebvizUserFunctions* m_pcUserFunctions;
 
     /**

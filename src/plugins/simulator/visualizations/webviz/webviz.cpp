@@ -95,6 +95,12 @@ namespace argos {
       m_pcUserFunctions = new CWebvizUserFunctions;
     }
 
+    /* Check if port is available to bind */
+    if (!PortChecker::CheckPortTCPisAvailable(unPort)) {
+      THROW_ARGOSEXCEPTION("Port " + std::to_string(unPort) + " already in use")
+      return;
+    }
+
     /* Initialize Webserver */
     m_cWebServer = new Webviz::CWebServer(
       this,
@@ -521,11 +527,7 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  CWebviz::~CWebviz() {
-    delete m_cWebServer;
-    delete m_pcLogStream;
-    delete m_pcLogErrStream;
-  }
+  CWebviz::~CWebviz() {}
 
   /****************************************/
   /****************************************/
