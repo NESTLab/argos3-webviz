@@ -1,0 +1,1 @@
+add_experiment_test(empty_experiment empty.argos 2s)

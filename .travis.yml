@@ -57,18 +57,22 @@ install:
       sudo apt-get install cmake libfreeimage-dev libfreeimageplus-dev qt5-default freeglut3-dev libxi-dev libxmu-dev liblua5.3-dev lua5.3 doxygen graphviz graphviz-dev asciidoc ;
       sudo dpkg -i argos3_simulator-3.0.0-x86_64-beta56.deb ;
     fi
+
+################################ Build package ##############################
 before_script:
   - ${CXX} --version
   - ${CXX} -v
-  
-script:
-  ############################################################################
-  # Build main and tests
-  ############################################################################
   - mkdir -p build
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=Release ../src
   - cmake --build . --target all --parallel
+
+################################# Test package ###############################
+script:
+  - GTEST_COLOR=1 ctest --parallel
+
+############################### Bundle packages ##############################
+after_script:
   # Get filename variable from CMake
   - EXPORT_PACKAGE_NAME=$(cat package_name.txt)
 
@@ -98,6 +102,8 @@ script:
 
   # Combine Client files into zip
   - cd .. && zip -r web_client.zip client
+
+############################### Deploy packages ##############################
 deploy:
   - provider: releases
     api_key: $GITHUB_OAUTH_ACCESS_TOKEN

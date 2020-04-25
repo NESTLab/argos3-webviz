@@ -63,20 +63,17 @@
         window.experiment.data = data;
         window.experiment.state = data.state
 
-        /* Reset settings */
-        $("#ff_button").removeClass('active')
-
         switch (data.state) {
           case 'EXPERIMENT_INITIALIZED':
             window.experiment.status = "Initialized";
             break;
           case 'EXPERIMENT_DONE':
-            /* disable all buttons */
-            $("#layout_app_layout_panel_top .button").addClass("disabled")
-            /* Only enable reset button */
-            $("#layout_app_layout_panel_top .button.reset-button")
-              .removeClass("disabled")
+            /* disable all buttons except reset */
+            var otherButtons = $("#layout_app_layout_panel_top .button:not(.icon-help):not(.disabled):not(.icon-reset)")
 
+            if (otherButtons.length > 0) {
+              otherButtons.addClass("disabled")
+            }
             window.experiment.status = "Done";
             break;
           case 'EXPERIMENT_PAUSED':
@@ -92,24 +89,30 @@
             window.experiment.status = "Unknown";
             break;
         }
-        $(".button").removeClass('active')
-
+        var buttonSelector = "";
         switch (data.state) {
           case 'EXPERIMENT_PAUSED':
-            $("#pause_button").addClass('active')
+            buttonSelector = "#pause_button"
             break;
           case 'EXPERIMENT_FAST_FORWARDING':
-            $("#ff_button").addClass('active')
+            buttonSelector = "#ff_button"
             break;
           case 'EXPERIMENT_PLAYING':
-            $("#play_button").addClass('active')
+            buttonSelector = "#play_button"
             break;
           case 'EXPERIMENT_INITIALIZED':
           case 'EXPERIMENT_DONE':
-            $("#reset_button").addClass('active')
+            buttonSelector = "#reset_button"
             break;
           default:
             break;
+        }
+
+        var otherActive = $(".button:not(.icon-help):not(" + buttonSelector + ")")
+        if (otherActive.length > 0) {
+          otherActive
+            .removeClass('active')
+          $(buttonSelector).addClass('active')
         }
 
         window.experiment.counter = data.steps;

@@ -95,6 +95,12 @@ namespace argos {
       m_pcUserFunctions = new CWebvizUserFunctions;
     }
 
+    /* Check if port is available to bind */
+    if (!PortChecker::CheckPortTCPisAvailable(unPort)) {
+      THROW_ARGOSEXCEPTION("Port " + std::to_string(unPort) + " already in use")
+      return;
+    }
+
     /* Initialize Webserver */
     m_cWebServer = new Webviz::CWebServer(
       this,
@@ -232,7 +238,7 @@ namespace argos {
     if (
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_INITIALIZED &&
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PAUSED) {
-      LOGERR << "[WARNING] CWebviz::PlayExperiment() called in wrong state: "
+      LOGERR << "[WARNING] PlayExperiment() called in wrong state: "
              << Webviz::EExperimentStateToStr(m_eExperimentState) << '\n';
 
       // silently return;
@@ -261,10 +267,9 @@ namespace argos {
     if (
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_INITIALIZED &&
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PAUSED) {
-      LOGERR
-        << "[WARNING] CWebviz::FastForwardExperiment() called in wrong state: "
-        << Webviz::EExperimentStateToStr(m_eExperimentState)
-        << ", Running the experiment in FastForward mode" << '\n';
+      LOGERR << "[WARNING] FastForwardExperiment() called in wrong state: "
+             << Webviz::EExperimentStateToStr(m_eExperimentState)
+             << ", Running the experiment in FastForward mode" << '\n';
 
       /* Do not fast forward if experiment is done */
       if (m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_DONE) {
@@ -301,7 +306,7 @@ namespace argos {
       m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PLAYING &&
       m_eExperimentState !=
         Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
-      LOGERR << "[WARNING] CWebviz::PauseExperiment() called in wrong state: "
+      LOGERR << "[WARNING] PauseExperiment() called in wrong state: "
              << Webviz::EExperimentStateToStr(m_eExperimentState) << '\n';
 
       return;
@@ -325,7 +330,7 @@ namespace argos {
       m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_PLAYING ||
       m_eExperimentState ==
         Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
-      LOGERR << "[WARNING] CWebviz::StepExperiment() called in wrong state: "
+      LOGERR << "[WARNING] StepExperiment() called in wrong state: "
              << Webviz::EExperimentStateToStr(m_eExperimentState)
              << " pausing the experiment to run a step" << '\n';
 
@@ -341,14 +346,11 @@ namespace argos {
     m_bFastForwarding = false;
 
     if (!m_cSimulator.IsExperimentFinished()) {
-      /* Run user's pre step function */
-      m_cSimulator.GetLoopFunctions().PreStep();
-
       /* Run one step */
       m_cSimulator.UpdateSpace();
 
-      /* Run user's post step function */
-      m_cSimulator.GetLoopFunctions().PostStep();
+      /* Make experiment pause */
+      m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_PAUSED;
 
       /* Change state and emit signals */
       m_cWebServer->EmitEvent("Experiment step done", m_eExperimentState);
@@ -394,6 +396,37 @@ namespace argos {
     BroadcastExperimentState();
 
     LOG << "[INFO] Experiment reset" << '\n';
+  }
+
+  /****************************************/
+  /****************************************/
+
+  void CWebviz::TerminateExperiment() {
+    /* Make sure we are in the right state */
+    if (
+      m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PLAYING &&
+      m_eExperimentState != Webviz::EExperimentState::EXPERIMENT_PAUSED &&
+      m_eExperimentState !=
+        Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
+      LOGERR << "[WARNING] TerminateExperiment() called in wrong state: "
+             << Webviz::EExperimentStateToStr(m_eExperimentState) << '\n';
+
+      return;
+    }
+    /* Disable fast-forward */
+    m_bFastForwarding = false;
+
+    /* Call ARGoS to terminate the experiment */
+    CSimulator::GetInstance().Terminate();
+    CSimulator::GetInstance().GetLoopFunctions().PostExperiment();
+
+    /* Set Experiment state to Done */
+    m_eExperimentState = Webviz::EExperimentState::EXPERIMENT_DONE;
+
+    /* Change state and emit signals */
+    m_cWebServer->EmitEvent("Experiment done", m_eExperimentState);
+
+    LOG << "[INFO] Experiment done" << '\n';
   }
 
   /****************************************/
@@ -521,21 +554,11 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  CWebviz::~CWebviz() {
-    delete m_cWebServer;
-    delete m_pcLogStream;
-    delete m_pcLogErrStream;
+  void CWebviz::Destroy() {
+    /* Get rid of the factory */
+
+    CFactory<CWebvizUserFunctions>::Destroy();
   }
-
-  /****************************************/
-  /****************************************/
-
-  void CWebviz::Reset() {}
-
-  /****************************************/
-  /****************************************/
-
-  void CWebviz::Destroy() {}
   /****************************************/
   /****************************************/
 

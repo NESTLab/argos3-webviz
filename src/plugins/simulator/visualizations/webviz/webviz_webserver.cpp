@@ -404,6 +404,9 @@ namespace argos {
       } else if (strCmd.compare("reset") == 0) {
         m_pcMyWebviz->ResetExperiment();
 
+      } else if (strCmd.compare("terminate") == 0) {
+        m_pcMyWebviz->TerminateExperiment();
+
       } else if (strCmd.compare("fastforward") == 0) {
         try {
           /* number of Steps defined */
@@ -453,6 +456,7 @@ namespace argos {
     void CWebServer::EmitEvent(
       std::string str_event_name, argos::Webviz::EExperimentState e_state) {
       nlohmann::json cMyJson;
+      cMyJson["type"] = "event";
       cMyJson["event"] = str_event_name;
       cMyJson["state"] = argos::Webviz::EExperimentStateToStr(e_state);
 

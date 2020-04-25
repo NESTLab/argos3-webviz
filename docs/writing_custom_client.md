@@ -135,6 +135,16 @@ All other optional parameters may or may not follow any standard (as long as ser
 
 ### Topic: events
 Messages on the topic `events` contain any control event happened in the experiment (like *play/pause/stop/step/done* of experiment). These are not realtime, but are emitted in next cycle of Broadcast (which runs at frequency defined in `broadcast_frequency`, default: 10 Hz).
+```json
+{
+  "type":"event",
+  "event":"Experiment paused",
+  "state":"EXPERIMENT_PAUSED"
+}
+```
+Where `state` is a constant string which can be anything between `EXPERIMENT_INITIALIZED`, `EXPERIMENT_PLAYING`, `EXPERIMENT_PAUSED`, `EXPERIMENT_FAST_FORWARDING`, `EXPERIMENT_DONE`.
+
+`event` is a more readable string of the state.
 
 ### Topic: logs
 Messages on the topic `logs` contain any log message from the experiment/or argos, which are accumulated in a single `log` message, and emitted at the rate defined in experiment file by parameter `broadcast_frequency` (default: 10 Hz).

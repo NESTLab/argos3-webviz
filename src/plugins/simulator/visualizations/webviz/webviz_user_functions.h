@@ -45,7 +45,7 @@ namespace argos {
      * Send data hook to add extra content to JSON message sent to clients.
      * Return a JSON object which will be attached to JSON body as "extra_data"
      */
-    virtual nlohmann::json sendExtraData() { return nullptr; }
+    virtual const nlohmann::json sendExtraData() { return nullptr; }
 
     /**
      * Registers a user method.
@@ -56,20 +56,20 @@ namespace argos {
      */
     template <typename USER_IMPL, typename ENTITY>
     void RegisterWebvizUserFunction(
-      nlohmann::json (USER_IMPL::*pt_function)(ENTITY&));
+      const nlohmann::json (USER_IMPL::*pt_function)(ENTITY&));
 
     /**
      * Calls a user method for the given entity.
      * @param The method to pass as parameter.
      */
-    virtual nlohmann::json Call(CEntity& c_entity);
+    virtual const nlohmann::json Call(CEntity& c_entity);
 
    protected:
     /**
      * Pointer-to-thunk type definition.
      * @see Thunk
      */
-    typedef nlohmann::json (CWebvizUserFunctions::*TThunk)(CEntity&);
+    typedef const nlohmann::json (CWebvizUserFunctions::*TThunk)(CEntity&);
 
     /**
      * A templetized thunk.
@@ -82,7 +82,7 @@ namespace argos {
      * @see TThunk
      */
     template <typename USER_IMPL, typename ENTITY>
-    nlohmann::json Thunk(CEntity& c_entity);
+    const nlohmann::json Thunk(CEntity& c_entity);
 
     /**
      * The base function holder.
@@ -101,7 +101,7 @@ namespace argos {
     template <typename USER_IMPL, typename ENTITY>
     class CFunctionHolderImpl : public CFunctionHolder {
      public:
-      typedef nlohmann::json (USER_IMPL::*TFunction)(ENTITY&);
+      typedef const nlohmann::json (USER_IMPL::*TFunction)(ENTITY&);
       TFunction Function;
       CFunctionHolderImpl(TFunction t_function) : Function(t_function) {}
     };
@@ -124,7 +124,7 @@ namespace argos {
   /****************************************/
 
   template <typename USER_IMPL, typename ENTITY>
-  nlohmann::json CWebvizUserFunctions::Thunk(CEntity& c_entity) {
+  const nlohmann::json CWebvizUserFunctions::Thunk(CEntity& c_entity) {
     /*
      * When this method is called, the static type of 'this'
      * is CWebvizUserFunctions. Since we want to call
@@ -150,7 +150,7 @@ namespace argos {
 
   template <typename USER_IMPL, typename ENTITY>
   void CWebvizUserFunctions::RegisterWebvizUserFunction(
-    nlohmann::json (USER_IMPL::*pt_function)(ENTITY&)) {
+    const nlohmann::json (USER_IMPL::*pt_function)(ENTITY&)) {
     /* Add the thunk to the VTable */
     m_cThunks.Add<ENTITY>(&CWebvizUserFunctions::Thunk<USER_IMPL, ENTITY>);
     /* Add the function holder to the vector, padding gaps with NULL pointers */

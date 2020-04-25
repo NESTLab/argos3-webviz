@@ -31,7 +31,7 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  nlohmann::json CWebvizUserFunctions::Call(CEntity& c_entity) {
+  const nlohmann::json CWebvizUserFunctions::Call(CEntity& c_entity) {
     TThunk t_thunk = m_cThunks[c_entity.GetTag()];
     if (t_thunk) {
       return (this->*t_thunk)(c_entity);

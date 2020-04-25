@@ -21,7 +21,7 @@ endif(ARGOS_KheperaIV_FOUND)
 #
 download_project(PROJ     uWebSockets
   GIT_REPOSITORY      https://github.com/uNetworking/uWebSockets.git
-  GIT_TAG             v0.17.3
+  GIT_TAG             v0.17.4
   UPDATE_DISCONNECTED 1
 )
 

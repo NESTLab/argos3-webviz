@@ -1,4 +1,3 @@
-[ ] Implement ~CWebviz(), Reset(), Destroy() of CWebviz
 [ ] Write unit tests
 [ ] Entities to implement:
     [ ] Box with LEDs
@@ -6,9 +5,7 @@
     [ ] spiri
     [ ] cylinder with leds
 [ ] draw arena boundaries
-[ ] Check if port is already being used
 [ ] BUG: Reset while fast-forwarding, goes to few steps(instead of 0 steps)(Not reproducing everytime)
-[ ] Add Terminate experiment
 [ ] Duplicate log messages (it comes up randomly, not able to reproduce everytime while testing)
 [ ] BUG: LOG & LOGERR doesn't emit until experiment has started
 [ ] Document: user loop functions need to link nlohmann::json to compile 

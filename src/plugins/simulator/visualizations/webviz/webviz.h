@@ -59,6 +59,7 @@ namespace argos {
 #include "utility/CTimer.h"
 #include "utility/EExperimentState.h"
 #include "utility/LogStream.h"
+#include "utility/PortCheck.h"
 #include "webviz_user_functions.h"
 #include "webviz_webserver.h"
 
@@ -69,12 +70,16 @@ namespace argos {
   class CWebviz : public CVisualization {
    public:
     CWebviz();
-    ~CWebviz();
 
-    void Reset();
-    void Destroy();
-    void Execute();
-    void Init(TConfigurationNode& t_tree);
+    virtual ~CWebviz(){};
+
+    virtual void Init(TConfigurationNode& t_tree);
+
+    virtual void Execute();
+
+    virtual void Reset(){};
+
+    virtual void Destroy();
 
     /**
      * @brief Plays the experiment.
@@ -112,6 +117,12 @@ namespace argos {
     void ResetExperiment();
 
     /**
+     * @brief Terminates the execution of the experiment
+     *
+     */
+    void TerminateExperiment();
+
+    /**
      * @brief Move an Entity to a new position
      *
      * @param str_entity_id
@@ -146,10 +157,7 @@ namespace argos {
     /** number of frames to drop in Fast-forwarding */
     unsigned short m_unDrawFrameEvery;
 
-    /** Log stream objects, to catch logs from Argos */
-    Webviz::CLogStream* m_pcLogStream;
-    Webviz::CLogStream* m_pcLogErrStream;
-
+    /** User functions */
     CWebvizUserFunctions* m_pcUserFunctions;
 
     /**
