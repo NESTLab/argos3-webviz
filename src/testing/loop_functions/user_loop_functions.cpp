@@ -16,7 +16,7 @@ CTestUserFunctions::~CTestUserFunctions() {}
 /****************************************/
 /****************************************/
 
-nlohmann::json CTestUserFunctions::sendRobotData(CFootBotEntity &robot) {
+const nlohmann::json CTestUserFunctions::sendRobotData(CFootBotEntity &robot) {
   nlohmann::json outJson;
 
   outJson["distance_travelled"] = 1.46;
@@ -26,7 +26,7 @@ nlohmann::json CTestUserFunctions::sendRobotData(CFootBotEntity &robot) {
   return outJson;
 }
 
-nlohmann::json CTestUserFunctions::sendExtraData() {
+const nlohmann::json CTestUserFunctions::sendExtraData() {
   nlohmann::json outJson;
 
   outJson["status"] = "running";
