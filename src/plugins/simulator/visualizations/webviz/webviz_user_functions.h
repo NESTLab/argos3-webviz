@@ -60,7 +60,7 @@ namespace argos {
 
     /**
      * Calls a user method for the given entity.
-     * @param The method to pass as parameter.
+     * @param c_entity The method to pass as parameter.
      */
     virtual const nlohmann::json Call(CEntity& c_entity);
 
