@@ -49,17 +49,18 @@ before_install:
 install:
   ######################## Install using brew on OSX #########################
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
-      brew tap ilpincy/argos3         ;
-      brew install bash-completion    ;
-      brew unlink python@2            ;
-      # Hack to edit argos3 formula to reduce compile time
+      brew tap ilpincy/argos3   ;
+      brew unlink python@2      ;
+      brew install bash-completion openssl zlib libuv cppcheck lcov ;
+    fi
+
+    # Hack to edit argos3 formula to reduce compile time
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
       sed -e '32s/.*/    system "cmake", "--build", ".", "--target", "all", "--parallel" /' -i '' /usr/local/Homebrew/Library/Taps/ilpincy/homebrew-argos3/argos3.rb;
       sed -e '33d' -i '' /usr/local/Homebrew/Library/Taps/ilpincy/homebrew-argos3/argos3.rb;
       brew install argos3             ;
-      brew install openssl zlib libuv ;
-      brew install cppcheck lcov      ;
-      
     fi
+
   ################### Download from Google drive for linux ###################
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
       wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1OVKPMZFa0GzSU1RwioaEReUCUl-vngkR' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1OVKPMZFa0GzSU1RwioaEReUCUl-vngkR" -O argos3_simulator-3.0.0-x86_64-beta56.deb && rm -rf /tmp/cookies.txt ;
