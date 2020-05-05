@@ -152,20 +152,20 @@ namespace argos {
     std::chrono::milliseconds m_cSimulatorTickMillis;
 
     /** Webserver */
-    Webviz::CWebServer* m_cWebServer;
+    Webviz::CWebServer* m_cWebServer = nullptr;
 
     /** number of frames to drop in Fast-forwarding */
-    unsigned short m_unDrawFrameEvery;
+    unsigned short m_unDrawFrameEvery = 2;
 
     /** User functions */
-    CWebvizUserFunctions* m_pcUserFunctions;
+    CWebvizUserFunctions* m_pcUserFunctions = nullptr;
 
     /**
      * @brief Function which run in Simulation thread
      *
      * @param b_IsServerRunning used to stop the thread gracefully
      */
-    void SimulationThreadFunction(std::atomic<bool>& b_IsServerRunning);
+    void SimulationThreadFunction(const std::atomic<bool>& b_IsServerRunning);
 
     /**
      * @brief Function which broadcast experiment state

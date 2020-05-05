@@ -74,7 +74,7 @@ namespace argos {
        * @param log_type either LOG or LOGERR
        * @param message log message
        */
-      void EmitLog(std::string log_type, std::string message);
+      void EmitLog(const std::string& log_type, const std::string& message);
 
       /** Broadcasts JSON to all the connected clients */
       void Broadcast(nlohmann::json);

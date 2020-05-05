@@ -25,6 +25,7 @@ namespace argos {
   /****************************************/
   /****************************************/
 
+  // cppcheck-suppress unusedFunction
   void CWebviz::Init(TConfigurationNode& t_tree) {
     unsigned short unPort;
     unsigned short unBroadcastFrequency;
@@ -123,6 +124,7 @@ namespace argos {
   /****************************************/
   /****************************************/
 
+  // cppcheck-suppress unusedFunction
   void CWebviz::Execute() {
     /* To manage all threads to exit gracefully */
     std::atomic<bool> bIsServerRunning{true};
@@ -143,19 +145,20 @@ namespace argos {
   }
 
   /* main simulation thread fuction */
-  void CWebviz::SimulationThreadFunction(std::atomic<bool>& b_IsServerRunning) {
+  void CWebviz::SimulationThreadFunction(
+    const std::atomic<bool>& b_IsServerRunning) {
     /* Set up thread-safe buffers for this new thread */
     LOG.AddThreadSafeBuffer();
     LOGERR.AddThreadSafeBuffer();
-
-    /* Fast forward steps counter used inside */
-    int unFFStepCounter = 1;
 
     while (b_IsServerRunning) {
       if (
         m_eExperimentState == Webviz::EExperimentState::EXPERIMENT_PLAYING ||
         m_eExperimentState ==
           Webviz::EExperimentState::EXPERIMENT_FAST_FORWARDING) {
+        /* Fast forward steps counter used inside */
+        int unFFStepCounter;
+
         if (m_bFastForwarding) {
           /* Number of frames to drop in fast-forward */
           unFFStepCounter = m_unDrawFrameEvery;

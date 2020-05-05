@@ -136,8 +136,9 @@ namespace argos {
      */
     static USER_IMPL& cImpl = static_cast<USER_IMPL&>(*this);
 
+    // cppcheck-suppress constVariable
     /* Cast the argument to the right type */
-    const ENTITY& cEntity = static_cast<ENTITY&>(c_entity);
+    ENTITY& cEntity = static_cast<ENTITY&>(c_entity);
 
     /* Cast the function holder to its effective type */
     CFunctionHolderImpl<USER_IMPL, ENTITY>& cFunctionHolder =

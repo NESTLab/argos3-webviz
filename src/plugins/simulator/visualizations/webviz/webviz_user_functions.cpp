@@ -31,7 +31,6 @@ namespace argos {
   /****************************************/
   /****************************************/
 
-  // cppcheck-suppress unusedFunction
   const nlohmann::json CWebvizUserFunctions::Call(CEntity& c_entity) {
     TThunk t_thunk = m_cThunks[c_entity.GetTag()];
     if (t_thunk) {

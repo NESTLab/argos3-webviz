@@ -471,7 +471,7 @@ namespace argos {
     /****************************************/
 
     void CWebServer::EmitLog(
-      std::string str_log_name, std::string str_log_data) {
+      const std::string &str_log_name, const std::string &str_log_data) {
       /* if message is not empty */
       if (!str_log_data.empty()) {
         /* Build json object */

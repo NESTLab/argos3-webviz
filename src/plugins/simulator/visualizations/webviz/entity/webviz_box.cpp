@@ -25,6 +25,7 @@ namespace argos {
     class CWebvizOperationGenerateBoxJSON
         : public CWebvizOperationGenerateJSON {
      public:
+      /* cppcheck-suppress unusedFunction */
       nlohmann::json ApplyTo(CWebviz& c_webviz, CBoxEntity& c_entity) {
         nlohmann::json cJson;
 
@@ -75,13 +76,13 @@ namespace argos {
             cLedJson["color"] = strLEDStream.str();
 
             /* Get the position of the box */
-            const argos::CVector3& cPosition =
+            const argos::CVector3& cLedPosition =
               cLEDEquippedEntity.GetLED(i).GetPosition();
 
             /* Add it to json as => position:{x, y, z} */
-            cLedJson["position"]["x"] = cPosition.GetX();
-            cLedJson["position"]["y"] = cPosition.GetY();
-            cLedJson["position"]["z"] = cPosition.GetZ();
+            cLedJson["position"]["x"] = cLedPosition.GetX();
+            cLedJson["position"]["y"] = cLedPosition.GetY();
+            cLedJson["position"]["z"] = cLedPosition.GetZ();
 
             cJson["leds"].push_back(cLedJson);
           }
