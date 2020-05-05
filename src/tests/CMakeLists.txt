@@ -1,9 +1,5 @@
 
-# include(${CMAKE_SOURCE_DIR}/cmake/AddGoogleTests.cmake)
 include(AddGoogleTests)
-# find_package(GoogleTest REQUIRED)
-  
-
 
 mark_as_advanced(
     BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
@@ -31,11 +27,13 @@ setup_target_for_coverage_lcov(
 
     # BASE_DIRECTORY "."                        # Base directory for report
                                                 #  (defaults to PROJECT_SOURCE_DIR)
+    
     EXCLUDE "../build/*"                        # Patterns to exclude (can be relative
             "../src/argos3/*"                   #  to BASE_DIRECTORY, with CMake 3.4+)
             "../src/testing/*"
             # "../src/tests/*"
             "/usr/*"
-  #  NO_DEMANGLE                                 # Don't demangle C++ symbols
+  
+    # NO_DEMANGLE                                 # Don't demangle C++ symbols
                                                 #  even if c++filt is found
 )

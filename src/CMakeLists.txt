@@ -83,7 +83,7 @@ endif()
 
 if (IS_DEBUG_MODE)
   message("Debug mode: Building all tests")
-  option(PACKAGE_TESTS "Build the tests" ON)
+  set(PACKAGE_TESTS ON)
 
    # Enable CPPcheck (static cpp code check)
    include(CppcheckTargets)
