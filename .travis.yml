@@ -14,6 +14,8 @@ jobs:
             - zlib1g-dev
             - libssl-dev
             - zip
+            - lcov
+            - cppcheck
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
         - PKG_BUILD="DEB"
@@ -30,6 +32,8 @@ jobs:
             - zlib1g-dev
             - libssl-dev
             - zip
+            - lcov
+            - cppcheck
       env:
         - PKG_BUILD="DEB"
         - PKG_EXT="deb"
@@ -69,7 +73,17 @@ before_script:
 
 ################################# Test package ###############################
 script:
-  - GTEST_COLOR=1 ctest --parallel
+  # Run coverage & test
+  - cmake --build . --target coverage
+
+############################ Upload code coverage ############################
+after_success:
+  # output coverage data for debugging (optional)
+  - lcov --list coverage.info
+
+  # Uploading to CodeCov
+  # '-f' specifies file(s) to use and disables manual coverage gathering and file search which has already been done above
+  - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
 
 ############################### Bundle packages ##############################
 after_script:

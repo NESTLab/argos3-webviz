@@ -3,7 +3,7 @@
 You need few extra packages namely 
 
 - cppcheck (`sudo apt install cppcheck`)
-
+- lcov (`sudo apt install lcov`)
 
 and then configure cmake with Debug flag,
 

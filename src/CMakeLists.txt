@@ -92,8 +92,14 @@ endif()
 
 if(PACKAGE_TESTS)
   enable_testing()
-  # include(GoogleTest)
-  # add_subdirectory(tests)
+  # Add Google test suite
+  include(GoogleTest)
+  
+  # Add Code coverage from CMake
+  include(CodeCoverage)
+  append_coverage_compiler_flags()
+  
+  add_subdirectory(tests)
 endif()
 
 #
