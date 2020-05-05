@@ -23,7 +23,7 @@ add_subdirectory(modules)
 setup_target_for_coverage_lcov(
     NAME coverage                               # New target name
 
-    EXECUTABLE GTEST_COLOR=1 ctest --parallel   # Executable in PROJECT_BINARY_DIR
+    EXECUTABLE GTEST_COLOR=1 ctest -V --parallel# Executable in PROJECT_BINARY_DIR
 
     # BASE_DIRECTORY "."                        # Base directory for report
                                                 #  (defaults to PROJECT_SOURCE_DIR)

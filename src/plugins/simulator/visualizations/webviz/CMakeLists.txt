@@ -215,13 +215,13 @@ if (IS_DEBUG_MODE)
   if(CPPCHECK_FOUND)
       message(STATUS "Cppcheck Found")
 
-      add_cppcheck_sources(${TARGET_NAME} 
-        ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ}
-        UNUSED_FUNCTIONS
-        POSSIBLE_ERROR
-        FORCE
-        FAIL_ON_WARNINGS
-      )
+      # add_cppcheck_sources(${TARGET_NAME} 
+      #   ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ}
+      #   UNUSED_FUNCTIONS
+      #   POSSIBLE_ERROR
+      #   FORCE
+      #   FAIL_ON_WARNINGS
+      # )
   else()
       message(STATUS "Cppcheck Not Found")
   endif()
