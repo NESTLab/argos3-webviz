@@ -71,21 +71,35 @@ include(FindARGoSPlugin)
 
 
 #
-# Compile stuff
-#
-add_subdirectory(plugins)
-
-#
 # Testing
 #
-option(PACKAGE_TESTS "Build the tests" ON)
+option(PACKAGE_TESTS "Build the tests" OFF)
+
+string(TOUPPER "${CMAKE_BUILD_TYPE}" uppercase_CMAKE_BUILD_TYPE)
+
+if (uppercase_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
+  set(IS_DEBUG_MODE True)
+endif()
+
+if (IS_DEBUG_MODE)
+  message("Debug mode: Building all tests")
+  option(PACKAGE_TESTS "Build the tests" ON)
+
+   # Enable CPPcheck (static cpp code check)
+   include(CppcheckTargets)
+endif()
 
 
 if(PACKAGE_TESTS)
   enable_testing()
-  include(GoogleTest)
-  add_subdirectory(tests)
+  # include(GoogleTest)
+  # add_subdirectory(tests)
 endif()
+
+#
+# Compile stuff
+#
+add_subdirectory(plugins)
 
 add_subdirectory(testing)
 

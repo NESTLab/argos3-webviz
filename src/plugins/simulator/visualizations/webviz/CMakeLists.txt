@@ -172,5 +172,37 @@ install(TARGETS ${TARGET_NAME}
   PUBLIC_HEADER DESTINATION include/argos3/${PLUGIN_FOLDER}
 )
 
-# Stop compiling on first error
-target_compile_options(${TARGET_NAME} PRIVATE -Wfatal-errors)
+
+if (IS_DEBUG_MODE)
+  # Stop compiling on first error
+  target_compile_options(${TARGET_NAME} PRIVATE -Wfatal-errors)
+
+
+
+  ## find cppcheck, to detect common syntax error in src
+  ## notice: cppcheck is integrated into test
+  ## usage: execute "make test" after "cmake ..", detail results in "./Testing/Temporary/LastTest.log"
+  find_package(cppcheck QUIET)
+  if(CPPCHECK_FOUND)
+      message(STATUS "Cppcheck Found")
+      message(STATUS "CPPCHECK_EXECUTABLE: ${CPPCHECK_EXECUTABLE}")
+     
+      add_cppcheck_sources(${TARGET_NAME} 
+        ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ}
+        UNUSED_FUNCTIONS
+        POSSIBLE_ERROR
+        FORCE
+        FAIL_ON_WARNINGS
+      )
+
+  else()
+      message(STATUS "Cppcheck Not Found")
+  endif()
+
+
+  
+
+
+  # find_package(cppcheck REQUIRED)
+  # add_cppcheck(${TARGET_NAME} VERBOSE FORCE ALL)
+endif ()
