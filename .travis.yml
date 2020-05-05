@@ -54,6 +54,8 @@ install:
       brew unlink python@2            ;
       brew install argos3             ;
       brew install openssl zlib libuv ;
+      brew install cppcheck lcov      ;
+      
     fi
   ################### Download from Google drive for linux ###################
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
