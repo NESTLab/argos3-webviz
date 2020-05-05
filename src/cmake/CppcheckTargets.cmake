@@ -77,6 +77,12 @@ function(add_cppcheck_sources _targetname)
 			list(REMOVE_AT _input ${_force})
 		endif()
 
+		list(FIND _input INLINE_SUPRESS _suppr)
+		if("${_suppr}" GREATER "-1")
+			list(APPEND _cppcheck_args "--inline-suppr")
+			list(REMOVE_AT _input ${_suppr})
+		endif()
+
 		list(FIND _input FAIL_ON_WARNINGS _fail_on_warn)
 		if("${_fail_on_warn}" GREATER "-1")
 			list(APPEND
@@ -173,6 +179,12 @@ function(add_cppcheck _name)
 		list(FIND ARGN FORCE _force)
 		if("${_force}" GREATER "-1")
 			list(APPEND _cppcheck_args "--force")
+		endif()
+
+		list(FIND _input INLINE_SUPRESS _suppr)
+		if("${_suppr}" GREATER "-1")
+			list(APPEND _cppcheck_args "--inline-suppr")
+			list(REMOVE_AT _input ${_suppr})
 		endif()
 
 		list(FIND _input FAIL_ON_WARNINGS _fail_on_warn)

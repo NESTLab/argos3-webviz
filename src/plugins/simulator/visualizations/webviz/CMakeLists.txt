@@ -220,6 +220,7 @@ if (IS_DEBUG_MODE)
         UNUSED_FUNCTIONS
         POSSIBLE_ERROR
         FORCE
+        INLINE_SUPRESS
         FAIL_ON_WARNINGS
       )
   else()
