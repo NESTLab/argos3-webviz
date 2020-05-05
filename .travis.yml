@@ -52,6 +52,9 @@ install:
       brew tap ilpincy/argos3         ;
       brew install bash-completion    ;
       brew unlink python@2            ;
+      # Hack to edit argos3 formula to reduce compile time
+      sed -e '32s/.*/    system "cmake", "--build", ".", "--target", "all", "--parallel" /' -i '' /usr/local/Homebrew/Library/Taps/ilpincy/homebrew-argos3/argos3.rb;
+      sed -e '33d' -i '' /usr/local/Homebrew/Library/Taps/ilpincy/homebrew-argos3/argos3.rb;
       brew install argos3             ;
       brew install openssl zlib libuv ;
       brew install cppcheck lcov      ;
