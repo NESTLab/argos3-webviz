@@ -1,4 +1,4 @@
-#include <argos3/plugins/simulator/visualizations/webviz/utility/PortCheck.h>
+#include "plugins/simulator/visualizations/webviz/utility/PortCheck.h"
 
 #include "gtest/gtest.h"
 

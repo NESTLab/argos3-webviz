@@ -31,7 +31,7 @@ setup_target_for_coverage_lcov(
     EXCLUDE "../build/*"                        # Patterns to exclude (can be relative
             "../src/argos3/*"                   #  to BASE_DIRECTORY, with CMake 3.4+)
             "../src/testing/*"
-            # "../src/tests/*"
+            "../src/tests/*"
             "/usr/*"
   
     # NO_DEMANGLE                                 # Don't demangle C++ symbols
