@@ -62,28 +62,33 @@ install:
       sudo dpkg -i argos3_simulator-3.0.0-x86_64-beta56.deb ;
     fi
 
-################################ Build package ##############################
+######################### Build package for testing #########################
 before_script:
   - ${CXX} --version
   - ${CXX} -v
   - mkdir -p build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=Release ../src
+  - cmake -DCMAKE_BUILD_TYPE=Debug ../src
   - cmake --build . --target all --parallel
 
-################################# Test package ###############################
-script:
   # Run coverage & test
   - cmake --build . --target coverage
 
-############################ Upload code coverage ############################
-after_success:
-  # output coverage data for debugging (optional)
+  # Output coverage data for debugging (optional)
   - lcov --list coverage.info
 
   # Uploading to CodeCov
   # '-f' specifies file(s) to use and disables manual coverage gathering and file search which has already been done above
   - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
+  
+########################## Build package for deploy ##########################
+script:
+  - cd ..
+  - rm -rf build
+  - mkdir -p build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE=Release ../src
+  - cmake --build . --target all --parallel
 
 ############################### Bundle packages ##############################
 after_script:
