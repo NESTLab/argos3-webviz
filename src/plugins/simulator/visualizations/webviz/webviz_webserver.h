@@ -36,7 +36,9 @@ namespace argos {
 
 namespace argos {
   namespace Webviz {
-    class CWebServer {
+
+    /* Disable subclassing using final */
+    class CWebServer final {
      public:
       CWebServer(
         CWebviz*,
@@ -48,7 +50,7 @@ namespace argos {
         std::string&,
         std::string&);
 
-      ~CWebServer();
+      virtual ~CWebServer();
 
       /**
        * @brief Start the Webserver threads (one for server, one for
