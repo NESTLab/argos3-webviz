@@ -52,7 +52,7 @@ install:
       brew tap ilpincy/argos3             ;
       brew install bash-completion        ;
       brew unlink python@2                ;
-      travis_wait 30 brew install argos3  ;
+      travis_wait 60 brew install argos3  ;
        openssl zlib libuv cppcheck lcov   ;
     fi
 
