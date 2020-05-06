@@ -58,7 +58,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
       sed -e '32s/.*/    system "cmake", "--build", ".", "--target", "all", "--parallel" /' -i '' /usr/local/Homebrew/Library/Taps/ilpincy/homebrew-argos3/argos3.rb;
       sed -e '33s/.*/    system "cmake", "--build", ".", "--target", "doc", "--parallel" /' -i '' /usr/local/Homebrew/Library/Taps/ilpincy/homebrew-argos3/argos3.rb;
-      brew install argos3             ;
+      travis_wait 30 brew install argos3             ;
     fi
 
   ################### Download from Google drive for linux ###################
