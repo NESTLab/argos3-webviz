@@ -42,6 +42,7 @@ jobs:
       name: Mac OSX
       osx_image: xcode10.1 # for CLANG 3.1
       env:
+        - HOMEBREW_NO_AUTO_UPDATE=1
         - PKG_BUILD="ZIP"
         - PKG_EXT="pkg"
 before_install:
@@ -50,6 +51,7 @@ install:
   ######################## Install using brew on OSX #########################
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
       brew tap ilpincy/argos3                         ;
+      travis_wait 60 brew update                      ;
       travis_wait 60 brew install argos3              ;
       brew install openssl zlib libuv cppcheck lcov   ;
     fi
