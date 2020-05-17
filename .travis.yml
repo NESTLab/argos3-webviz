@@ -1,5 +1,4 @@
 language: cpp
-sudo: require
 jobs:
   include:
     #
@@ -20,9 +19,9 @@ jobs:
       env:
         # Install g++-7 as the minimum requirement for dependency
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 ; \
-            sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
+            update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
                          --slave /usr/bin/g++ g++ /usr/bin/g++-7 ;  \
-            sudo update-alternatives --config gcc;"
+            update-alternatives --config gcc;"
         - PKG_BUILD="DEB"
         - PKG_EXT="deb"
     #
