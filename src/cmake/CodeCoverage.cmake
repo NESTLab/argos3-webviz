@@ -121,19 +121,6 @@ find_program( GENHTML_PATH NAMES genhtml genhtml.perl genhtml.bat )
 find_program( GCOVR_PATH gcovr PATHS ${CMAKE_SOURCE_DIR}/scripts/test)
 find_program( CPPFILT_PATH NAMES c++filt )
 
-
-# Match GCOV Version with Compiler version
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU OR
-    ${CMAKE_CXX_COMPILER_ID} STREQUAL AppleClang OR
-    ${CMAKE_CXX_COMPILER_ID} STREQUAL Clang)
-    # using GCC
-    string(REPLACE "." ";" VERSION_LIST ${CMAKE_CXX_COMPILER_VERSION})
-    list(GET VERSION_LIST 0 GCOV_VERSION)
-endif()
-
-# Update GCOV to be specific version
-set(GCOV_PATH ${GCOV_PATH}-${GCOV_VERSION})
-
 if(NOT GCOV_PATH)
     message(FATAL_ERROR "gcov not found! Aborting...")
 endif() # NOT GCOV_PATH

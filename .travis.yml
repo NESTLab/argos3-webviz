@@ -10,14 +10,12 @@ jobs:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-7
             - zlib1g-dev
             - libssl-dev
             - zip
             - lcov
             - cppcheck
       env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
         - PKG_BUILD="DEB"
         - PKG_EXT="deb"
     #

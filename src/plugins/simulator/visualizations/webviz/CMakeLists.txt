@@ -173,44 +173,10 @@ install(TARGETS ${TARGET_NAME}
 )
 
 
-# # Check for Code coverage
-# option(CODE_COVERAGE "Enable coverage reporting" OFF)
-
-# # Enable code coverage in Debug mode
-# if (IS_DEBUG_MODE)
-#   set(CODE_COVERAGE ON)
-# endif()
-
-# if(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-#   message(STATUS "Enabling CODE_COVERAGE")
-
-#   # Set other basic tags for coverage
-#   append_coverage_compiler_flags()
-
-
-#   # Add required flags (GCC & LLVM/Clang) (which might not be covered by top command)
-#   target_compile_options(${TARGET_NAME} INTERFACE
-#     -O0        # no optimization
-#     -g         # generate debug info
-#     --coverage # sets all required flags
-#   )
-#   if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
-#     target_link_options(${TARGET_NAME} INTERFACE --coverage)
-#   else()
-#     target_link_libraries(${TARGET_NAME} INTERFACE --coverage)
-#   endif()
-# endif(CODE_COVERAGE)
-
-
 if (IS_DEBUG_MODE)
   # Stop compiling on first error
   target_compile_options(${TARGET_NAME} PRIVATE -Wfatal-errors)
 
-
-
-  ## find cppcheck, to detect common syntax error in src
-  ## notice: cppcheck is integrated into test
-  ## usage: execute "make test" after "cmake ..", detail results in "./Testing/Temporary/LastTest.log"
   find_package(cppcheck QUIET)
   if(CPPCHECK_FOUND)
       message(STATUS "Cppcheck Found")
