@@ -68,7 +68,7 @@ or
 ### Requirements
 - A `UNIX` system (Linux or Mac OSX; Microsoft Windows is not supported)
 - `ARGoS 3`
-- `g++` >= 5.7 (on Linux)
+- `g++` >= 7 (on Linux)
 - `clang` >= 3.1 (on MacOSX)
 - `cmake` >= 3.5.1
 - `zlib` >= 1.x
