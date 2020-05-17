@@ -55,9 +55,8 @@ jobs:
         - PKG_BUILD="ZIP"
         - PKG_EXT="pkg"
 before_install:
-  - CC=gcc-7 && CXX=g++-7;
   # Force replace GCC to v7
-  - if [[ $(lsb_release -rs) == "16.04" ]]; then 
+  - if [ $(lsb_release -rs) == "16.04" ]; then 
       CC=gcc-7 && CXX=g++-7                         ;
       sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc  ;
       sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++  ;
@@ -72,8 +71,6 @@ install:
 
 ######################### Build package for testing #########################
 before_script:
-  - ${CXX} --version
-  - ${CXX} -v
   - mkdir -p build
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=Debug ../src
