@@ -16,7 +16,6 @@ addons:
     update: true
     taps: ilpincy/argos3
     packages:
-      - argos3
       - openssl
       - zlib
       - libuv
@@ -56,6 +55,11 @@ before_install:
       sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 99 ;
       sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 99 ;
       gcc -v && g++ -v && cmake --version                                   ;
+    fi
+
+  # Install argos, with 60 mins timeout(It take around 20 mins to install)
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
+      travis_wait 60 brew install argos3                                    ;
     fi
 
 install:
