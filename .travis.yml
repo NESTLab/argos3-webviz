@@ -51,7 +51,6 @@ install:
   ######################## Install using brew on OSX #########################
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
       brew tap ilpincy/argos3                         ;
-      travis_wait 60 brew update                      ;
       travis_wait 60 brew install argos3              ;
       brew install openssl zlib libuv cppcheck lcov   ;
     fi
