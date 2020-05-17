@@ -16,8 +16,9 @@ jobs:
             - zip
             - lcov
             - cppcheck
+            - coreutils
       env:
-        # Install g++-7 as the minimum requirement for dependency
+        # Install g++-7 and force replace existing g++-5
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 ; \
             ln -s /usr/bin/gcc-7 /usr/local/bin/gcc ; \
             ln -s /usr/bin/g++-7 /usr/local/bin/g++;"
