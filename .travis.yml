@@ -22,18 +22,6 @@ addons:
       - libuv
       - cppcheck
       - lcov
-      /usr/bin/cppcheck --template gcc \
-        -I /home/travis/build/NESTLab/argos3-webviz/src \
-        --inline-suppr \
-        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/webviz.cpp" \
-        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/webviz_webserver.cpp" \
-        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/webviz_user_functions.cpp" \
-        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/entity/webviz_box.cpp" \
-        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/entity/webviz_light.cpp" \
-        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/entity/webviz_floor.cpp" \
-        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/entity/webviz_cylinder.cpp" \
-        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/entity/webviz_footbot.cpp" \
-        --verbose --enable=all --xml
 
 jobs:
   include:
