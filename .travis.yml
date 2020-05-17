@@ -42,6 +42,7 @@ jobs:
       osx_image: xcode10.1 # for CLANG 3.1
       addons:
         homebrew:
+          update: true
           taps: ilpincy/argos3
           packages:
             - argos3
@@ -57,9 +58,9 @@ jobs:
 before_install:
   # Force replace GCC to v7
   - if [ $(lsb_release -rs) == "16.04" ]; then 
-      CC=gcc-7 && CXX=g++-7                         ;
-      sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc  ;
-      sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++  ;
+      sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
+                         --slave /usr/bin/g++ g++ /usr/bin/g++-7 ;
+      sudo update-alternatives --config gcc         ;
     fi
 install:
   ################### Download from Google drive for linux ###################
