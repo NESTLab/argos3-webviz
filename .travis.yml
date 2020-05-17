@@ -19,8 +19,8 @@ jobs:
       env:
         # Install g++-7 as the minimum requirement for dependency
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 ; \
-            sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc ; \
-            sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++;"
+            ln -s /usr/bin/gcc-7 /usr/local/bin/gcc ; \
+            ln -s /usr/bin/g++-7 /usr/local/bin/g++;"
         - PKG_BUILD="DEB"
         - PKG_EXT="deb"
     #
