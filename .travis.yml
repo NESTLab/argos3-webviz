@@ -16,12 +16,7 @@ jobs:
             - zip
             - lcov
             - cppcheck
-            - coreutils
       env:
-        # Install g++-7 and force replace existing g++-5
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 ; \
-            ln -s /usr/bin/gcc-7 /usr/local/bin/gcc ; \
-            ln -s /usr/bin/g++-7 /usr/local/bin/g++;"
         - PKG_BUILD="DEB"
         - PKG_EXT="deb"
     #
@@ -45,24 +40,32 @@ jobs:
     - os: osx
       name: Mac OSX
       osx_image: xcode10.1 # for CLANG 3.1
+      addons:
+        homebrew:
+          taps: ilpincy/argos3
+          packages:
+            - argos3
+            - openssl
+            - zlib
+            - libuv
+            - cppcheck
+            - lcov
       env:
         - HOMEBREW_NO_AUTO_UPDATE=1
         - PKG_BUILD="ZIP"
         - PKG_EXT="pkg"
 before_install:
-  - eval "${MATRIX_EVAL}"
-install:
-  ######################## Install using brew on OSX #########################
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
-      brew tap ilpincy/argos3                         ;
-      travis_wait 60 brew install argos3              ;
-      brew install openssl zlib libuv cppcheck lcov   ;
+  - CC=gcc-7 && CXX=g++-7;
+  # Force replace GCC to v7
+  - if [[ $(lsb_release -rs) == "16.04" ]]; then 
+      CC=gcc-7 && CXX=g++-7                         ;
+      sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc  ;
+      sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++  ;
     fi
-
+install:
   ################### Download from Google drive for linux ###################
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
       wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1OVKPMZFa0GzSU1RwioaEReUCUl-vngkR' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1OVKPMZFa0GzSU1RwioaEReUCUl-vngkR" -O argos3_simulator-3.0.0-x86_64-beta56.deb && rm -rf /tmp/cookies.txt ;
-       ;
       sudo dpkg -i argos3_simulator-3.0.0-x86_64-beta56.deb ;
       sudo apt install -f ;
     fi
