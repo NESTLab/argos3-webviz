@@ -52,16 +52,17 @@ jobs:
             - cppcheck
             - lcov
       env:
-        - HOMEBREW_NO_AUTO_UPDATE=1
         - PKG_BUILD="ZIP"
         - PKG_EXT="pkg"
+
 before_install:
-  # Force replace GCC to v7
+  # Force replace GCC to v7 in Ubuntu Xenial 16.04
   - if [ $(lsb_release -rs) == "16.04" ]; then 
-      sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
-                         --slave /usr/bin/g++ g++ /usr/bin/g++-7 ;
-      sudo update-alternatives --config gcc         ;
+      ln -s /usr/bin/gcc-7 /usr/local/bin/gcc ;
+      ln -s /usr/bin/g++-7 /usr/local/bin/g++ ;
+      gcc -v && g++ -v && cmake --version     ;
     fi
+
 install:
   ################### Download from Google drive for linux ###################
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
