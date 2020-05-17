@@ -1,21 +1,46 @@
 language: cpp
+addons:
+  # Ubuntu dependencies
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - zlib1g-dev
+      - libssl-dev
+      - zip
+      - lcov
+      - cppcheck
+
+  #OSX dependencies
+  homebrew:
+    update: true
+    taps: ilpincy/argos3
+    packages:
+      - argos3
+      - openssl
+      - zlib
+      - libuv
+      - cppcheck
+      - lcov
+      /usr/bin/cppcheck --template gcc \
+        -I /home/travis/build/NESTLab/argos3-webviz/src \
+        --inline-suppr \
+        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/webviz.cpp" \
+        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/webviz_webserver.cpp" \
+        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/webviz_user_functions.cpp" \
+        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/entity/webviz_box.cpp" \
+        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/entity/webviz_light.cpp" \
+        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/entity/webviz_floor.cpp" \
+        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/entity/webviz_cylinder.cpp" \
+        "/home/travis/build/NESTLab/argos3-webviz/src/plugins/simulator/visualizations/webviz/entity/webviz_footbot.cpp" \
+        --verbose --enable=all --xml
+
 jobs:
   include:
     #
     - os: linux
       name: Ubuntu 16.04
       dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-            - zlib1g-dev
-            - libssl-dev
-            - zip
-            - lcov
-            - cppcheck
       env:
         - PKG_BUILD="DEB"
         - PKG_EXT="deb"
@@ -23,16 +48,6 @@ jobs:
     - os: linux
       name: Ubuntu 18.04
       dist: bionic
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - zlib1g-dev
-            - libssl-dev
-            - zip
-            - lcov
-            - cppcheck
       env:
         - PKG_BUILD="DEB"
         - PKG_EXT="deb"
@@ -40,17 +55,6 @@ jobs:
     - os: osx
       name: Mac OSX
       osx_image: xcode10.1 # for CLANG 3.1
-      addons:
-        homebrew:
-          update: true
-          taps: ilpincy/argos3
-          packages:
-            - argos3
-            - openssl
-            - zlib
-            - libuv
-            - cppcheck
-            - lcov
       env:
         - PKG_BUILD="ZIP"
         - PKG_EXT="pkg"
