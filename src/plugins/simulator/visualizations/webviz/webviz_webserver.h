@@ -26,7 +26,6 @@ namespace argos {
 #include <mutex>
 #include <nlohmann/json.hpp>
 #include <queue>
-#include <string_view>
 
 #include "App.h"  // uWebSockets
 #include "config.h"

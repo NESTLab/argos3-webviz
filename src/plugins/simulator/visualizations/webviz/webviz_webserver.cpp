@@ -184,7 +184,7 @@ namespace argos {
              .message =
                [&](
                  uWS::WebSocket<SSL, true> *pc_ws,
-                 std::string_view strv_message,
+                 auto strv_message,
                  uWS::OpCode e_opCode) {
                  try {
                    /* Try to parse the message as JSON */
@@ -208,7 +208,7 @@ namespace argos {
                [&](
                  uWS::WebSocket<SSL, true> *pc_ws,
                  int n_code,
-                 std::string_view strv_message) {
+                 auto strv_message) {
                  /* client automatically unsubscribe from any topic here */
 
                  /* Guard the mutex which locks vecWebSocketClients */
