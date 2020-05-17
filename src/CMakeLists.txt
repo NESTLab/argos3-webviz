@@ -82,7 +82,7 @@ if (uppercase_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
 endif()
 
 if (IS_DEBUG_MODE)
-  message("Debug mode: Building all tests")
+  message(STATUS "Debug mode: Building all tests")
   set(PACKAGE_TESTS ON)
 
    # Enable CPPcheck (static cpp code check)

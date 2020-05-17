@@ -33,6 +33,7 @@ setup_target_for_coverage_lcov(
             "../src/testing/*"
             "../src/tests/*"
             "/usr/*"
+            "/Applications"
   
     # NO_DEMANGLE                                 # Don't demangle C++ symbols
                                                 #  even if c++filt is found
