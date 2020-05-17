@@ -58,9 +58,9 @@ jobs:
 before_install:
   # Force replace GCC to v7 in Ubuntu Xenial 16.04
   - if [ $(lsb_release -rs) == "16.04" ]; then 
-      ln -s /usr/bin/gcc-7 /usr/local/bin/gcc ;
-      ln -s /usr/bin/g++-7 /usr/local/bin/g++ ;
-      gcc -v && g++ -v && cmake --version     ;
+      sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc ;
+      sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++ ;
+      gcc -v && g++ -v && cmake --version          ;
     fi
 
 install:
