@@ -123,6 +123,8 @@ find_program( CPPFILT_PATH NAMES c++filt )
 
 if(NOT GCOV_PATH)
     message(FATAL_ERROR "gcov not found! Aborting...")
+elseif(NOT GCOV_PATH)
+    message(STATUS "gcov found: "${GCOV_PATH})
 endif() # NOT GCOV_PATH
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "(Apple)?[Cc]lang")
