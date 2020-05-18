@@ -172,5 +172,25 @@ install(TARGETS ${TARGET_NAME}
   PUBLIC_HEADER DESTINATION include/argos3/${PLUGIN_FOLDER}
 )
 
-# Stop compiling on first error
-target_compile_options(${TARGET_NAME} PRIVATE -Wfatal-errors)
+
+if (IS_DEBUG_MODE)
+  # Stop compiling on first error
+  target_compile_options(${TARGET_NAME} PRIVATE -Wfatal-errors)
+
+  find_package(cppcheck QUIET)
+  if(CPPCHECK_FOUND)
+      message(STATUS "Cppcheck Found")
+
+      # add_cppcheck_sources(${TARGET_NAME} 
+      #   ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_WEBVIZ}
+      #   # UNUSED_FUNCTIONS
+      #   # POSSIBLE_ERROR
+      #   # FORCE
+      #   INLINE_SUPRESS
+      #   # FAIL_ON_WARNINGS
+      # )
+  else()
+      message(STATUS "Cppcheck Not Found")
+  endif()
+
+endif ()

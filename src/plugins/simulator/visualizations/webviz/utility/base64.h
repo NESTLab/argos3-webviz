@@ -17,6 +17,7 @@ const char kBase64Alphabet[] =
 class Base64 {
  public:
   static bool Encode(const std::string &in, std::string *out) {
+    // cppcheck-suppress *
     int i = 0, j = 0;
     size_t enc_len = 0;
     unsigned char a3[3];
@@ -61,6 +62,7 @@ class Base64 {
 
   static bool Encode(
     const char *input, size_t input_length, char *out, size_t out_length) {
+    // cppcheck-suppress *
     int i = 0, j = 0;
     char *out_begin = out;
     unsigned char a3[3];
@@ -103,6 +105,7 @@ class Base64 {
   }
 
   static bool Decode(const std::string &in, std::string *out) {
+    // cppcheck-suppress *
     int i = 0, j = 0;
     size_t dec_len = 0;
     unsigned char a3[3];
@@ -155,6 +158,7 @@ class Base64 {
 
   static bool Decode(
     const char *input, size_t input_length, char *out, size_t out_length) {
+    // cppcheck-suppress *
     int i = 0, j = 0;
     char *out_begin = out;
     unsigned char a3[3];

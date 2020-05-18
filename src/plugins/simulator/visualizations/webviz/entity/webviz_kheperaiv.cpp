@@ -26,6 +26,7 @@ namespace argos {
     /****************************************/
     /****************************************/
 
+    // cppcheck-suppress noConstructor
     class CWebvizOperationGenerateFootbotJSON
         : public CWebvizOperationGenerateJSON {
      private:

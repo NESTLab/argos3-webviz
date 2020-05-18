@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.5)
 #
 set(MAJOR_VERSION 0)
 set(MINOR_VERSION 4)
-set(PATCH_VERSION 74)
+set(PATCH_VERSION 75)
 
 set(VERSION_STRING ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION})
 
@@ -71,21 +71,41 @@ include(FindARGoSPlugin)
 
 
 #
-# Compile stuff
-#
-add_subdirectory(plugins)
-
-#
 # Testing
 #
-option(PACKAGE_TESTS "Build the tests" ON)
+option(PACKAGE_TESTS "Build the tests" OFF)
+
+string(TOUPPER "${CMAKE_BUILD_TYPE}" uppercase_CMAKE_BUILD_TYPE)
+
+if (uppercase_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
+  set(IS_DEBUG_MODE True)
+endif()
+
+if (IS_DEBUG_MODE)
+  message(STATUS "Debug mode: Building all tests")
+  set(PACKAGE_TESTS ON)
+
+   # Enable CPPcheck (static cpp code check)
+   include(CppcheckTargets)
+endif()
 
 
 if(PACKAGE_TESTS)
   enable_testing()
+  # Add Google test suite
   include(GoogleTest)
+  
+  # Add Code coverage from CMake
+  include(CodeCoverage)
+  append_coverage_compiler_flags()
+  
   add_subdirectory(tests)
 endif()
+
+#
+# Compile stuff
+#
+add_subdirectory(plugins)
 
 add_subdirectory(testing)
 

@@ -1,6 +1,6 @@
-# Advanced usage
+# Usage
+- [Basic usage and configuration](basic_usage.md)
 - [Sending data from server to client](sending_data_from_server.md)
-
 
 ## Supporting a new Entity
 
@@ -13,3 +13,7 @@ If you have an entity type which is not already implemented to Generate JSON wit
 
 - [Writing a custom client](writing_custom_client.md)
 - [Controlling experiment](controlling_experiment.md)
+
+
+# Developing Webviz
+- [Developing webviz](developing_webviz.md)

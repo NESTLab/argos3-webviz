@@ -36,7 +36,9 @@ namespace argos {
 
 namespace argos {
   namespace Webviz {
-    class CWebServer {
+
+    /* Disable subclassing using final */
+    class CWebServer final {
      public:
       CWebServer(
         CWebviz*,
@@ -48,7 +50,7 @@ namespace argos {
         std::string&,
         std::string&);
 
-      ~CWebServer();
+      virtual ~CWebServer();
 
       /**
        * @brief Start the Webserver threads (one for server, one for
@@ -72,7 +74,7 @@ namespace argos {
        * @param log_type either LOG or LOGERR
        * @param message log message
        */
-      void EmitLog(std::string log_type, std::string message);
+      void EmitLog(const std::string& log_type, const std::string& message);
 
       /** Broadcasts JSON to all the connected clients */
       void Broadcast(nlohmann::json);

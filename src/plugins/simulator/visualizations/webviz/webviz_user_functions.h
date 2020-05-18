@@ -60,7 +60,7 @@ namespace argos {
 
     /**
      * Calls a user method for the given entity.
-     * @param The method to pass as parameter.
+     * @param c_entity The method to pass as parameter.
      */
     virtual const nlohmann::json Call(CEntity& c_entity);
 
@@ -135,12 +135,16 @@ namespace argos {
      * only the first time this function is called.
      */
     static USER_IMPL& cImpl = static_cast<USER_IMPL&>(*this);
+
+    // cppcheck-suppress constVariable
     /* Cast the argument to the right type */
     ENTITY& cEntity = static_cast<ENTITY&>(c_entity);
+
     /* Cast the function holder to its effective type */
     CFunctionHolderImpl<USER_IMPL, ENTITY>& cFunctionHolder =
       static_cast<CFunctionHolderImpl<USER_IMPL, ENTITY>&>(
         *m_vecFunctionHolders[GetTag<ENTITY, CEntity>()]);
+
     /* Call the user-defined method */
     return (cImpl.*(cFunctionHolder.Function))(cEntity);
   }
