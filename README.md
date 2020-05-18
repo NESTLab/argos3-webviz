@@ -15,11 +15,16 @@
     <a href="https://github.com/NESTLab/argos3-webviz/commits/master" target="_blank">
         <img src="https://img.shields.io/github/commit-activity/m/NESTLab/argos3-webviz.svg" alt="GitHub commit activity">
     </a>
+    <img src="https://img.shields.io/github/last-commit/NESTLab/argos3-webviz" alt="GitHub last commit" />
+    <img src="https://visitor-badge.glitch.me/badge?page_id=NESTlab.argos3-webviz" alt="Visitors" />
+    <br>
     <a href="https://bestpractices.coreinfrastructure.org/projects/3966">
         <img src="https://bestpractices.coreinfrastructure.org/projects/3966/badge">
     </a>
-    <img src="https://img.shields.io/github/last-commit/NESTLab/argos3-webviz" alt="GitHub last commit" />
-    <img src="https://visitor-badge.glitch.me/badge?page_id=NESTlab.argos3-webviz" alt="Visitors" />
+    <a href="https://www.codacy.com/manual/prajankya/argos3-webviz?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=prajankya/argos3-webviz&amp;utm_campaign=Badge_Grade">
+        <img src="https://app.codacy.com/project/badge/Grade/2c0203a674ba48c4877fc4465edc6fd4"/>
+    </a>
+    
 </p>
 <br/>
 
