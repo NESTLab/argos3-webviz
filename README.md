@@ -34,6 +34,7 @@ A Web interface plugin for [ARGoS 3](https://www.argos-sim.info/).
 
 | All builds | Ubuntu 16.04  | Ubuntu 18.04  | Mac OSX |
 |:-:|:-:|:-:|:-:|
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b6c05f6e9c83403082bd21155f124abf)](https://app.codacy.com/gh/NESTLab/argos3-webviz?utm_source=github.com&utm_medium=referral&utm_content=NESTLab/argos3-webviz&utm_campaign=Badge_Grade_Dashboard)
 | [![Travis build](https://img.shields.io/travis/com/NESTLab/argos3-webviz)](https://travis-ci.com/NESTLab/argos3-webviz) | [![Ubuntu 16.04 build](https://travis-matrix-badges.herokuapp.com/repos/NESTLab/argos3-webviz/branches/master/1?use_travis_com=true)](https://travis-ci.com/NESTLab/argos3-webviz) | [![Ubuntu 18.04 build](https://travis-matrix-badges.herokuapp.com/repos/NESTLab/argos3-webviz/branches/master/2?use_travis_com=true)](https://travis-ci.com/NESTLab/argos3-webviz) | [![MacOSX build](https://travis-matrix-badges.herokuapp.com/repos/NESTLab/argos3-webviz/branches/master/3?use_travis_com=true)](https://travis-ci.com/NESTLab/argos3-webviz) |
 
 ## Features
