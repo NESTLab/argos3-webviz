@@ -11,17 +11,6 @@ addons:
       - lcov
       - cppcheck
 
-  #OSX dependencies
-  homebrew:
-    update: true
-    taps: ilpincy/argos3
-    packages:
-      - openssl
-      - zlib
-      - libuv
-      - cppcheck
-      - lcov
-
 jobs:
   include:
     #
@@ -43,6 +32,7 @@ jobs:
       name: Mac OSX
       osx_image: xcode10.1 # for CLANG 3.1
       env:
+        - HOMEBREW_NO_AUTO_UPDATE=1
         - PKG_BUILD="ZIP"
         - PKG_EXT="pkg"
 
@@ -57,9 +47,11 @@ before_install:
       gcc -v && g++ -v && cmake --version                                   ;
     fi
 
-  # Install argos, with 60 mins timeout(It take around 20 mins to install)
+  # Install Deps, install Argos with 60 mins timeout
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
+      brew tap ilpincy/argos3                                               ;
       travis_wait 60 brew install argos3                                    ;
+      brew install openssl zlib libuv cppcheck lcov                         ;
     fi
 
 install:
