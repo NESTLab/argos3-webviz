@@ -80,7 +80,6 @@ before_script:
   - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
   
 ########################## Build package for deploy ##########################
-script:
   - cd ..
   - rm -rf build
   - mkdir -p build
@@ -89,7 +88,7 @@ script:
   - cmake --build . --target all --parallel
 
 ############################### Bundle packages ##############################
-after_script:
+script:
   # Get filename variable from CMake
   - EXPORT_PACKAGE_NAME=$(cat package_name.txt)
 

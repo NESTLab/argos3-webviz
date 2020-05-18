@@ -15,8 +15,11 @@
     <a href="https://github.com/NESTLab/argos3-webviz/commits/master" target="_blank">
         <img src="https://img.shields.io/github/commit-activity/m/NESTLab/argos3-webviz.svg" alt="GitHub commit activity">
     </a>
-        <img src="https://img.shields.io/github/last-commit/NESTLab/argos3-webviz" alt="GitHub last commit">
-
+    <a href="https://bestpractices.coreinfrastructure.org/projects/3966">
+        <img src="https://bestpractices.coreinfrastructure.org/projects/3966/badge">
+    </a>
+    <img src="https://img.shields.io/github/last-commit/NESTLab/argos3-webviz" alt="GitHub last commit" />
+    <img src="https://visitor-badge.glitch.me/badge?page_id=NESTlab.argos3-webviz" alt="Visitors" />
 </p>
 <br/>
 
