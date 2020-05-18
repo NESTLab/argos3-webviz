@@ -21,10 +21,9 @@
     <a href="https://bestpractices.coreinfrastructure.org/projects/3966">
         <img src="https://bestpractices.coreinfrastructure.org/projects/3966/badge">
     </a>
-    <a href="https://www.codacy.com/manual/prajankya/argos3-webviz?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=prajankya/argos3-webviz&amp;utm_campaign=Badge_Grade">
-        <img src="https://app.codacy.com/project/badge/Grade/2c0203a674ba48c4877fc4465edc6fd4"/>
+    <a href="https://www.codacy.com/gh/NESTLab/argos3-webviz?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=NESTLab/argos3-webviz&amp;utm_campaign=Badge_Grade">
+        <img src="https://app.codacy.com/project/badge/Grade/0a95aa1f585e403e899710bf626b1f82"/>
     </a>
-    
 </p>
 <br/>
 
