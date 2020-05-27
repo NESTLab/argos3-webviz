@@ -1,9 +1,5 @@
 #include "plugins/simulator/visualizations/webviz/utility/base64.h"
 
-#include <fstream>
-// #include <iomanip>
-#include <iostream>
-
 #include "gtest/gtest.h"
 
 TEST(UtilityBase64, StringEncode) {

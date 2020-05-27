@@ -12,9 +12,7 @@
 #ifndef ARGOS_WEBVIZ_LOG_STREAM_H
 #define ARGOS_WEBVIZ_LOG_STREAM_H
 
-#include <argos3/core/simulator/simulator.h>
-#include <argos3/core/simulator/space/space.h>
-#include <argos3/core/utility/string_utilities.h>
+#include <argos3/core/utility/string_utilities.h> /* Replace */
 
 #include <functional>
 
@@ -28,8 +26,8 @@ namespace argos {
           : m_cStream(c_stream), m_fCallback(f_callback_function) {
         /* Copy the original stream buffer */
         m_pcOldStream = m_cStream.rdbuf();
-        /* Replace the streambuffer */
 
+        /* Replace the streambuffer */
         m_cStream.rdbuf(this);
       }
 
