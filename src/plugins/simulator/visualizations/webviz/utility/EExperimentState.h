@@ -36,6 +36,8 @@ namespace argos {
           return "EXPERIMENT_FAST_FORWARDING";
         case EExperimentState::EXPERIMENT_DONE:
           return "EXPERIMENT_DONE";
+        default:
+          return "unknown";
       }
     };
   }  // namespace Webviz
