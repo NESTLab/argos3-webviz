@@ -9,7 +9,7 @@ TEST(UtilityLogStream, BasicStreamTest) {
 
   auto log = new argos::Webviz::CLogStream(ss, [](std::string str_logData) {
     /*  */
-    ASSERT_EQ("LOG:1", str_logData);
+    EXPECT_EQ("LOG:1", str_logData);
   });
 
   ss << "LOG";
@@ -27,7 +27,7 @@ TEST(UtilityLogStream, EscapingCharacters) {
 
   new argos::Webviz::CLogStream(ss, [](std::string str_logData) {
     /*  */
-    ASSERT_EQ("&lt;Test&gt;", str_logData);
+    EXPECT_EQ("&lt;Test&gt;", str_logData);
   });
 
   ss << "<Test>\n"; /* program looks for newline to process escaping */
@@ -42,7 +42,7 @@ TEST(UtilityLogStream, OverflowFunction) {
 
   auto log = new argos::Webviz::CLogStream(ss, [](std::string str_logData) {
     /*  */
-    ASSERT_EQ("a", str_logData);
+    EXPECT_EQ("a", str_logData);
   });
 
   /* add temp character */

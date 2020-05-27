@@ -10,7 +10,7 @@
 const unsigned int PORT = 3000;
 
 TEST(UtilityPortcheck, CheckEmptyPort) {
-  ASSERT_TRUE(PortChecker::CheckPortTCPisAvailable(PORT));
+  EXPECT_TRUE(PortChecker::CheckPortTCPisAvailable(PORT));
 };
 
 /****************************************/

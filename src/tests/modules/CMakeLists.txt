@@ -30,3 +30,6 @@ package_add_test(utility.logstream utility/logstream.cpp)
 
 # Modules - Utility - EExperimentState.h
 package_add_test(utility.experimentstate utility/experimentstate.cpp)
+
+# Modules - Utility - CTimer.h
+package_add_test(utility.timer utility/timer.cpp)
