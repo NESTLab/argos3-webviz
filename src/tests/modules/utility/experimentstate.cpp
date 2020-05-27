@@ -35,16 +35,3 @@ TEST(UtilityExperimentState, CheckAllStatesToStr) {
     "EXPERIMENT_DONE",
     EExperimentStateToStr(EExperimentState::EXPERIMENT_DONE));
 };
-
-/****************************************/
-/****************************************/
-
-TEST(UtilityExperimentState, InvalidValue) {
-  auto temp = new EExperimentState();
-
-  delete temp;
-
-  /* Forcefully test for invalid State */
-
-  EXPECT_EQ("unknown", EExperimentStateToStr(*temp));
-};
