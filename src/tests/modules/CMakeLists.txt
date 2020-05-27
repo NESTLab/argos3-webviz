@@ -27,3 +27,6 @@ package_add_test(utility.base64 utility/base64.cpp)
 
 # Modules - Utility - LogStream.h
 package_add_test(utility.logstream utility/logstream.cpp)
+
+# Modules - Utility - EExperimentState.h
+package_add_test(utility.experimentstate utility/experimentstate.cpp)

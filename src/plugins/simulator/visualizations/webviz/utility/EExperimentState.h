@@ -39,26 +39,6 @@ namespace argos {
         default:
           return "unknown";
       }
-      return "";
-    };
-
-    inline std::ostream& operator<<(
-      std::ostream& os, const EExperimentState& obj) {
-      switch (obj) {
-        case EExperimentState::EXPERIMENT_INITIALIZED:
-          os << "EXPERIMENT_INITIALIZED";
-        case EExperimentState::EXPERIMENT_PLAYING:
-          os << "EXPERIMENT_PLAYING";
-        case EExperimentState::EXPERIMENT_PAUSED:
-          os << "EXPERIMENT_PAUSED";
-        case EExperimentState::EXPERIMENT_FAST_FORWARDING:
-          os << "EXPERIMENT_FAST_FORWARDING";
-        case EExperimentState::EXPERIMENT_DONE:
-          os << "EXPERIMENT_DONE";
-        default:
-          os << "unknown";
-      }
-      return os;
     };
   }  // namespace Webviz
 }  // namespace argos
