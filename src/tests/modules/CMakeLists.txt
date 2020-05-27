@@ -20,3 +20,6 @@ macro(package_add_test TESTNAME_)
 endmacro()
 
 package_add_test(utility.portcheck utility/portcheck.cpp)
+
+
+package_add_test(utility.base64 utility/base64.cpp)

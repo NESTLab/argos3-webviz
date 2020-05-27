@@ -9,14 +9,14 @@
 
 const unsigned int PORT = 3000;
 
-TEST(modules_utility_portcheck, Check_Empty_Port) {
-  EXPECT_EQ(true, PortChecker::CheckPortTCPisAvailable(PORT));
+TEST(UtilityPortcheck, CheckEmptyPort) {
+  ASSERT_TRUE(PortChecker::CheckPortTCPisAvailable(PORT));
 };
 
-/*********************************
- *********************************/
+/****************************************/
+/****************************************/
 
-TEST(modules_utility_portcheck, Check_Used_Port) {
+TEST(UtilityPortcheck, CheckUsedPort) {
   /* using a socket */
   int n_fdSocket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -29,16 +29,16 @@ TEST(modules_utility_portcheck, Check_Used_Port) {
   int n_bindSock =
     bind(n_fdSocket, (struct sockaddr *)&sServAddr, sizeof(sServAddr));
 
-  EXPECT_EQ(false, PortChecker::CheckPortTCPisAvailable(PORT));
+  EXPECT_FALSE(PortChecker::CheckPortTCPisAvailable(PORT));
 
   close(n_bindSock);
   close(n_fdSocket);
 };
 
-/*********************************
- *********************************/
+/****************************************/
+/****************************************/
 
-TEST(modules_utility_portcheck, Check_Reuse_of_Port) {
+TEST(UtilityPortcheck, CheckReuseOfPort) {
   /* using a socket */
   int n_fdSocket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -58,8 +58,8 @@ TEST(modules_utility_portcheck, Check_Reuse_of_Port) {
   int n_bindSock2 =
     bind(n_fdSocket, (struct sockaddr *)&sServAddr, sizeof(sServAddr));
 
-  EXPECT_EQ(true, PortChecker::CheckPortTCPisAvailable(PORT));
-  EXPECT_EQ(true, PortChecker::CheckPortTCPisAvailable(PORT));
+  EXPECT_TRUE(PortChecker::CheckPortTCPisAvailable(PORT));
+  EXPECT_TRUE(PortChecker::CheckPortTCPisAvailable(PORT));
 
   close(n_bindSock2);
   close(n_bindSock);
