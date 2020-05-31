@@ -42,10 +42,11 @@ namespace argos {
     virtual void Destroy() {}
 
     /**
-     * Send data hook to add extra content to JSON message sent to clients.
-     * Return a JSON object which will be attached to JSON body as "extra_data"
+     * Hook to add extra content to JSON message sent to clients.
+     * Expects a JSON object in return which will be attached to JSON body as
+     * "user_data"
      */
-    virtual const nlohmann::json sendExtraData() { return nullptr; }
+    virtual const nlohmann::json sendUserData() { return nullptr; }
 
     /**
      * Registers a user method.

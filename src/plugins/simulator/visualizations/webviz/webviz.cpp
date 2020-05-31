@@ -456,11 +456,10 @@ namespace argos {
 
       if (cEntityJSON != nullptr) {
         /************* get data from User functions for entity *************/
-        const nlohmann::json& extra_data =
-          m_pcUserFunctions->Call(**itEntities);
+        const nlohmann::json& user_data = m_pcUserFunctions->Call(**itEntities);
 
-        if (!extra_data.is_null()) {
-          cEntityJSON["extra_data"] = extra_data;
+        if (!user_data.is_null()) {
+          cEntityJSON["user_data"] = user_data;
         }
 
         cStateJson["entities"].push_back(cEntityJSON);
@@ -474,10 +473,10 @@ namespace argos {
 
     /************* get data from User functions for experiment *************/
 
-    const nlohmann::json& extra_data = m_pcUserFunctions->sendExtraData();
+    const nlohmann::json& user_data = m_pcUserFunctions->sendUserData();
 
-    if (!extra_data.is_null()) {
-      cStateJson["extra_data"] = extra_data;
+    if (!user_data.is_null()) {
+      cStateJson["user_data"] = user_data;
     }
 
     /************* Add other information about experiment *************/

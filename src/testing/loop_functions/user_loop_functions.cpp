@@ -26,7 +26,7 @@ const nlohmann::json CTestUserFunctions::sendRobotData(CFootBotEntity &robot) {
   return outJson;
 }
 
-const nlohmann::json CTestUserFunctions::sendExtraData() {
+const nlohmann::json CTestUserFunctions::sendUserData() {
   nlohmann::json outJson;
 
   outJson["status"] = "running";
