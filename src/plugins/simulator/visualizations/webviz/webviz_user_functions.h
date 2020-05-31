@@ -42,9 +42,20 @@ namespace argos {
     virtual void Destroy() {}
 
     /**
-     * Hook to add extra content to JSON message sent to clients.
+     * @brief Function called when any unknown command comes from client
+     *
+     * @param str_ip Client IP address
+     * @param c_json_command JSON object from client
+     */
+    virtual void HandleCommandFromClient(
+      const std::string& str_ip, nlohmann::json c_json_command) {}
+
+    /**
+     * @brief Hook to add extra content to JSON message sent to clients.
      * Expects a JSON object in return which will be attached to JSON body as
      * "user_data"
+     *
+     * @return const nlohmann::json
      */
     virtual const nlohmann::json sendUserData() { return nullptr; }
 

@@ -17,7 +17,7 @@ To send data from server, you need to add a user function in your argos experime
 
 Where you need to subclass `CWebvizUserFunctions` class from `argos3/plugins/simulator/visualizations/webviz/webviz_user_functions.h`
  
- In your subclass, you could override `sendUserData()` function to add data to experiment JSON as `user_data` parameter.
+ In this subclass, you could override `sendUserData()` function to add data to experiment JSON as `user_data` parameter.
 ```cpp
 nlohmann::json sendUserData();
 ```

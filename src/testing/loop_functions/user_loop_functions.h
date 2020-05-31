@@ -16,7 +16,10 @@ class CTestUserFunctions : public CWebvizUserFunctions {
 
   virtual const nlohmann::json sendUserData();
 
-  const nlohmann::json sendRobotData(CFootBotEntity &);
+  virtual void HandleCommandFromClient(
+    const std::string& str_ip, nlohmann::json c_json_command);
+
+  const nlohmann::json sendRobotData(CFootBotEntity&);
 };
 
 #endif

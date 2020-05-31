@@ -1,6 +1,7 @@
 # Usage
 - [Basic usage and configuration](basic_usage.md)
 - [Sending data from server to client](sending_data_from_server.md)
+- [Sending data from client to server](sending_data_from_client.md)
 
 ## Supporting a new Entity
 

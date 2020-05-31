@@ -236,6 +236,89 @@ namespace argos {
   /****************************************/
   /****************************************/
 
+  void CWebviz::HandleCommandFromClient(
+    const std::string& str_ip, nlohmann::json c_json_command) {
+    if (c_json_command.contains("command")) {
+      /* Try to get Command key from the JSON */
+      std::string strCmd = c_json_command["command"].get<std::string>();
+
+      /* Dispatch commands */
+      if (strCmd.compare("play") == 0) {
+        PlayExperiment();
+
+      } else if (strCmd.compare("pause") == 0) {
+        PauseExperiment();
+
+      } else if (strCmd.compare("step") == 0) {
+        StepExperiment();
+
+      } else if (strCmd.compare("reset") == 0) {
+        ResetExperiment();
+
+      } else if (strCmd.compare("terminate") == 0) {
+        TerminateExperiment();
+
+      } else if (strCmd.compare("fastforward") == 0) {
+        try {
+          /* number of Steps defined */
+          int16_t unSteps = c_json_command["steps"].get<int16_t>();
+
+          /* Validate steps */
+          if (1 <= unSteps && unSteps <= 1000) {
+            FastForwardExperiment(unSteps);
+          } else {
+            /* Fastforward without steps defined */
+            FastForwardExperiment();
+          }
+
+        } catch (const std::exception& _ignored) {
+          /* No steps defined */
+          FastForwardExperiment();
+        }
+
+      } else if (strCmd.compare("moveEntity") == 0) {
+        try {
+          CVector3 cNewPos;
+          CQuaternion cNewOrientation;
+
+          /* Parse Position */
+          cNewPos.SetX(c_json_command["position"]["x"].get<float_t>());
+          cNewPos.SetY(c_json_command["position"]["y"].get<float_t>());
+          cNewPos.SetZ(c_json_command["position"]["z"].get<float_t>());
+
+          /* Parse Orientation */
+          cNewOrientation.SetX(
+            c_json_command["orientation"]["x"].get<float_t>());
+          cNewOrientation.SetY(
+            c_json_command["orientation"]["y"].get<float_t>());
+          cNewOrientation.SetZ(
+            c_json_command["orientation"]["z"].get<float_t>());
+          cNewOrientation.SetW(
+            c_json_command["orientation"]["w"].get<float_t>());
+
+          MoveEntity(
+            c_json_command["entity_id"].get<std::string>(),
+            cNewPos,
+            cNewOrientation);
+
+        } catch (const std::exception& e) {
+          LOGERR << "[ERROR] In function MoveEntity: " << e.what() << '\n';
+        }
+
+      } else {
+        /* "command" key has unknown value */
+        m_pcUserFunctions->HandleCommandFromClient(str_ip, c_json_command);
+      }
+
+    } else {
+      /* "command" key in the JSON doesn't exists */
+      m_pcUserFunctions->HandleCommandFromClient(str_ip, c_json_command);
+    }
+  }
+
+  /****************************************/
+  /****************************************/
+
   void CWebviz::PlayExperiment() {
     /* Make sure we are in the right state */
     if (
@@ -280,7 +363,7 @@ namespace argos {
       }
     }
 
-    /* If Steps are passed, and valid */
+    /* If Steps are passed, and valid else to use existing steps */
     if (1 <= un_steps && un_steps <= 1000) {
       /* Update FF steps variable */
       m_unDrawFrameEvery = un_steps;
