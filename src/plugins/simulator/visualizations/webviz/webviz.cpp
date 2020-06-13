@@ -87,6 +87,9 @@ namespace argos {
         /* Create the user functions */
         m_pcUserFunctions = CFactory<CWebvizUserFunctions>::New(strLabel);
 
+        /* Initialize user functions */
+        m_pcUserFunctions->Init(tNode);
+
       } catch (CARGoSException& ex) {
         THROW_ARGOSEXCEPTION_NESTED(
           "Failed opening Webviz user function library", ex);
