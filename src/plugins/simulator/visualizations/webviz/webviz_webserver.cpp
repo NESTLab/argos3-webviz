@@ -198,9 +198,9 @@ namespace argos {
 
                      for (std::string::size_type i = 0; i < strAddr.size() - 1;
                           i++) {
-                       strStream << strAddr[i] << '.';
+                       strStream << std::to_string(strAddr[i]) << '.';
                      }
-                     strStream << strAddr[3];
+                     strStream << std::to_string(strAddr[strAddr.size() - 1]);
 
                      strIP = strStream.str();
                    }
