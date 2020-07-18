@@ -62,57 +62,57 @@ TEST(UtilityTimer, FunctionStop) {
   delete timer;
 };
 
-/****************************************/
-/****************************************/
+// /****************************************/
+// /****************************************/
 
-TEST(UtilityTimer, FunctionElapsed) {
-  auto timer = new argos::Webviz::CTimer();
+// TEST(UtilityTimer, FunctionElapsed) {
+//   auto timer = new argos::Webviz::CTimer();
 
-  // Expecting 0 milliseconds before timer starts
-  EXPECT_EQ(0, timer->Elapsed().count());
+//   // Expecting 0 milliseconds before timer starts
+//   EXPECT_EQ(0, timer->Elapsed().count());
 
-  timer->Start();
+//   timer->Start();
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+//   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  // Expecting 100 milliseconds after sleep of 100 ms
-  EXPECT_EQ(100, timer->Elapsed().count());
+//   // Expecting 100 milliseconds after sleep of 100 ms
+//   EXPECT_EQ(100, timer->Elapsed().count());
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+//   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  timer->Stop();
+//   timer->Stop();
 
-  // Expecting 200 milliseconds after combined sleep of 200 ms
-  EXPECT_EQ(200, timer->Elapsed().count());
+//   // Expecting 200 milliseconds after combined sleep of 200 ms
+//   EXPECT_EQ(200, timer->Elapsed().count());
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+//   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  // Still expecting 200 milliseconds even long after timer has stopped
-  EXPECT_EQ(200, timer->Elapsed().count());
+//   // Still expecting 200 milliseconds even long after timer has stopped
+//   EXPECT_EQ(200, timer->Elapsed().count());
 
-  delete timer;
-};
+//   delete timer;
+// };
 
-/****************************************/
-/****************************************/
+// /****************************************/
+// /****************************************/
 
-TEST(UtilityTimer, StreamOperator) {
-  std::stringstream ss;
-  auto timer = argos::Webviz::CTimer();
+// TEST(UtilityTimer, StreamOperator) {
+//   std::stringstream ss;
+//   auto timer = argos::Webviz::CTimer();
 
-  ss << timer;
+//   ss << timer;
 
-  EXPECT_EQ("0", ss.str());
+//   EXPECT_EQ("0", ss.str());
 
-  /* Empty the stringstream */
-  ss.str(std::string());
+//   /* Empty the stringstream */
+//   ss.str(std::string());
 
-  /* Run the timer for 100 millis */
-  timer.Start();
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  timer.Stop();
+//   /* Run the timer for 100 millis */
+//   timer.Start();
+//   std::this_thread::sleep_for(std::chrono::milliseconds(100));
+//   timer.Stop();
 
-  ss << timer;
+//   ss << timer;
 
-  EXPECT_EQ("100", ss.str());
-};
+//   EXPECT_EQ("100", ss.str());
+// };
