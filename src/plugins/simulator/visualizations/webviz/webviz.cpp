@@ -310,12 +310,26 @@ namespace argos {
 
       } else {
         /* "command" key has unknown value */
-        m_pcUserFunctions->HandleCommandFromClient(str_ip, c_json_command);
+        try {
+          m_pcUserFunctions->HandleCommandFromClient(str_ip, c_json_command);
+        } catch (const std::exception& e) {
+          LOGERR
+            << "[ERROR] Error in overridden function HandleCommandFromClient "
+               "in UserFunction subclass implementation by user\n\t"
+            << e.what() << '\n';
+        }
       }
 
     } else {
       /* "command" key in the JSON doesn't exists */
-      m_pcUserFunctions->HandleCommandFromClient(str_ip, c_json_command);
+      try {
+        m_pcUserFunctions->HandleCommandFromClient(str_ip, c_json_command);
+      } catch (const std::exception& e) {
+        LOGERR
+          << "[ERROR] Error in overridden function HandleCommandFromClient "
+             "in UserFunction subclass implementation by user\n\t"
+          << e.what() << '\n';
+      }
     }
   }
 
