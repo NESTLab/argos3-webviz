@@ -1,4 +1,13 @@
 coverage:
   status:
-    project: off
+    project:
+      default:
+        # basic
+        target: 0%
+        threshold: 0%
+        base: auto 
+        flags: 
+          - unit
+        paths: 
+          - "src"
     patch: off
