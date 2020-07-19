@@ -14,6 +14,7 @@
 #include <argos3/plugins/simulator/visualizations/webviz/utility/base64.h>
 #include <argos3/plugins/simulator/visualizations/webviz/webviz.h>
 
+#include <cstdio>
 #include <iomanip>
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -33,42 +34,52 @@ namespace argos {
         cJson["type"] = c_entity.GetTypeDescription();
         cJson["id"] = c_entity.GetId();
 
+        try {
 #ifdef ARGOS_WITH_FREEIMAGE
-        /* If floor is updated */
-        if (c_entity.HasChanged()) {
-          std::string strFilePath =
-            "/tmp/argos3_webviz_floor_" +
-            std::to_string(
-              std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch())
-                .count()) +
-            ".png";
 
-          /* TODO: below code is not at all optimized ...  */
-          c_entity.SaveAsImage(strFilePath);
+          /* If floor is updated */
+          if (c_entity.HasChanged()) {
+            std::string strFilePath =
+              "/tmp/argos3_webviz_floor_" +
+              std::to_string(
+                std::chrono::duration_cast<std::chrono::milliseconds>(
+                  std::chrono::system_clock::now().time_since_epoch())
+                  .count()) +
+              ".png";
 
-          /* Read the file */
+            /* TODO: below code is not at all optimized ...  */
+            c_entity.SaveAsImage(strFilePath);
 
-          std::ifstream infile(
-            strFilePath, std::ifstream::binary | std::ios::ate);
+            /* Read the file */
 
-          std::streamsize size = infile.tellg();
+            std::ifstream infile(
+              strFilePath, std::ifstream::binary | std::ios::ate);
 
-          infile.seekg(0, std::ios::beg);
+            std::streamsize size = infile.tellg();
 
-          // Allocate a string, make it large enough to hold the input
-          std::string buffer;
-          buffer.resize(size);
+            infile.seekg(0, std::ios::beg);
 
-          // read the text into the string
-          infile.read(&buffer[0], buffer.size());
-          infile.close();
+            /* Allocate a string, make it large enough to hold the input */
+            std::string buffer;
+            buffer.resize(size);
 
-          std::string strFloorImage;
-          Base64::Encode(buffer, &strFloorImage);
-          cJson["floor_image"] = "data:image/png;base64," + strFloorImage;
-        }
+            /* read the image into the string */
+            infile.read(&buffer[0], buffer.size());
+            infile.close();
+
+            /* delete the temp image file */
+            std::remove(strFilePath.c_str());
+
+            std::string strFloorImage;
+            Base64::Encode(buffer, &strFloorImage);
+            cJson["floor_image"] = "data:image/png;base64," + strFloorImage;
+          }
 #endif
+        } catch (const std::exception& e) {
+          std::cerr << "Error in Saving file, maybe ' Open file limit' "
+                       "exceeded or no space left."
+                    << '\n';
+        }
 
         return cJson;
       }

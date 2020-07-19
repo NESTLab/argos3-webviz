@@ -82,6 +82,16 @@ namespace argos {
     virtual void Destroy();
 
     /**
+     * @brief Function to handle commands sent from web client
+     *
+     * @param str_ip Client IP address
+     * @param c_json_command JSON object from client
+     */
+    void HandleCommandFromClient(
+      const std::string& str_ip, nlohmann::json c_json_command);
+
+   protected:
+    /**
      * @brief Plays the experiment.
      *
      * Internally sets a timer whose period corresponds to the

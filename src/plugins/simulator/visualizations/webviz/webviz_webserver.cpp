@@ -187,13 +187,32 @@ namespace argos {
                  std::string_view strv_message,
                  uWS::OpCode e_opCode) {
                  try {
-                   /* Try to parse the message as JSON */
-                   CommandFromClient(nlohmann::json::parse(strv_message));
+                   std::string strIP = "unknown";
+
+                   /* Get client IP address */
+                   std::string_view strAddr = pc_ws->getRemoteAddress();
+
+                   /* If we can get IP (IP is not empty) */
+                   if (pc_ws->getRemoteAddress().length() > 0) {
+                     std::stringstream strStream;
+
+                     for (std::string::size_type i = 0; i < strAddr.size() - 1;
+                          i++) {
+                       strStream << std::to_string(strAddr[i]) << '.';
+                     }
+                     strStream << std::to_string(strAddr[strAddr.size() - 1]);
+
+                     strIP = strStream.str();
+                   }
+
+                   /* Try to parse the message as JSON and handle the command */
+                   m_pcMyWebviz->HandleCommandFromClient(
+                     strIP, nlohmann::json::parse(strv_message));
 
                  } catch (nlohmann::json::exception &ignored) {
+                   /* Error is ignored as we can not guarantee client to send
+                   json, also, we cannot reply back with error to the client */
                    LOGERR << "[ERROR] " << ignored.what() << '\n';
-                   /* Ignored as we cant guarantee client to send json,
-                   also, we cannot reply back with error to the client */
                  }
                },
              .drain =
@@ -383,70 +402,6 @@ namespace argos {
         tBroadcasterThread->join();
       } catch (CARGoSException &ex) {
         THROW_ARGOSEXCEPTION_NESTED("[ERROR] Error in the webserver:", ex);
-      }
-    }
-
-    /****************************************/
-    /****************************************/
-    void CWebServer::CommandFromClient(nlohmann::json json_ClientCommand) {
-      auto strCmd = json_ClientCommand["command"].get<std::string>();
-
-      /* Dispatch commands */
-      if (strCmd.compare("play") == 0) {
-        m_pcMyWebviz->PlayExperiment();
-
-      } else if (strCmd.compare("pause") == 0) {
-        m_pcMyWebviz->PauseExperiment();
-
-      } else if (strCmd.compare("step") == 0) {
-        m_pcMyWebviz->StepExperiment();
-
-      } else if (strCmd.compare("reset") == 0) {
-        m_pcMyWebviz->ResetExperiment();
-
-      } else if (strCmd.compare("terminate") == 0) {
-        m_pcMyWebviz->TerminateExperiment();
-
-      } else if (strCmd.compare("fastforward") == 0) {
-        try {
-          /* number of Steps defined */
-          int16_t unSteps = json_ClientCommand["steps"].get<int16_t>();
-          /* Validate steps */
-          if (1 <= unSteps && unSteps <= 1000) {
-            m_pcMyWebviz->FastForwardExperiment(unSteps);
-          } else {
-            m_pcMyWebviz->FastForwardExperiment();
-          }
-        } catch (const std::exception &_ignored) {
-          /* No steps defined */
-          m_pcMyWebviz->FastForwardExperiment();
-        }
-
-      } else if (strCmd.compare("moveEntity") == 0) {
-        try {
-          CVector3 cNewPos;
-          CQuaternion cNewOrientation;
-
-          cNewPos.SetX(json_ClientCommand["position"]["x"].get<float_t>());
-          cNewPos.SetY(json_ClientCommand["position"]["y"].get<float_t>());
-          cNewPos.SetZ(json_ClientCommand["position"]["z"].get<float_t>());
-
-          cNewOrientation.SetX(
-            json_ClientCommand["orientation"]["x"].get<float_t>());
-          cNewOrientation.SetY(
-            json_ClientCommand["orientation"]["y"].get<float_t>());
-          cNewOrientation.SetZ(
-            json_ClientCommand["orientation"]["z"].get<float_t>());
-          cNewOrientation.SetW(
-            json_ClientCommand["orientation"]["w"].get<float_t>());
-
-          m_pcMyWebviz->MoveEntity(
-            json_ClientCommand["entity_id"].get<std::string>(),
-            cNewPos,
-            cNewOrientation);
-        } catch (const std::exception &e) {
-          LOGERR << "[ERROR] In function MoveEntity: " << e.what() << '\n';
-        }
       }
     }
 

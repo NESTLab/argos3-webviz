@@ -72,3 +72,6 @@ Command to terminate the experiment.
 { "command": "terminate" }
 ```
 
+
+All other valid JSON objects are forwarded to `UserFunctions` class, `HandleCommandFromClient` function, if defined.
+(More information at [Sending data from client](sending_data_from_client.md) )

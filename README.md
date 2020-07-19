@@ -48,6 +48,10 @@ A Web interface plugin for [ARGoS 3](https://www.argos-sim.info/).
 - Simple client protocol, can easily be implemented in any technology
 - Using UWebSockets, which is blazing fast([Benchmarks](https://github.com/uNetworking/uWebSockets/blob/master/misc/websocket_lineup.png)).
 - The event-loop is native epoll on Linux, native kqueue on macOS
+
+## See more examples at https://github.com/NESTLab/argos3-webviz-examples
+
+
 ## Installing
 
 ### Dependencies

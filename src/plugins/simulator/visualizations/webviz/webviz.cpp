@@ -87,6 +87,9 @@ namespace argos {
         /* Create the user functions */
         m_pcUserFunctions = CFactory<CWebvizUserFunctions>::New(strLabel);
 
+        /* Initialize user functions */
+        m_pcUserFunctions->Init(tNode);
+
       } catch (CARGoSException& ex) {
         THROW_ARGOSEXCEPTION_NESTED(
           "Failed opening Webviz user function library", ex);
@@ -236,6 +239,103 @@ namespace argos {
   /****************************************/
   /****************************************/
 
+  void CWebviz::HandleCommandFromClient(
+    const std::string& str_ip, nlohmann::json c_json_command) {
+    if (c_json_command.contains("command")) {
+      /* Try to get Command key from the JSON */
+      std::string strCmd = c_json_command["command"].get<std::string>();
+
+      /* Dispatch commands */
+      if (strCmd.compare("play") == 0) {
+        PlayExperiment();
+
+      } else if (strCmd.compare("pause") == 0) {
+        PauseExperiment();
+
+      } else if (strCmd.compare("step") == 0) {
+        StepExperiment();
+
+      } else if (strCmd.compare("reset") == 0) {
+        ResetExperiment();
+
+      } else if (strCmd.compare("terminate") == 0) {
+        TerminateExperiment();
+
+      } else if (strCmd.compare("fastforward") == 0) {
+        try {
+          /* number of Steps defined */
+          int16_t unSteps = c_json_command["steps"].get<int16_t>();
+
+          /* Validate steps */
+          if (1 <= unSteps && unSteps <= 1000) {
+            FastForwardExperiment(unSteps);
+          } else {
+            /* Fastforward without steps defined */
+            FastForwardExperiment();
+          }
+
+        } catch (const std::exception& _ignored) {
+          /* No steps defined */
+          FastForwardExperiment();
+        }
+
+      } else if (strCmd.compare("moveEntity") == 0) {
+        try {
+          CVector3 cNewPos;
+          CQuaternion cNewOrientation;
+
+          /* Parse Position */
+          cNewPos.SetX(c_json_command["position"]["x"].get<float_t>());
+          cNewPos.SetY(c_json_command["position"]["y"].get<float_t>());
+          cNewPos.SetZ(c_json_command["position"]["z"].get<float_t>());
+
+          /* Parse Orientation */
+          cNewOrientation.SetX(
+            c_json_command["orientation"]["x"].get<float_t>());
+          cNewOrientation.SetY(
+            c_json_command["orientation"]["y"].get<float_t>());
+          cNewOrientation.SetZ(
+            c_json_command["orientation"]["z"].get<float_t>());
+          cNewOrientation.SetW(
+            c_json_command["orientation"]["w"].get<float_t>());
+
+          MoveEntity(
+            c_json_command["entity_id"].get<std::string>(),
+            cNewPos,
+            cNewOrientation);
+
+        } catch (const std::exception& e) {
+          LOGERR << "[ERROR] In function MoveEntity: " << e.what() << '\n';
+        }
+
+      } else {
+        /* "command" key has unknown value */
+        try {
+          m_pcUserFunctions->HandleCommandFromClient(str_ip, c_json_command);
+        } catch (const std::exception& e) {
+          LOGERR
+            << "[ERROR] Error in overridden function HandleCommandFromClient "
+               "in UserFunction subclass implementation by user\n\t"
+            << e.what() << '\n';
+        }
+      }
+
+    } else {
+      /* "command" key in the JSON doesn't exists */
+      try {
+        m_pcUserFunctions->HandleCommandFromClient(str_ip, c_json_command);
+      } catch (const std::exception& e) {
+        LOGERR
+          << "[ERROR] Error in overridden function HandleCommandFromClient "
+             "in UserFunction subclass implementation by user\n\t"
+          << e.what() << '\n';
+      }
+    }
+  }
+
+  /****************************************/
+  /****************************************/
+
   void CWebviz::PlayExperiment() {
     /* Make sure we are in the right state */
     if (
@@ -280,7 +380,7 @@ namespace argos {
       }
     }
 
-    /* If Steps are passed, and valid */
+    /* If Steps are passed, and valid else to use existing steps */
     if (1 <= un_steps && un_steps <= 1000) {
       /* Update FF steps variable */
       m_unDrawFrameEvery = un_steps;
@@ -456,11 +556,10 @@ namespace argos {
 
       if (cEntityJSON != nullptr) {
         /************* get data from User functions for entity *************/
-        const nlohmann::json& extra_data =
-          m_pcUserFunctions->Call(**itEntities);
+        const nlohmann::json& user_data = m_pcUserFunctions->Call(**itEntities);
 
-        if (!extra_data.is_null()) {
-          cEntityJSON["extra_data"] = extra_data;
+        if (!user_data.is_null()) {
+          cEntityJSON["user_data"] = user_data;
         }
 
         cStateJson["entities"].push_back(cEntityJSON);
@@ -474,10 +573,10 @@ namespace argos {
 
     /************* get data from User functions for experiment *************/
 
-    const nlohmann::json& extra_data = m_pcUserFunctions->sendExtraData();
+    const nlohmann::json& user_data = m_pcUserFunctions->sendUserData();
 
-    if (!extra_data.is_null()) {
-      cStateJson["extra_data"] = extra_data;
+    if (!user_data.is_null()) {
+      cStateJson["user_data"] = user_data;
     }
 
     /************* Add other information about experiment *************/
